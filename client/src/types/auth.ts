@@ -1,21 +1,15 @@
 import type { Role } from '../constants/roles'
 
-export const AUTH_SESSION_KEY = 'delta.auth.session'
-
-export interface AuthUser {
-  id: number
-  nombre: string
-  username: string
-  email?: string
-  rol: Role
+export interface AuthProfile {
+  id: string
+  business_id: string | null
+  full_name: string
+  role: Role
+  phone: string | null
+  avatar_url: string | null
 }
 
 export interface LoginCredentials {
-  username: string
+  email: string
   password: string
-}
-
-export interface LoginResponse {
-  token: string
-  user: AuthUser
 }

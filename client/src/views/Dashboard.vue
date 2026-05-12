@@ -1,41 +1,48 @@
 <template>
-  <div class="min-h-screen bg-slate-950">
-    <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <header class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-slate-100">
-        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Salon Workspace</p>
-        <h1 class="mt-2 text-3xl font-semibold">Bienvenido, {{ authStore.user?.nombre || authStore.user?.username }}</h1>
-        <p class="mt-2 text-sm text-slate-300">
-          Este panel esta listo para la agenda, clientes y caja del salon.
-        </p>
+  <div class="min-h-screen bg-bg">
+    <aside class="fixed left-0 top-0 h-full w-64 border-r bg-surface-elevated border-border">
+      <div class="flex h-16 items-center justify-center border-b border-border">
+        <h1 class="text-xl font-bold text-text">Salón</h1>
+      </div>
+      <nav class="p-4">
+        <p class="mb-2 text-xs uppercase tracking-wider text-text-muted">Mi espacio</p>
+        <a href="#" class="mb-1 block rounded-lg bg-primary-light px-4 py-2 text-sm text-primary transition-theme">Mi Agenda</a>
+        <a href="#" class="mb-1 block rounded-lg px-4 py-2 text-sm text-text-secondary transition-theme hover:bg-bg-secondary">Mi Historial</a>
+        <a href="#" class="mb-1 block rounded-lg px-4 py-2 text-sm text-text-secondary transition-theme hover:bg-bg-secondary">Mis Comisiones</a>
+      </nav>
+    </aside>
+
+    <main class="ml-64 p-8">
+      <header class="mb-8 rounded-2xl border border-border bg-surface p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between transition-theme">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-primary">Empleada</p>
+          <h1 class="mt-2 text-3xl font-semibold text-text">
+            Hola, {{ authStore.profile?.full_name || 'Empleada' }}
+          </h1>
+          <p class="mt-2 text-sm text-text-muted">
+            Aquí verás tus próximas citas, historial y comisiones.
+          </p>
+        </div>
         <button
           type="button"
-          class="mt-5 inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-slate-500 hover:bg-slate-700"
+          class="mt-5 sm:mt-0 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover"
           @click="logout"
         >
-          Cerrar sesion
+          Cerrar sesión
         </button>
       </header>
 
-      <section class="mt-8 grid gap-4 md:grid-cols-3">
-        <article class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 text-slate-100">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Agenda</p>
-          <p class="mt-2 text-sm text-slate-300">Configura horarios, turnos y citas.</p>
-        </article>
-        <article class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 text-slate-100">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Clientes</p>
-          <p class="mt-2 text-sm text-slate-300">Historial, preferencias y servicios.</p>
-        </article>
-        <article class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 text-slate-100">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Caja</p>
-          <p class="mt-2 text-sm text-slate-300">Ventas del dia y comisiones.</p>
-        </article>
+      <!-- Agenda Calendar Component -->
+      <section class="h-[800px]">
+        <AgendaCalendar />
       </section>
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useAuth } from '../composables/useAuth'
+import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
 
 const { logout, authStore } = useAuth()
 </script>

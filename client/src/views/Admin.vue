@@ -1,274 +1,184 @@
 <template>
-  <div class="min-h-screen bg-slate-900">
-    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <header class="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-950/50 p-6 text-slate-100 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Salon Admin</p>
-          <h1 class="mt-2 text-2xl font-semibold">Panel de administracion</h1>
-          <p class="mt-1 text-sm text-slate-300">Usuarios y permisos para tu salon.</p>
+  <div class="min-h-screen bg-bg">
+    <!-- Mobile Header -->
+    <header class="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4 lg:hidden">
+      <div class="flex items-center gap-3">
+        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary">
+          <svg v-if="!isSidebarOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg v-else class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-primary to-primary-hover shadow-sm shadow-primary/20">
+          <svg class="h-5 w-5 text-text-inverse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
         </div>
-        <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Sesion</p>
-          <p class="text-sm font-semibold text-slate-100">{{ authStore.user?.nombre || authStore.user?.username }}</p>
-          <p class="text-xs text-slate-400">{{ authStore.user?.rol || 'admin' }}</p>
-          <button
-            type="button"
-            class="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 transition hover:border-slate-500 hover:bg-slate-700"
-            @click="logout"
-          >
-            Cerrar sesion
-          </button>
+        <div class="flex flex-col">
+          <span class="font-bold text-text leading-tight">Andrus</span>
+          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
         </div>
-      </header>
+      </div>
+      <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+      </button>
+    </header>
 
-      <main class="mt-6 space-y-6">
-        <AdminAlerts :error-message="errorMessage" :success-message="successMessage" :auto-creation-notice="''" />
+    <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
 
-        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <!-- Overlay for mobile sidebar -->
+    <div
+      v-if="isSidebarOpen"
+      @click="isSidebarOpen = false"
+      class="fixed inset-0 z-20 bg-black/50 lg:hidden"
+    ></div>
+
+    <!-- Main Content -->
+    <main class="ml-0 min-h-screen pt-16 lg:ml-64 lg:pt-0">
+      <div class="p-4 lg:p-6">
+        <!-- Header -->
+        <header class="mb-2 lg:mb-3">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-slate-900">Equipo del salon</h2>
-              <p class="text-sm text-slate-500">Gestiona usuarios y accesos.</p>
+              <div class="flex items-center gap-2 text-sm text-primary mb-0.5">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="font-medium uppercase tracking-wider">Agenda</span>
+              </div>
+              <h1 class="text-xl font-bold text-text lg:text-2xl">
+                Calendario de Citas
+              </h1>
+              <p class="hidden text-sm text-text-muted sm:block">
+                Gestiona las reservas de tu salón de belleza
+              </p>
             </div>
-            <div class="flex gap-2">
-              <input
-                v-model="search"
-                type="search"
-                placeholder="Buscar por nombre o usuario"
-                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-slate-900"
-              />
-              <button
-                type="button"
-                class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400"
-                :disabled="loadingEmployees"
-                @click="loadEmployees"
-              >
-                Buscar
+            
+            <div class="flex items-center gap-2 sm:gap-3">
+              <button class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary shadow-sm transition-theme hover:shadow-md hover:border-border-strong sm:px-4 sm:py-2.5">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span class="hidden sm:inline">Exportar</span>
+              </button>
+              <button class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover sm:px-5 sm:py-2.5">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span>Nueva</span>
               </button>
             </div>
           </div>
+        </header>
 
-          <div v-if="loadingEmployees" class="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
-            Cargando empleados...
+        <!-- Stats Cards -->
+        <section class="mb-2 grid grid-cols-4 gap-2 sm:gap-3 lg:mb-3 lg:grid-cols-4">
+          <div class="group relative overflow-hidden rounded-lg bg-surface p-2 shadow-sm transition-theme hover:shadow-md sm:rounded-xl sm:p-3">
+            <div class="flex items-center gap-2">
+              <div class="flex h-7 w-7 items-center justify-center rounded-md bg-primary-light text-primary sm:h-9 sm:w-9 sm:rounded-lg">
+                <svg class="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-base font-bold text-text sm:text-lg">12</p>
+                <p class="text-[10px] text-text-muted sm:text-xs">Citas Hoy</p>
+              </div>
+            </div>
+            <div class="mt-1 flex items-center gap-1 text-[10px] sm:text-xs">
+              <span class="flex items-center text-success">
+                <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                </svg>
+                +3
+              </span>
+              <span class="text-text-muted">vs ayer</span>
+            </div>
           </div>
 
-          <div v-else class="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-200">
-            <div v-if="!employees.length" class="p-4 text-sm text-slate-500">
-              No hay empleados registrados.
-            </div>
-            <div
-              v-for="employee in employees"
-              :key="employee.employeeId"
-              class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
-            >
+          <div class="group relative overflow-hidden rounded-lg bg-surface p-2 shadow-sm transition-theme hover:shadow-md sm:rounded-xl sm:p-3">
+            <div class="flex items-center gap-2">
+              <div class="flex h-7 w-7 items-center justify-center rounded-md bg-warning-light text-warning sm:h-9 sm:w-9 sm:rounded-lg">
+                <svg class="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
               <div>
-                <p class="text-sm font-semibold text-slate-900">{{ employee.nombre }}</p>
-                <p class="text-xs text-slate-500">{{ employee.username }}</p>
-                <p v-if="employee.position" class="text-xs text-slate-500">{{ employee.position }}</p>
+                <p class="text-base font-bold text-text sm:text-lg">4</p>
+                <p class="text-[10px] text-text-muted sm:text-xs">Pendientes</p>
               </div>
-              <div class="flex gap-2">
-                <button
-                  type="button"
-                  class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
-                  @click="openChangePassword(employee)"
-                >
-                  Cambiar clave
-                </button>
-                <button
-                  type="button"
-                  class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50"
-                  @click="openDeleteEmployee(employee)"
-                >
-                  Eliminar
-                </button>
+            </div>
+            <div class="mt-1 text-[10px] text-text-muted sm:text-xs">
+              Por confirmar
+            </div>
+          </div>
+
+          <div class="group relative overflow-hidden rounded-lg bg-surface p-2 shadow-sm transition-theme hover:shadow-md sm:rounded-xl sm:p-3">
+            <div class="flex items-center gap-2">
+              <div class="flex h-7 w-7 items-center justify-center rounded-md bg-success-light text-success sm:h-9 sm:w-9 sm:rounded-lg">
+                <svg class="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
+              <div>
+                <p class="text-base font-bold text-text sm:text-lg">8</p>
+                <p class="text-[10px] text-text-muted sm:text-xs">Confirmadas</p>
+              </div>
+            </div>
+            <div class="mt-1 flex items-center gap-1 text-[10px] sm:text-xs">
+              <span class="flex items-center text-success">
+                <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                </svg>
+                67%
+              </span>
+              <span class="text-text-muted">del total</span>
+            </div>
+          </div>
+
+          <div class="group relative overflow-hidden rounded-lg bg-surface p-2 shadow-sm transition-theme hover:shadow-md sm:rounded-xl sm:p-3">
+            <div class="flex items-center gap-2">
+              <div class="flex h-7 w-7 items-center justify-center rounded-md bg-info-light text-info sm:h-9 sm:w-9 sm:rounded-lg">
+                <svg class="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-base font-bold text-text sm:text-lg">$850</p>
+                <p class="text-[10px] text-text-muted sm:text-xs">Estimado Hoy</p>
+              </div>
+            </div>
+            <div class="mt-1 flex items-center gap-1 text-[10px] sm:text-xs">
+              <span class="flex items-center text-success">
+                <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                </svg>
+                +12%
+              </span>
+              <span class="text-text-muted">vs ayer</span>
             </div>
           </div>
         </section>
 
-        <AdminCreateUserSection
-          :employee-form="employeeForm"
-          :creating-employee="creatingEmployee"
-          :can-create-superadmin="isSuperadmin"
-          @update:employee-form="updateEmployeeForm"
-          @create-user="crearEmpleadoYRecargar"
-          @clear-form="limpiarFormularioEmpleado"
-        />
-
-        <AdminPrivilegedUsersSection
-          v-if="isSuperadmin"
-          :users="privilegedUsers"
-          :loading="loadingPrivilegedUsers"
-          :deleting-user-id="deletingPrivilegedUserId"
-          @delete-user="solicitarEliminarPrivilegedUser"
-        />
-      </main>
-
-      <AdminConfirmCard
-        :visible="confirmDeleteEmployeeVisible"
-        title="Eliminar empleado"
-        :description="confirmDeleteEmployeeText"
-        confirm-label="Eliminar"
-        :danger="true"
-        :loading="modalActionLoading"
-        @cancel="cerrarModalesAccion"
-        @confirm="confirmarEliminarEmpleado"
-      />
-
-      <AdminPasswordCard
-        :visible="changePasswordVisible"
-        :employee-name="selectedEmployeeAction?.nombre || 'Empleado'"
-        :loading="modalActionLoading"
-        @cancel="cerrarModalesAccion"
-        @confirm="confirmarCambioPassword"
-      />
-    </div>
+        <!-- Agenda Calendar Component - Altura ajustada para no solaparse -->
+        <section class="h-[calc(100vh-280px)] min-h-[400px] sm:h-[calc(100vh-300px)] lg:h-[calc(100vh-260px)]">
+          <AgendaCalendar />
+        </section>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
-import AdminAlerts from '../components/admin/AdminAlerts.vue'
-import AdminConfirmCard from '../components/admin/AdminConfirmCard.vue'
-import AdminCreateUserSection from '../components/admin/AdminCreateUserSection.vue'
-import AdminPasswordCard from '../components/admin/AdminPasswordCard.vue'
-import AdminPrivilegedUsersSection from '../components/admin/AdminPrivilegedUsersSection.vue'
-import { getEmployeesAdmin, type AdminEmployeeDirectoryItem } from '../api/admin'
-import { useAdminUserManagement } from '../composables/useAdminUserManagement'
+import { ref } from 'vue'
 import { useAuth } from '../composables/useAuth'
-import { ROLES } from '../constants/roles'
+import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
+import Sidebar from '../components/layout/Sidebar.vue'
 
-const { logout, authStore } = useAuth()
-const isSuperadmin = computed(() => authStore.user?.rol === ROLES.SUPERADMIN)
-
-const errorMessage = ref('')
-const successMessage = ref('')
-
-const limpiarMensajes = () => {
-  errorMessage.value = ''
-  successMessage.value = ''
-}
-
-const setErrorMessage = (message: string) => {
-  errorMessage.value = message
-}
-
-const setSuccessMessage = (message: string) => {
-  successMessage.value = message
-}
-
-const search = ref('')
-
-const employeesQuery = useQuery({
-  queryKey: computed(() => ['admin', 'employees', search.value.trim()]),
-  queryFn: () => getEmployeesAdmin(search.value),
-  onError: () => {
-    setErrorMessage('No fue posible cargar los empleados.')
-  },
-})
-
-const employees = computed<AdminEmployeeDirectoryItem[]>(() => employeesQuery.data.value ?? [])
-const loadingEmployees = computed(
-  () => employeesQuery.isLoading.value || employeesQuery.isFetching.value,
-)
-
-const loadEmployees = async () => {
-  limpiarMensajes()
-  await employeesQuery.refetch()
-}
-
-const {
-  employeeForm,
-  creatingEmployee,
-  privilegedUsers,
-  loadingPrivilegedUsers,
-  deletingPrivilegedUserId,
-  updateEmployeeForm,
-  limpiarFormularioEmpleado,
-  crearEmpleado,
-  cambiarPasswordDesdeMenu,
-  eliminarEmpleadoDesdeMenu,
-  eliminarPrivilegedUserDesdeMenu,
-} = useAdminUserManagement({
-  isSuperadmin: isSuperadmin.value,
-  limpiarMensajes,
-  setSuccessMessage,
-  setErrorMessage,
-})
-
-const selectedEmployeeAction = ref<AdminEmployeeDirectoryItem | null>(null)
-const confirmDeleteEmployeeVisible = ref(false)
-const changePasswordVisible = ref(false)
-const modalActionLoading = ref(false)
-
-const confirmDeleteEmployeeText = computed(() => {
-  const name = selectedEmployeeAction.value?.nombre || 'este empleado'
-  return `Esta accion eliminara al usuario ${name}.`
-})
-
-const openDeleteEmployee = (employee: AdminEmployeeDirectoryItem) => {
-  selectedEmployeeAction.value = employee
-  confirmDeleteEmployeeVisible.value = true
-}
-
-const openChangePassword = (employee: AdminEmployeeDirectoryItem) => {
-  selectedEmployeeAction.value = employee
-  changePasswordVisible.value = true
-}
-
-const cerrarModalesAccion = () => {
-  confirmDeleteEmployeeVisible.value = false
-  changePasswordVisible.value = false
-  modalActionLoading.value = false
-}
-
-const confirmarEliminarEmpleado = async () => {
-  if (!selectedEmployeeAction.value) {
-    return
-  }
-
-  modalActionLoading.value = true
-
-  try {
-    await eliminarEmpleadoDesdeMenu({
-      employeeId: selectedEmployeeAction.value.employeeId,
-      nombre: selectedEmployeeAction.value.nombre,
-    })
-    await loadEmployees()
-  } finally {
-    modalActionLoading.value = false
-    confirmDeleteEmployeeVisible.value = false
-  }
-}
-
-const confirmarCambioPassword = async (password: string) => {
-  if (!selectedEmployeeAction.value) {
-    return
-  }
-
-  modalActionLoading.value = true
-
-  try {
-    await cambiarPasswordDesdeMenu(
-      {
-        employeeId: selectedEmployeeAction.value.employeeId,
-        nombre: selectedEmployeeAction.value.nombre,
-      },
-      password,
-    )
-  } finally {
-    modalActionLoading.value = false
-    changePasswordVisible.value = false
-  }
-}
-
-const crearEmpleadoYRecargar = async () => {
-  await crearEmpleado()
-  await loadEmployees()
-}
-
-const solicitarEliminarPrivilegedUser = async (user: { id: number; username: string; role: 'admin' | 'superadmin' }) => {
-  await eliminarPrivilegedUserDesdeMenu(user)
-}
+const { logout } = useAuth()
+const isSidebarOpen = ref(false)
 </script>

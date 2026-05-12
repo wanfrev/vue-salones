@@ -1,67 +1,58 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { AuthUser, LoginResponse } from '../types/auth'
-import { AUTH_SESSION_KEY } from '../types/auth'
+import type { Session, User } from '@supabase/supabase-js'
+import type { Role } from '../constants/roles'
+import type { AuthProfile } from '../types/auth'
 
-interface AuthSession {
-  token: string
-  user: AuthUser
-}
+// ============================================================
+// MODO MOCK/OFFLINE — No requiere Supabase configurado.
+// Para reactivar la autenticación real, restaurar los imports
+// de supabase e isRole y reemplazar el cuerpo del store.
+// ============================================================
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string>('')
-  const user = ref<AuthUser | null>(null)
+  const user = ref<User | null>({ id: 'mock-id', email: 'admin@demo.com' } as any)
+  const session = ref<Session | null>({ access_token: 'mock-token', user: {} } as any)
+  const profile = ref<AuthProfile | null>({
+    id: 'mock-id',
+    business_id: '00000000-0000-0000-0000-000000000001',
+    full_name: 'Admin de Prueba (Offline)',
+    role: 'admin',
+    phone: null,
+    avatar_url: null,
+  })
+  const initialized = ref(true)
+  const loading = ref(false)
 
-  const isAuthenticated = computed(() => Boolean(token.value))
+  const isAuthenticated = computed(() => true)
+  const role = computed<Role | null>(() => profile.value?.role ?? null)
+  const businessId = computed(() => profile.value?.business_id ?? null)
 
-  const persist = () => {
-    if (!token.value || !user.value) {
-      localStorage.removeItem(AUTH_SESSION_KEY)
-      return
-    }
-
-    const payload: AuthSession = {
-      token: token.value,
-      user: user.value,
-    }
-
-    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(payload))
+  const initialize = async () => {
+    initialized.value = true
   }
 
-  const setSession = ({ token: newToken, user: newUser }: LoginResponse) => {
-    token.value = newToken
-    user.value = newUser
-    persist()
+  const signIn = async (_email: string, _password: string) => {
+    loading.value = true
+    await new Promise(r => setTimeout(r, 300))
+    loading.value = false
   }
 
-  const clearSession = () => {
-    token.value = ''
-    user.value = null
-    persist()
-  }
-
-  const hydrate = () => {
-    const raw = localStorage.getItem(AUTH_SESSION_KEY)
-
-    if (!raw) {
-      return
-    }
-
-    try {
-      const session = JSON.parse(raw) as AuthSession
-      token.value = session.token
-      user.value = session.user
-    } catch {
-      clearSession()
-    }
+  const signOut = async () => {
+    // No-op en modo mock
   }
 
   return {
-    token,
     user,
+    session,
+    profile,
+    initialized,
+    loading,
     isAuthenticated,
-    setSession,
-    clearSession,
-    hydrate,
+    role,
+    businessId,
+    initialize,
+    signIn,
+    signOut,
   }
 })

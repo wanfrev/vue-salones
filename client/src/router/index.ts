@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../store/auth'
 import LoginView from '../views/Login.vue'
 import DashboardView from '../views/Dashboard.vue'
 import AdminView from '../views/Admin.vue'
-import { resolveHomeByRole, ROLES } from '../constants/roles'
+import ClientesView from '../views/Clientes.vue'
+import FinanzasView from '../views/Finanzas.vue'
+import EquipoView from '../views/Equipo.vue'
+import ServiciosView from '../views/Servicios.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -17,37 +19,37 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
-      meta: { requiresAuth: true, roles: [ROLES.EMPLEADO] },
     },
     {
       path: '/admin',
       name: 'admin',
       component: AdminView,
-      meta: { requiresAuth: true, roles: [ROLES.ADMIN, ROLES.SUPERADMIN] },
+    },
+    {
+      path: '/clientes',
+      name: 'clientes',
+      component: ClientesView,
+    },
+    {
+      path: '/finanzas',
+      name: 'finanzas',
+      component: FinanzasView,
+    },
+    {
+      path: '/equipo',
+      name: 'equipo',
+      component: EquipoView,
+    },
+    {
+      path: '/servicios',
+      name: 'servicios',
+      component: ServiciosView,
     },
   ],
 })
 
-router.beforeEach((to) => {
-  const authStore = useAuthStore()
-  const requiresAuth = to.meta.requiresAuth === true
-  const requiredRoles = Array.isArray(to.meta.roles) ? to.meta.roles : undefined
-  const userRole = authStore.user?.rol
-  const homeByRole = resolveHomeByRole(userRole)
-
-  if (to.path === '/' && authStore.isAuthenticated) {
-    return homeByRole
-  }
-
-  if (requiresAuth && !authStore.isAuthenticated) {
-    return '/'
-  }
-
-  if (requiredRoles && (!userRole || !requiredRoles.includes(userRole))) {
-    return homeByRole
-  }
-
-  return true
-})
+// Guards desactivados en modo mock/offline.
+// Para reactivarlos cuando esté Supabase configurado, restaurar la lógica
+// con authStore.initialize() y las comprobaciones de rol.
 
 export default router
