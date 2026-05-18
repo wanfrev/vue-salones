@@ -1,79 +1,75 @@
 <template>
-  <div class="flex h-full flex-col gap-2 sm:gap-3">
-    <!-- Panel de Filtros Compacto - Responsive -->
-    <div class="flex flex-col gap-2 rounded-lg border border-border bg-surface p-2 shadow-sm sm:rounded-xl sm:p-3 sm:gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <!-- Filtro de Empleado y Búsqueda -->
+  <div class="flex h-full flex-col gap-3">
+    <!-- Panel de Filtros -->
+    <div class="flex flex-col gap-2 rounded-lg border border-border bg-surface p-2.5 sm:rounded-xl sm:p-3 sm:gap-2.5 lg:flex-row lg:items-center lg:justify-between">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div v-if="isAdmin" class="flex items-center gap-2">
-          <label class="text-xs font-semibold text-primary hidden sm:inline">Filtrar:</label>
           <div class="relative">
             <select
               id="employee-filter"
               v-model="selectedEmployeeId"
-              class="w-full appearance-none rounded-md border border-border bg-surface pl-2 pr-8 py-1.5 text-sm font-medium text-text outline-none transition-theme focus:border-primary focus:ring-1 focus:ring-primary/20 sm:w-auto sm:rounded-lg sm:pl-3 sm:pr-10 sm:py-2"
+              class="w-full appearance-none rounded-lg border border-border bg-surface pl-3 pr-8 py-1.5 text-sm font-medium text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/15 sm:w-auto sm:pl-3.5 sm:pr-9"
               :disabled="loadingEmployees"
             >
-              <option value="all">Todos</option>
+              <option value="all">Todas</option>
               <option v-for="emp in employees" :key="emp.id" :value="emp.id">
                 {{ emp.full_name }}
               </option>
             </select>
-            <div class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-primary">
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted">
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </div>
           </div>
         </div>
         <div v-else class="flex items-center gap-2">
-          <div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary-light">
-            <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          <div class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+            <svg class="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
           <span class="text-sm font-medium text-text">{{ authStore.profile?.full_name }}</span>
         </div>
 
-        <!-- Separador -->
-        <div v-if="isAdmin" class="hidden h-6 w-px bg-border sm:block"></div>
+        <div class="hidden h-5 w-px bg-border sm:block"></div>
 
-        <!-- Búsqueda rápida -->
-        <div class="relative w-full sm:w-auto">
+        <div class="relative w-full sm:w-48 lg:w-56">
           <input
             type="text"
-            placeholder="Buscar cita..."
-            class="w-full rounded-md border border-border bg-surface pl-8 pr-2 py-1.5 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 sm:w-44 sm:rounded-lg sm:pl-9 sm:pr-3 sm:py-2 lg:w-56"
+            placeholder="Buscar..."
+            class="w-full rounded-lg border border-border bg-surface pl-8 pr-3 py-1.5 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15"
           />
           <div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
         </div>
       </div>
 
-      <!-- Leyenda de Estados Compacta -->
-      <div class="flex flex-wrap items-center gap-1">
-        <div class="flex items-center gap-1 rounded bg-primary-light px-1.5 py-1 transition-theme hover:bg-primary/10 sm:px-2">
-          <span class="h-2 w-2 rounded-full bg-primary"></span>
-          <span class="text-[10px] font-medium text-text hidden sm:inline sm:text-xs">Confirmada</span>
+      <!-- Leyenda de Estados -->
+      <div class="flex flex-wrap items-center gap-1.5">
+        <div class="flex items-center gap-1.5 rounded-md bg-primary/5 px-2 py-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+          <span class="text-[11px] font-medium text-text-secondary">Confirmada</span>
         </div>
-        <div class="flex items-center gap-1 rounded bg-bg-secondary px-1.5 py-1 transition-theme hover:bg-border sm:px-2">
-          <span class="h-2 w-2 rounded-full bg-text-secondary"></span>
-          <span class="text-[10px] font-medium text-text hidden sm:inline sm:text-xs">Completada</span>
+        <div class="flex items-center gap-1.5 rounded-md bg-text-secondary/5 px-2 py-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-text-secondary"></span>
+          <span class="text-[11px] font-medium text-text-secondary">Completada</span>
         </div>
-        <div class="flex items-center gap-1 rounded bg-warning-light px-1.5 py-1 transition-theme hover:bg-warning/10 sm:px-2">
-          <span class="h-2 w-2 rounded-full bg-warning"></span>
-          <span class="text-[10px] font-medium text-text hidden sm:inline sm:text-xs">Pendiente</span>
+        <div class="flex items-center gap-1.5 rounded-md bg-warning/5 px-2 py-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-warning"></span>
+          <span class="text-[11px] font-medium text-text-secondary">Pendiente</span>
         </div>
-        <div class="flex items-center gap-1 rounded bg-surface px-1.5 py-1 transition-theme hover:bg-bg-secondary sm:px-2">
-          <span class="h-2 w-2 rounded-full bg-border-strong border border-border-strong"></span>
-          <span class="text-[10px] font-medium text-text hidden sm:inline sm:text-xs">Libre</span>
+        <div class="flex items-center gap-1.5 rounded-md bg-danger/5 px-2 py-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-danger"></span>
+          <span class="text-[11px] font-medium text-text-secondary">Cancelada</span>
         </div>
       </div>
     </div>
 
-    <!-- Calendario - Altura máxima -->
+    <!-- Calendario -->
     <div class="flex-1 overflow-hidden rounded-lg border border-border bg-surface shadow-sm sm:rounded-xl">
       <FullCalendar ref="calendarRef" :options="calendarOptions" class="h-full" />
     </div>
@@ -114,7 +110,6 @@ onMounted(() => {
   }
 })
 
-// Mapear el estado a un color usando variables CSS
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'confirmed': return 'var(--color-primary)'
@@ -137,11 +132,27 @@ const getStatusLabel = (status: string) => {
   }
 }
 
-// Generar los eventos para FullCalendar
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'confirmed': return 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+    case 'completed': return 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+    case 'pending': return 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+    case 'cancelled':
+    case 'no_show': return 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
+    default: return 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+  }
+}
+
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: 'pending', label: 'Pendiente' },
+  { value: 'confirmed', label: 'Confirmada' },
+  { value: 'completed', label: 'Completada' },
+  { value: 'cancelled', label: 'Cancelada' },
+]
+
 const calendarEvents = computed<EventInput[]>(() => {
   const events: EventInput[] = []
 
-  // 1. Agregar horarios libres como background events
   if (schedules.value) {
     schedules.value.forEach(sched => {
       events.push({
@@ -150,19 +161,19 @@ const calendarEvents = computed<EventInput[]>(() => {
         startTime: sched.start_time,
         endTime: sched.end_time,
         display: 'background',
-        color: 'var(--color-border-strong)',
+        color: 'var(--color-bg-secondary)',
       })
     })
   }
 
-  // 2. Agregar citas
   if (appointments.value) {
     appointments.value.forEach(appt => {
       const service = services.value?.find(s => s.id === appt.service_id)
       const employee = employees.value?.find(e => e.id === appt.employee_id)
-      
-      const title = service ? service.name : 'Cita'
-      const empName = employee ? ` - ${employee.full_name}` : ''
+      const clientName = appt.clients?.full_name || ''
+
+      const title = clientName ? `${clientName}` : (service ? service.name : 'Cita')
+      const empName = employee ? ` · ${employee.full_name}` : ''
 
       events.push({
         id: appt.id,
@@ -175,8 +186,10 @@ const calendarEvents = computed<EventInput[]>(() => {
           ...appt,
           serviceName: service?.name,
           employeeName: employee?.full_name,
+          clientName,
           statusLabel: getStatusLabel(appt.status),
           statusColor: getStatusColor(appt.status),
+          statusIcon: getStatusIcon(appt.status),
         }
       })
     })
@@ -200,26 +213,43 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   selectMirror: true,
   events: calendarEvents.value,
   eventContent: (arg) => {
-    const statusLabel = (arg.event.extendedProps as any)?.statusLabel || ''
-    const statusColor = (arg.event.extendedProps as any)?.statusColor || 'var(--color-primary)'
+    const extProps = arg.event.extendedProps as any
+    const statusLabel = extProps?.statusLabel || ''
+    const statusColor = extProps?.statusColor || 'var(--color-primary)'
+    const statusIcon = extProps?.statusIcon || ''
     const timeText = arg.timeText
     const titleText = arg.event.title
+    const isMonthView = arg.view.type === 'dayGridMonth'
 
     const container = document.createElement('div')
-    container.className = 'agenda-event-inner'
+    container.className = isMonthView ? 'agenda-event-inner agenda-month-view' : 'agenda-event-inner'
 
     const topRow = document.createElement('div')
     topRow.className = 'agenda-event-top'
+    topRow.setAttribute('data-action', 'toggle-status-dropdown')
 
     const dot = document.createElement('span')
     dot.className = 'agenda-event-dot'
     dot.style.background = statusColor
+
+    const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    iconSvg.setAttribute('viewBox', '0 0 24 24')
+    iconSvg.setAttribute('fill', 'none')
+    iconSvg.setAttribute('stroke', 'currentColor')
+    iconSvg.setAttribute('stroke-width', '2')
+    iconSvg.setAttribute('stroke-linecap', 'round')
+    iconSvg.setAttribute('stroke-linejoin', 'round')
+    iconSvg.classList.add('agenda-event-status-icon')
+    const iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+    iconPath.setAttribute('d', statusIcon)
+    iconSvg.appendChild(iconPath)
 
     const status = document.createElement('span')
     status.className = 'agenda-event-status'
     status.textContent = statusLabel
 
     topRow.appendChild(dot)
+    topRow.appendChild(iconSvg)
     topRow.appendChild(status)
 
     const title = document.createElement('div')
@@ -232,14 +262,25 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
     container.appendChild(topRow)
     container.appendChild(title)
-    container.appendChild(time)
+    if (!isMonthView) {
+      container.appendChild(time)
+    }
 
     return { domNodes: [container] }
   },
   datesSet: (arg) => {
     setDateRange(arg.start, arg.end)
   },
+  slotDuration: '00:15:00',
+  slotLabelInterval: '01:00',
+  expandRows: true,
+  handleWindowResize: true,
+  windowResizeDelay: 100,
   eventClick: (arg) => {
+    const target = (arg.jsEvent?.target as HTMLElement)
+    if (target?.closest('[data-action="toggle-status-dropdown"]') || target?.closest('.agenda-status-dropdown')) {
+      return
+    }
     emit('eventClick', {
       id: arg.event.id,
       title: arg.event.title,
@@ -255,47 +296,115 @@ const calendarOptions = computed<CalendarOptions>(() => ({
       el.setAttribute('data-status', status)
     }
 
-    const actions = document.createElement('div')
-    actions.className = 'agenda-event-actions'
+    const statusBadge = el.querySelector('[data-action="toggle-status-dropdown"]') as HTMLElement
+    if (!statusBadge) return
 
-    const pending = document.createElement('button')
-    pending.className = 'agenda-event-action agenda-event-pending'
-    pending.title = 'Marcar pendiente'
-    pending.addEventListener('click', (e) => {
+    let dropdown: HTMLElement | null = null
+
+    const openDropdown = () => {
+      if (dropdown) {
+        closeDropdown()
+        return
+      }
+
+      dropdown = document.createElement('div')
+      dropdown.className = 'agenda-status-dropdown'
+
+      STATUS_OPTIONS.forEach(opt => {
+        const item = document.createElement('button')
+        item.className = 'agenda-status-option'
+        item.setAttribute('data-status-value', opt.value)
+
+        const itemDot = document.createElement('span')
+        itemDot.className = 'agenda-status-option-dot'
+        itemDot.style.background = getStatusColor(opt.value)
+
+        const itemIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+        itemIcon.setAttribute('viewBox', '0 0 24 24')
+        itemIcon.setAttribute('fill', 'none')
+        itemIcon.setAttribute('stroke', 'currentColor')
+        itemIcon.setAttribute('stroke-width', '2')
+        itemIcon.setAttribute('stroke-linecap', 'round')
+        itemIcon.setAttribute('stroke-linejoin', 'round')
+        itemIcon.classList.add('agenda-status-option-icon')
+        const itemPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+        itemPath.setAttribute('d', getStatusIcon(opt.value))
+        itemIcon.appendChild(itemPath)
+
+        const itemLabel = document.createElement('span')
+        itemLabel.className = 'agenda-status-option-label'
+        itemLabel.textContent = opt.label
+
+        if (status === opt.value) {
+          item.classList.add('agenda-status-option-active')
+          const checkIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+          checkIcon.setAttribute('viewBox', '0 0 24 24')
+          checkIcon.setAttribute('fill', 'none')
+          checkIcon.setAttribute('stroke', 'currentColor')
+          checkIcon.setAttribute('stroke-width', '2.5')
+          checkIcon.setAttribute('stroke-linecap', 'round')
+          checkIcon.setAttribute('stroke-linejoin', 'round')
+          checkIcon.classList.add('agenda-status-option-check')
+          const checkPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+          checkPath.setAttribute('d', 'M5 13l4 4L19 7')
+          checkIcon.appendChild(checkPath)
+          item.appendChild(itemDot)
+          item.appendChild(itemIcon)
+          item.appendChild(itemLabel)
+          item.appendChild(checkIcon)
+        } else {
+          item.appendChild(itemDot)
+          item.appendChild(itemIcon)
+          item.appendChild(itemLabel)
+        }
+
+        item.addEventListener('click', (e) => {
+          e.stopPropagation()
+          emit('statusChange', { id: info.event.id, status: opt.value as any })
+          closeDropdown()
+        })
+
+        dropdown!.appendChild(item)
+      })
+
+      el.style.position = 'relative'
+      el.appendChild(dropdown)
+    }
+
+    const closeDropdown = () => {
+      if (dropdown) {
+        dropdown.remove()
+        dropdown = null
+      }
+    }
+
+    statusBadge.addEventListener('click', (e) => {
       e.stopPropagation()
-      emit('statusChange', { id: info.event.id, status: 'pending' })
+      openDropdown()
     })
 
-    const confirmed = document.createElement('button')
-    confirmed.className = 'agenda-event-action agenda-event-confirmed'
-    confirmed.title = 'Marcar confirmada'
-    confirmed.addEventListener('click', (e) => {
-      e.stopPropagation()
-      emit('statusChange', { id: info.event.id, status: 'confirmed' })
+    const closeOnOutsideClick = (e: MouseEvent) => {
+      if (dropdown && !el.contains(e.target as Node)) {
+        closeDropdown()
+      }
+    }
+    document.addEventListener('click', closeOnOutsideClick)
+
+    const cleanup = () => {
+      document.removeEventListener('click', closeOnOutsideClick)
+    }
+    el.addEventListener('mouseleave', () => {
+      closeDropdown()
     })
 
-    const cancelled = document.createElement('button')
-    cancelled.className = 'agenda-event-action agenda-event-cancelled'
-    cancelled.title = 'Cancelar'
-    cancelled.addEventListener('click', (e) => {
-      e.stopPropagation()
-      emit('statusChange', { id: info.event.id, status: 'cancelled' })
+    const observer = new MutationObserver(() => {
+      if (!document.contains(el)) {
+        closeDropdown()
+        observer.disconnect()
+        cleanup()
+      }
     })
-
-    const completed = document.createElement('button')
-    completed.className = 'agenda-event-action agenda-event-completed'
-    completed.title = 'Marcar completada'
-    completed.addEventListener('click', (e) => {
-      e.stopPropagation()
-      emit('statusChange', { id: info.event.id, status: 'completed' })
-    })
-
-    actions.appendChild(confirmed)
-    actions.appendChild(pending)
-    actions.appendChild(completed)
-    actions.appendChild(cancelled)
-
-    el.appendChild(actions)
+    observer.observe(document.body, { childList: true, subtree: true })
   },
   select: (arg) => {
     console.log('Rango seleccionado:', arg.start, arg.end)
@@ -311,48 +420,44 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 </script>
 
 <style>
-/* FullCalendar con soporte para Dark Mode usando variables CSS */
 .fc {
   font-family: var(--font-sans);
   color: var(--color-text);
 }
 
-/* Toolbar modernizado */
 .fc .fc-toolbar.fc-header-toolbar {
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 0.25rem 0;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.5rem 0;
 }
 
 @media (min-width: 640px) {
   .fc .fc-toolbar.fc-header-toolbar {
-    margin-bottom: 1rem;
-    padding: 0.75rem 0.5rem 0;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem 0.75rem 0;
   }
 }
 
 @media (min-width: 1024px) {
   .fc .fc-toolbar.fc-header-toolbar {
-    margin-bottom: 1.25rem;
-    padding: 1rem 1rem 0;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem 0;
   }
 }
 
-/* Toolbar responsive */
 .fc .fc-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .fc .fc-toolbar-chunk {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.25rem;
 }
 
-/* Distribución en desktop */
 @media (min-width: 640px) {
   .fc .fc-toolbar {
     flex-wrap: nowrap;
@@ -374,15 +479,14 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   }
 }
 
-/* Distribución en móvil */
 @media (max-width: 639px) {
   .fc .fc-toolbar {
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.375rem;
   }
   
   .fc .fc-toolbar-chunk {
-    gap: 0.25rem;
+    gap: 0.2rem;
   }
   
   .fc .fc-toolbar-chunk:first-child {
@@ -404,46 +508,57 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   }
 }
 
-/* Botones del calendario usando variables */
 .fc .fc-button-primary {
-  background: var(--color-primary) !important;
-  border: 1px solid var(--color-primary) !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
   border-radius: 0.5rem !important;
-  padding: 0.375rem 0.5rem !important;
+  padding: 0.3rem 0.5rem !important;
   font-weight: 500 !important;
-  font-size: 0.75rem !important;
-  box-shadow: var(--shadow-sm) !important;
-  transition: all 0.2s ease !important;
+  font-size: 0.7rem !important;
+  color: var(--color-text-secondary) !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease !important;
 }
 
 @media (min-width: 640px) {
   .fc .fc-button-primary {
-    border-radius: 0.75rem !important;
-    padding: 0.5rem 1rem !important;
-    font-size: 0.875rem !important;
+    border-radius: 0.5rem !important;
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.75rem !important;
   }
 }
 
 .fc .fc-button-primary:hover {
-  background: var(--color-primary-hover) !important;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md) !important;
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--color-border-strong) !important;
+  color: var(--color-text) !important;
 }
 
 .fc .fc-button-primary:not(:disabled):active,
 .fc .fc-button-primary:not(:disabled).fc-button-active {
-  background: var(--color-primary-hover) !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
+  box-shadow: none !important;
 }
 
 .fc .fc-button-primary:disabled {
-  opacity: 0.5 !important;
+  opacity: 0.4 !important;
 }
 
-/* Iconos de navegación */
 .fc .fc-prev-button,
 .fc .fc-next-button {
-  padding: 0.375rem !important;
+  padding: 0.3rem !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.fc .fc-prev-button:hover,
+.fc .fc-next-button:hover {
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--color-border-strong) !important;
+  color: var(--color-text) !important;
 }
 
 .fc .fc-prev-button .fc-icon,
@@ -454,21 +569,19 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 @media (min-width: 640px) {
   .fc .fc-prev-button,
   .fc .fc-next-button {
-    padding: 0.5rem 0.75rem !important;
+    padding: 0.35rem 0.5rem !important;
   }
   
   .fc .fc-prev-button .fc-icon,
   .fc .fc-next-button .fc-icon {
-    font-size: 1.25rem !important;
+    font-size: 1.125rem !important;
   }
 }
 
-/* Botón Hoy */
 .fc .fc-today-button {
   font-weight: 600 !important;
 }
 
-/* Grupo de botones de vista */
 .fc .fc-button-group {
   display: flex;
   gap: 0;
@@ -478,7 +591,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
 @media (min-width: 640px) {
   .fc .fc-button-group {
-    border-radius: 0.75rem;
+    border-radius: 0.5rem;
   }
 }
 
@@ -492,31 +605,17 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   border-bottom-left-radius: 0.5rem !important;
 }
 
-@media (min-width: 640px) {
-  .fc .fc-button-group .fc-button-primary:first-child {
-    border-top-left-radius: 0.75rem !important;
-    border-bottom-left-radius: 0.75rem !important;
-  }
-}
-
 .fc .fc-button-group .fc-button-primary:last-child {
   border-top-right-radius: 0.5rem !important;
   border-bottom-right-radius: 0.5rem !important;
 }
 
-@media (min-width: 640px) {
-  .fc .fc-button-group .fc-button-primary:last-child {
-    border-top-right-radius: 0.75rem !important;
-    border-bottom-right-radius: 0.75rem !important;
-  }
-}
-
 .fc .fc-button-group .fc-button-primary.fc-button-active {
-  background: var(--color-primary-hover) !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
 }
 
-/* Título */
 .fc .fc-toolbar-title {
   font-size: 0.875rem;
   font-weight: 700;
@@ -527,32 +626,26 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   text-overflow: ellipsis;
   max-width: 100%;
   padding: 0 0.5rem;
+  letter-spacing: -0.01em;
 }
 
 @media (min-width: 640px) {
   .fc .fc-toolbar-title {
-    font-size: 1.125rem;
+    font-size: 1rem;
     padding: 0 1rem;
   }
 }
 
 @media (min-width: 1024px) {
   .fc .fc-toolbar-title {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
   }
 }
 
-/* Grid y bordes usando variables */
 .fc-theme-standard .fc-scrollgrid {
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
-}
-
-@media (min-width: 640px) {
-  .fc-theme-standard .fc-scrollgrid {
-    border-radius: 0.75rem;
-  }
 }
 
 .fc-theme-standard .fc-scrollgrid-section > td {
@@ -561,31 +654,34 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
 .fc-theme-standard td,
 .fc-theme-standard th {
-  border-color: var(--color-border);
+  border-color: var(--color-border-subtle);
 }
 
-/* Header de días */
 .fc .fc-col-header-cell {
-  background: var(--color-bg-secondary);
+  background: transparent;
   padding: 0.5rem 0.25rem !important;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border) !important;
 }
 
 @media (min-width: 640px) {
   .fc .fc-col-header-cell {
-    padding: 0.75rem 0.5rem !important;
-    font-size: 0.875rem;
+    padding: 0.625rem 0.5rem !important;
+    font-size: 0.75rem;
   }
 }
 
 .fc .fc-col-header-cell-cushion {
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
+  text-decoration: none !important;
 }
 
-/* Celdas de tiempo */
 .fc .fc-timegrid-slot {
-  height: 3rem !important;
+  height: 2.5rem !important;
+  border-color: var(--color-border-subtle) !important;
 }
 
 @media (min-width: 640px) {
@@ -605,49 +701,53 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   color: var(--color-text-muted);
   font-weight: 500;
   vertical-align: middle;
+  border-color: var(--color-border-subtle) !important;
 }
 
 @media (min-width: 640px) {
   .fc .fc-timegrid-slot-label {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
   }
 }
 
 .fc .fc-timegrid-slot-label-cushion {
-  padding: 0.25rem;
+  padding: 0.25rem 0.5rem;
 }
 
 @media (min-width: 640px) {
   .fc .fc-timegrid-slot-label-cushion {
-    padding: 0.5rem;
+    padding: 0.375rem 0.75rem;
   }
 }
 
-/* Eventos del calendario */
+.fc .fc-timegrid-col {
+  border-color: var(--color-border-subtle) !important;
+}
+
 .fc-v-event {
   border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.25rem 0.35rem;
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.3rem 0.45rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   font-size: 0.75rem;
   font-weight: 600;
-  transition: all 0.2s ease;
-  overflow: hidden;
+  transition: all 0.15s ease;
+  overflow: visible;
   position: relative;
 }
 
 @media (min-width: 640px) {
   .fc-v-event {
     border-radius: 0.5rem;
-    padding: 0.25rem 0.5rem;
+    padding: 0.3rem 0.5rem;
     font-size: 0.8125rem;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   }
 }
 
 .fc-v-event:hover {
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .fc-v-event .fc-event-title {
@@ -665,22 +765,43 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   gap: 0.25rem;
 }
 
+.agenda-event-inner.agenda-month-view {
+  gap: 0.125rem;
+}
+
 .agenda-event-top {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  font-size: 0.6rem;
+  gap: 0.3rem;
+  font-size: 0.55rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  padding: 0.08rem 0.15rem;
+  margin: -0.08rem -0.15rem;
+  border-radius: 0.2rem;
+  transition: background 0.12s ease;
+}
+
+.agenda-event-top:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .agenda-event-dot {
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 999px;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.agenda-event-status-icon {
+  width: 0.6rem;
+  height: 0.6rem;
+  flex-shrink: 0;
+  opacity: 0.8;
 }
 
 .agenda-event-status {
@@ -688,24 +809,91 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 }
 
 .agenda-event-title {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
+  line-height: 1.25;
+}
+
+@media (min-width: 640px) {
+  .agenda-event-title {
+    font-size: 0.8125rem;
+  }
 }
 
 .agenda-event-time {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
 }
 
-.agenda-event-actions {
+.agenda-status-dropdown {
   position: absolute;
-  right: 0.25rem;
-  top: 0.25rem;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  box-shadow: var(--shadow-xl);
+  padding: 0.3rem;
+  min-width: 140px;
+  animation: agenda-dropdown-in 0.12s ease-out;
+}
+
+@keyframes agenda-dropdown-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.agenda-status-option {
   display: flex;
-  gap: 0.25rem;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.35rem 0.45rem;
+  border: none;
+  background: transparent;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.agenda-status-option:hover {
+  background: var(--color-bg-secondary);
+}
+
+.agenda-status-option-active {
+  background: var(--color-bg-secondary);
+}
+
+.agenda-status-option-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.agenda-status-option-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.agenda-status-option-label {
+  flex: 1;
+}
+
+.agenda-status-option-check {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+  color: var(--color-primary);
 }
 
 .fc-v-event::after {
@@ -713,55 +901,23 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   position: absolute;
   left: 0;
   top: 0;
-  width: 0.25rem;
+  width: 0.2rem;
   height: 100%;
-  background: rgba(255, 255, 255, 0.4);
-}
-
-.fc-v-event:hover .agenda-event-actions {
-  opacity: 1;
-}
-
-.agenda-event-action {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.agenda-event-confirmed {
-  background: var(--color-primary);
-  border-color: rgba(255, 255, 255, 0.8);
-}
-
-.agenda-event-pending {
-  background: var(--color-warning);
-  border-color: rgba(255, 255, 255, 0.8);
-}
-
-.agenda-event-cancelled {
-  background: var(--color-danger);
-  border-color: rgba(255, 255, 255, 0.8);
-}
-
-.agenda-event-completed {
-  background: var(--color-text-secondary);
-  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 0.5rem 0 0 0.5rem;
 }
 
 @media (min-width: 640px) {
   .fc-v-event .fc-event-time {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
   }
 }
 
-/* Eventos de fondo (horarios libres) */
 .fc .fc-bg-event {
-  opacity: 0.4;
+  opacity: 0.5;
+  border-radius: 0;
 }
 
-/* Efectos de selección y hover */
 .fc .fc-highlight {
   background: var(--color-primary-light) !important;
 }
@@ -771,7 +927,6 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   background: var(--color-bg);
 }
 
-/* Día actual */
 .fc .fc-day-today {
   background: var(--color-primary-light) !important;
 }
@@ -781,21 +936,20 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   font-weight: 700;
 }
 
-/* More link */
 .fc .fc-more-link {
   color: var(--color-primary);
   font-weight: 500;
   font-size: 0.625rem;
-  padding: 0.125rem 0.25rem;
+  padding: 0.1rem 0.2rem;
   border-radius: 0.25rem;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 @media (min-width: 640px) {
   .fc .fc-more-link {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.375rem;
+    font-size: 0.6875rem;
+    padding: 0.15rem 0.35rem;
+    border-radius: 0.3rem;
   }
 }
 
@@ -803,9 +957,8 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   background: var(--color-primary-light);
 }
 
-/* Popover */
 .fc .fc-popover {
-  border-radius: 0.75rem;
+  border-radius: 0.625rem;
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-xl);
   background: var(--color-surface);
@@ -814,41 +967,40 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 .fc .fc-popover-header {
   background: var(--color-primary);
   color: var(--color-text-inverse);
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem 0.625rem 0 0;
 }
 
 .fc .fc-popover-title {
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 .fc .fc-popover-body {
   background: var(--color-surface);
 }
 
-/* Vista de mes */
 .fc-daygrid-day {
-  min-height: 4rem;
+  min-height: 3.5rem;
 }
 
 @media (min-width: 640px) {
   .fc-daygrid-day {
-    min-height: 6rem;
+    min-height: 5.5rem;
   }
 }
 
 .fc-daygrid-day-number {
   font-weight: 500;
-  padding: 0.375rem;
-  font-size: 0.75rem;
+  padding: 0.3rem;
+  font-size: 0.7rem;
   color: var(--color-text);
 }
 
 @media (min-width: 640px) {
   .fc-daygrid-day-number {
-    padding: 0.5rem;
-    font-size: 0.875rem;
+    padding: 0.4rem;
+    font-size: 0.8125rem;
   }
 }
 
@@ -860,60 +1012,57 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   background: var(--color-primary);
   color: var(--color-text-inverse);
   border-radius: 50%;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.375rem;
+  height: 1.375rem;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
 }
 
 @media (min-width: 640px) {
   .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-    width: 1.75rem;
-    height: 1.75rem;
-    font-size: 0.875rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
   }
 }
 
-/* Eventos en vista de mes */
 .fc-daygrid-event {
-  border-radius: 0.25rem;
-  font-size: 0.625rem;
+  border-radius: 0.2rem;
+  font-size: 0.6rem;
   font-weight: 500;
-  padding: 0.0625rem 0.25rem;
+  padding: 0.05rem 0.2rem;
 }
 
 @media (min-width: 640px) {
   .fc-daygrid-event {
-    border-radius: 0.375rem;
-    font-size: 0.75rem;
-    padding: 0.125rem 0.375rem;
+    border-radius: 0.3rem;
+    font-size: 0.6875rem;
+    padding: 0.08rem 0.3rem;
   }
 }
 
-/* Ajustes para pantallas muy pequeñas */
 @media (max-width: 480px) {
   .fc .fc-toolbar-title {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
   
   .fc .fc-col-header-cell {
-    font-size: 0.625rem;
-    padding: 0.375rem 0.125rem !important;
+    font-size: 0.5625rem;
+    padding: 0.3rem 0.1rem !important;
   }
   
   .fc .fc-timegrid-slot-label {
-    font-size: 0.5625rem;
+    font-size: 0.5rem;
   }
   
   .fc-daygrid-day {
-    min-height: 3rem;
+    min-height: 2.5rem;
   }
 }
 
-/* Dark Mode adjustments for FullCalendar */
 .dark .fc-theme-standard .fc-scrollgrid {
   border-color: var(--color-border);
 }
@@ -924,7 +1073,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 }
 
 .dark .fc .fc-col-header-cell {
-  background: var(--color-bg-secondary);
+  background: transparent;
 }
 
 .dark .fc .fc-cell-shaded,
@@ -937,7 +1086,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 }
 
 .dark .fc-v-event {
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .dark .fc-daygrid-day-number {

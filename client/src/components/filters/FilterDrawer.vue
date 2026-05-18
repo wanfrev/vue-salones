@@ -24,13 +24,14 @@
 
       <!-- Días sin visitar -->
       <div v-if="showDaysSinceFilter" class="space-y-2">
-        <label class="text-sm font-medium text-text-secondary">Sin visitar (días)</label>
+        <label class="text-sm font-medium text-text-secondary">Ventana de inactividad</label>
         <FormInput
           v-model="localFilters.daysSinceVisit"
           type="number"
-          min="0"
+          min="1"
           placeholder="30"
           size="sm"
+          hint="Mostrar clientes que no han visitado en los últimos N días"
         />
       </div>
 
@@ -115,7 +116,7 @@ const defaultFilters: FilterState = {
   dateFrom: '',
   dateTo: '',
   sortBy: 'newest',
-  daysSinceVisit: '',
+  daysSinceVisit: '30',
 }
 
 const localFilters = ref<FilterState>({ ...defaultFilters })
@@ -125,7 +126,7 @@ const activeFiltersCount = computed(() => {
   if (localFilters.value.search) count++
   if (localFilters.value.dateFrom) count++
   if (localFilters.value.dateTo) count++
-  if (localFilters.value.daysSinceVisit && localFilters.value.daysSinceVisit !== '') count++
+  if (localFilters.value.daysSinceVisit && localFilters.value.daysSinceVisit !== '30') count++
   if (localFilters.value.sortBy !== 'newest') count++
   return count
 })

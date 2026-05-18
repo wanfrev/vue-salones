@@ -11,9 +11,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-primary to-primary-hover">
-          <svg class="h-4 w-4 text-text-inverse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+          <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         <span class="font-bold text-text">SalónApp</span>
@@ -30,30 +30,40 @@
 
     <main class="ml-0 min-h-screen pt-16 lg:ml-64 lg:pt-0">
       <div class="p-4 lg:p-6">
+        <!-- Header -->
         <header class="mb-4 lg:mb-6">
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div class="flex items-center gap-2 text-sm text-primary mb-0.5">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div class="flex items-center gap-2 text-xs text-primary mb-1">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span class="font-medium uppercase tracking-wider">Finanzas</span>
               </div>
               <h1 class="text-xl font-bold text-text lg:text-2xl">Dashboard Financiero</h1>
-              <p class="hidden text-sm text-text-muted sm:block">Resumen de ingresos y métricas</p>
+              <p class="hidden text-sm text-text-muted sm:block">Ingresos, gastos y rentabilidad del salón</p>
             </div>
-            <div class="flex gap-2">
-              <select class="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary transition-theme">
-                <option>Este Mes</option>
-                <option>Mes Pasado</option>
-                <option>Últimos 3 Meses</option>
-                <option>Este Año</option>
-              </select>
-              <button class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary">
+            <div class="flex items-center gap-2">
+              <div class="flex rounded-xl border border-border bg-surface p-1">
+                <button
+                  v-for="period in periods"
+                  :key="period.value"
+                  @click="selectedPeriod = period.value"
+                  :class="[
+                    'rounded-lg px-3 py-1.5 text-xs font-medium transition-theme',
+                    selectedPeriod === period.value
+                      ? 'bg-primary text-text-inverse'
+                      : 'text-text-secondary hover:bg-bg-secondary'
+                  ]"
+                >
+                  {{ period.label }}
+                </button>
+              </div>
+              <button class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:text-text">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Exportar
+                <span class="hidden sm:inline">Exportar</span>
               </button>
             </div>
           </div>
@@ -61,15 +71,15 @@
 
         <!-- KPI Cards -->
         <div class="mb-4 grid grid-cols-2 gap-2 sm:gap-3 lg:mb-6 lg:grid-cols-4">
-          <div class="rounded-xl bg-surface p-3 shadow-sm">
+          <div class="rounded-xl border border-border bg-surface p-3 transition-theme hover:border-border-strong">
             <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-success-light text-success">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10">
+                <svg class="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p class="text-xs text-text-muted">Ingresos del Mes</p>
+                <p class="text-xs text-text-muted">Ingresos</p>
                 <p class="text-lg font-bold text-text">$24,580</p>
               </div>
             </div>
@@ -79,15 +89,15 @@
             </div>
           </div>
 
-          <div class="rounded-xl bg-surface p-3 shadow-sm">
+          <div class="rounded-xl border border-border bg-surface p-3 transition-theme hover:border-border-strong">
             <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-warning-light text-warning">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10">
+                <svg class="h-4 w-4 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
               <div>
-                <p class="text-xs text-text-muted">Gastos del Mes</p>
+                <p class="text-xs text-text-muted">Gastos</p>
                 <p class="text-lg font-bold text-text">$8,240</p>
               </div>
             </div>
@@ -97,10 +107,10 @@
             </div>
           </div>
 
-          <div class="rounded-xl bg-surface p-3 shadow-sm">
+          <div class="rounded-xl border border-border bg-surface p-3 transition-theme hover:border-border-strong">
             <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-info-light text-info">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10">
+                <svg class="h-4 w-4 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -114,35 +124,75 @@
               <span class="text-text-muted">vs mes pasado</span>
             </div>
           </div>
+
+          <div class="rounded-xl border border-border bg-surface p-3 transition-theme hover:border-border-strong">
+            <div class="flex items-center gap-2">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-xs text-text-muted">Margen</p>
+                <p class="text-lg font-bold text-text">66.5%</p>
+              </div>
+            </div>
+            <div class="mt-2 flex items-center gap-1 text-xs">
+              <span class="text-success">↑ 4.2%</span>
+              <span class="text-text-muted">vs mes pasado</span>
+            </div>
+          </div>
         </div>
 
         <!-- Charts Section -->
         <div class="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div class="rounded-xl border border-border bg-surface p-4 shadow-sm lg:col-span-2">
-            <h3 class="mb-4 text-base font-semibold text-text">Ingresos vs Gastos</h3>
-            <div class="h-64 rounded-lg bg-linear-to-b from-bg-secondary to-surface flex items-end justify-around p-4 gap-2">
-              <div v-for="(bar, i) in chartData" :key="i" class="flex flex-col items-center gap-1 flex-1">
-                <div class="w-full flex flex-col gap-1">
+          <!-- Revenue vs Expenses Chart -->
+          <div class="rounded-xl border border-border bg-surface p-4 lg:col-span-2">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-semibold text-text">Ingresos vs Gastos</h3>
+                <p class="text-sm text-text-muted">Comparativa mensual</p>
+              </div>
+              <div class="flex items-center gap-4 text-xs">
+                <div class="flex items-center gap-1.5">
+                  <div class="h-2.5 w-2.5 rounded-full bg-success"></div>
+                  <span class="text-text-muted">Ingresos</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <div class="h-2.5 w-2.5 rounded-full bg-danger/60"></div>
+                  <span class="text-text-muted">Gastos</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex h-56 items-end justify-around gap-3 rounded-lg bg-bg-secondary/50 p-4">
+              <div v-for="(bar, i) in chartData" :key="i" class="flex flex-1 flex-col items-center gap-1">
+                <div class="flex w-full flex-col items-center gap-1">
                   <div class="w-full rounded-t bg-success transition-all" :style="{ height: bar.income + 'px' }"></div>
-                  <div class="w-full rounded-t bg-danger-light transition-all" :style="{ height: bar.expense + 'px' }"></div>
+                  <div class="w-full rounded-t bg-danger/60 transition-all" :style="{ height: bar.expense + 'px' }"></div>
                 </div>
                 <span class="text-xs text-text-muted">{{ bar.label }}</span>
               </div>
             </div>
           </div>
 
-          <div class="rounded-xl border border-border bg-surface p-4 shadow-sm">
-            <h3 class="mb-4 text-base font-semibold text-text">Ingresos por Servicio</h3>
+          <!-- Revenue by Service -->
+          <div class="rounded-xl border border-border bg-surface p-4">
+            <div class="mb-4">
+              <h3 class="text-base font-semibold text-text">Ingresos por Servicio</h3>
+              <p class="text-sm text-text-muted">Distribución del mes</p>
+            </div>
             <div class="space-y-3">
-              <div v-for="service in servicesRevenue" :key="service.name" class="flex items-center gap-3">
-                <div class="flex-1">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-sm text-text-secondary">{{ service.name }}</span>
-                    <span class="text-sm font-medium text-text">${{ service.amount }}</span>
-                  </div>
-                  <div class="h-2 w-full rounded-full bg-bg-secondary">
-                    <div class="h-2 rounded-full bg-primary" :style="{ width: service.percentage + '%' }"></div>
-                  </div>
+              <div v-for="service in servicesRevenue" :key="service.name">
+                <div class="mb-1 flex items-center justify-between">
+                  <span class="text-sm text-text-secondary">{{ service.name }}</span>
+                  <span class="text-sm font-medium text-text">${{ service.amount }}</span>
+                </div>
+                <div class="h-2 w-full rounded-full bg-bg-secondary">
+                  <div
+                    class="h-2 rounded-full transition-all"
+                    :class="service.percentage > 25 ? 'bg-primary' : 'bg-primary/60'"
+                    :style="{ width: service.percentage + '%' }"
+                  ></div>
                 </div>
               </div>
             </div>
@@ -155,18 +205,18 @@
           </div>
         </div>
 
-        <!-- Gastos del Mes -->
-        <div class="mb-4 rounded-xl border border-border bg-surface p-4 shadow-sm">
+        <!-- Expenses Table -->
+        <div class="mb-4 rounded-xl border border-border bg-surface p-4">
           <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div>
               <h3 class="text-base font-semibold text-text">Gastos del Mes</h3>
-              <p class="text-sm text-text-muted">Controla los egresos fijos y variables</p>
+              <p class="text-sm text-text-muted">Egresos fijos y variables</p>
             </div>
-            <button class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover">
+            <button class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
-              Registrar gasto
+              <span class="hidden sm:inline">Registrar gasto</span>
             </button>
           </div>
           <div class="overflow-x-auto">
@@ -180,10 +230,17 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-border-subtle">
-                <tr v-for="expense in expenses" :key="expense.id" class="text-sm">
+                <tr v-for="expense in expenses" :key="expense.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
                   <td class="py-3 text-text-secondary">{{ expense.date }}</td>
                   <td class="py-3 font-medium text-text">{{ expense.name }}</td>
-                  <td class="py-3 text-text-secondary">{{ expense.category }}</td>
+                  <td class="py-3">
+                    <span :class="[
+                      'rounded-full px-2 py-0.5 text-xs',
+                      expense.category === 'Fijos' ? 'bg-info/10 text-info' :
+                      expense.category === 'Insumos' ? 'bg-warning/10 text-warning' :
+                      'bg-primary/10 text-primary'
+                    ]">{{ expense.category }}</span>
+                  </td>
                   <td class="py-3 text-right font-medium text-text">${{ expense.amount }}</td>
                 </tr>
               </tbody>
@@ -191,8 +248,8 @@
           </div>
         </div>
 
-        <!-- Pagos a Empleados -->
-        <div class="mb-4 rounded-xl border border-border bg-surface p-4 shadow-sm">
+        <!-- Employee Payments Table -->
+        <div class="mb-4 rounded-xl border border-border bg-surface p-4">
           <div class="mb-4 flex items-center justify-between">
             <div>
               <h3 class="text-base font-semibold text-text">Pagos a Empleados</h3>
@@ -212,7 +269,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-border-subtle">
-                <tr v-for="payment in employeePayments" :key="payment.id" class="text-sm">
+                <tr v-for="payment in employeePayments" :key="payment.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
                   <td class="py-3 font-medium text-text">{{ payment.employee }}</td>
                   <td class="py-3 text-text-secondary">{{ payment.service }}</td>
                   <td class="py-3 text-right text-text">${{ payment.amount }}</td>
@@ -224,10 +281,13 @@
           </div>
         </div>
 
-        <!-- Recent Transactions -->
-        <div class="rounded-xl border border-border bg-surface p-4 shadow-sm">
+        <!-- Recent Transactions Table -->
+        <div class="rounded-xl border border-border bg-surface p-4">
           <div class="mb-4 flex items-center justify-between">
-            <h3 class="text-base font-semibold text-text">Transacciones Recientes</h3>
+            <div>
+              <h3 class="text-base font-semibold text-text">Transacciones Recientes</h3>
+              <p class="text-sm text-text-muted">Últimos pagos registrados</p>
+            </div>
             <button class="text-sm text-primary hover:text-primary-hover transition-theme">Ver todas</button>
           </div>
           <div class="overflow-x-auto">
@@ -242,16 +302,16 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-border-subtle">
-                <tr v-for="tx in transactions" :key="tx.id" class="text-sm">
+                <tr v-for="tx in transactions" :key="tx.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
                   <td class="py-3 text-text-secondary">{{ tx.date }}</td>
                   <td class="py-3 font-medium text-text">{{ tx.client }}</td>
                   <td class="py-3 text-text-secondary">{{ tx.service }}</td>
                   <td class="py-3">
                     <span :class="[
                       'rounded-full px-2 py-0.5 text-xs',
-                      tx.method === 'Efectivo' ? 'bg-success-light text-success' :
-                      tx.method === 'Tarjeta' ? 'bg-primary-light text-primary' :
-                      'bg-info-light text-info'
+                      tx.method === 'Efectivo' ? 'bg-success/10 text-success' :
+                      tx.method === 'Tarjeta' ? 'bg-primary/10 text-primary' :
+                      'bg-info/10 text-info'
                     ]">{{ tx.method }}</span>
                   </td>
                   <td class="py-3 text-right font-medium text-text">${{ tx.amount }}</td>
@@ -272,6 +332,13 @@ import Sidebar from '../components/layout/Sidebar.vue'
 
 const { logout } = useAuth()
 const isSidebarOpen = ref(false)
+
+const periods = [
+  { label: 'Mes', value: 'month' },
+  { label: 'Trimestre', value: 'quarter' },
+  { label: 'Año', value: 'year' },
+]
+const selectedPeriod = ref('month')
 
 const chartData = ref([
   { label: 'Ene', income: 80, expense: 40 },

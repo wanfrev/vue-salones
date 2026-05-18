@@ -30,38 +30,32 @@
 
     <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
 
-    <!-- Overlay for mobile sidebar -->
-    <div
-      v-if="isSidebarOpen"
-      @click="isSidebarOpen = false"
-      class="fixed inset-0 z-20 bg-black/50 lg:hidden"
-    ></div>
+    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 z-20 bg-black/50 lg:hidden"></div>
 
-    <!-- Main Content -->
     <main class="ml-0 min-h-screen pt-16 lg:ml-64 lg:pt-0">
       <div class="p-4 lg:p-6">
         <!-- Header -->
-        <header class="mb-2 lg:mb-3">
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <header class="mb-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <div class="flex items-center gap-2 text-sm text-primary mb-0.5">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary mb-1">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span class="font-medium uppercase tracking-wider">Agenda</span>
+                Agenda
               </div>
-              <h1 class="text-xl font-bold text-text lg:text-2xl">
-                Calendario de Citas
+              <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">
+                {{ todayLabel }}
               </h1>
-              <p class="hidden text-sm text-text-muted sm:block">
-                Gestiona las reservas de tu salón de belleza
+              <p class="text-sm text-text-muted">
+                {{ stats.citasHoy }} cita{{ stats.citasHoy !== 1 ? 's' : '' }} programada{{ stats.citasHoy !== 1 ? 's' : '' }} · ${{ stats.estimadoHoy }} estimado
               </p>
             </div>
             
-            <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-2">
               <button 
                 @click="handleExport"
-                class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary shadow-sm transition-theme hover:shadow-md hover:border-border-strong sm:px-4 sm:py-2.5"
+                class="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:border-border-strong"
               >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -70,108 +64,78 @@
               </button>
               <button 
                 @click="handleNewCita"
-                class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover sm:px-5 sm:py-2.5"
+                class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
               >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                <span>Nueva</span>
+                <span>Nueva cita</span>
               </button>
             </div>
           </div>
         </header>
 
         <!-- Stats Cards -->
-        <section class="mb-2 grid grid-cols-4 gap-2 sm:gap-3 lg:mb-3 lg:grid-cols-4">
-          <div class="group relative overflow-hidden rounded-lg bg-surface p-2 shadow-sm transition-theme hover:shadow-md sm:rounded-xl sm:p-3">
-            <div class="flex items-center gap-2">
-              <div class="flex h-7 w-7 items-center justify-center rounded-md bg-primary-light text-primary sm:h-9 sm:w-9 sm:rounded-lg">
-                <svg class="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        <section class="mb-4 grid grid-cols-2 gap-2 lg:mb-4 lg:grid-cols-4 lg:gap-3">
+          <div class="rounded-lg border border-border bg-surface p-3 transition-theme hover:border-border-strong sm:rounded-xl sm:p-4">
+            <div class="flex items-center gap-2.5">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary sm:h-9 sm:w-9">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               <div>
-                <p class="text-base font-bold text-text sm:text-lg">{{ stats.citasHoy }}</p>
-                <p class="text-[10px] text-text-muted sm:text-xs">Citas Hoy</p>
+                <p class="text-xl font-bold tabular-nums text-text sm:text-2xl">{{ stats.citasHoy }}</p>
+                <p class="text-xs text-text-muted">Citas hoy</p>
               </div>
-            </div>
-            <div class="mt-1 flex items-center gap-1 text-[10px] sm:text-xs">
-              <span class="flex items-center text-success">
-                <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-                +3
-              </span>
-              <span class="text-text-muted">vs ayer</span>
             </div>
           </div>
 
-          <div class="group relative overflow-hidden rounded-lg bg-surface p-2 shadow-sm transition-theme hover:shadow-md sm:rounded-xl sm:p-3">
-            <div class="flex items-center gap-2">
-              <div class="flex h-7 w-7 items-center justify-center rounded-md bg-warning-light text-warning sm:h-9 sm:w-9 sm:rounded-lg">
-                <svg class="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div class="rounded-lg border border-border bg-surface p-3 transition-theme hover:border-border-strong sm:rounded-xl sm:p-4">
+            <div class="flex items-center gap-2.5">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning sm:h-9 sm:w-9">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p class="text-base font-bold text-text sm:text-lg">{{ stats.pendientes }}</p>
-                <p class="text-[10px] text-text-muted sm:text-xs">Pendientes</p>
+                <p class="text-xl font-bold tabular-nums text-text sm:text-2xl">{{ stats.pendientes }}</p>
+                <p class="text-xs text-text-muted">Pendientes</p>
               </div>
-            </div>
-            <div class="mt-1 text-[10px] text-text-muted sm:text-xs">
-              Por confirmar
             </div>
           </div>
 
-          <div class="group relative overflow-hidden rounded-lg bg-surface p-2 shadow-sm transition-theme hover:shadow-md sm:rounded-xl sm:p-3">
-            <div class="flex items-center gap-2">
-              <div class="flex h-7 w-7 items-center justify-center rounded-md bg-success-light text-success sm:h-9 sm:w-9 sm:rounded-lg">
-                <svg class="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div class="rounded-lg border border-border bg-surface p-3 transition-theme hover:border-border-strong sm:rounded-xl sm:p-4">
+            <div class="flex items-center gap-2.5">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success sm:h-9 sm:w-9">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p class="text-base font-bold text-text sm:text-lg">{{ stats.confirmadas }}</p>
-                <p class="text-[10px] text-text-muted sm:text-xs">Confirmadas</p>
+                <p class="text-xl font-bold tabular-nums text-text sm:text-2xl">{{ stats.confirmadas }}</p>
+                <p class="text-xs text-text-muted">Confirmadas</p>
               </div>
-            </div>
-            <div class="mt-1 flex items-center gap-1 text-[10px] sm:text-xs">
-              <span class="flex items-center text-success">
-                <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-                {{ confirmacionRate }}%
-              </span>
-              <span class="text-text-muted">del total</span>
             </div>
           </div>
 
-          <div class="group relative overflow-hidden rounded-lg bg-surface p-2 shadow-sm transition-theme hover:shadow-md sm:rounded-xl sm:p-3">
-            <div class="flex items-center gap-2">
-              <div class="flex h-7 w-7 items-center justify-center rounded-md bg-info-light text-info sm:h-9 sm:w-9 sm:rounded-lg">
-                <svg class="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div class="rounded-lg border border-border bg-surface p-3 transition-theme hover:border-border-strong sm:rounded-xl sm:p-4">
+            <div class="flex items-center gap-2.5">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10 text-info sm:h-9 sm:w-9">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p class="text-base font-bold text-text sm:text-lg">${{ stats.estimadoHoy }}</p>
-                <p class="text-[10px] text-text-muted sm:text-xs">Estimado Hoy</p>
+                <p class="text-xl font-bold tabular-nums text-text sm:text-2xl">${{ stats.estimadoHoy }}</p>
+                <p class="text-xs text-text-muted">Estimado</p>
               </div>
-            </div>
-            <div class="mt-1 flex items-center gap-1 text-[10px] sm:text-xs">
-              <span class="flex items-center text-success">
-                <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-                +12%
-              </span>
-              <span class="text-text-muted">vs ayer</span>
             </div>
           </div>
         </section>
 
-        <!-- Agenda Calendar Component - Altura ajustada para no solaparse -->
-         <section class="h-[calc(100vh-280px)] min-h-[400px] sm:h-[calc(100vh-300px)] lg:h-[calc(100vh-260px)]">
+        <!-- Agenda Calendar Component -->
+         <section class="h-[calc(100vh-260px)] min-h-[400px] sm:h-[calc(100vh-280px)] lg:h-[calc(100vh-220px)]">
            <AgendaCalendar @event-click="handleEventClick" @status-change="handleStatusChange" />
          </section>
       </div>
@@ -254,7 +218,13 @@ const updateStatusMutation = useMutation({
   },
 })
 
-// Stats
+const todayLabel = computed(() => {
+  const now = new Date()
+  const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }
+  const label = now.toLocaleDateString('es-ES', options)
+  return label.charAt(0).toUpperCase() + label.slice(1)
+})
+
 const stats = computed(() => {
   const hoy = new Date().toISOString().split('T')[0]
   const citasHoy = citas.value.filter(c => c.date === hoy)
@@ -270,12 +240,6 @@ const stats = computed(() => {
   }
 })
 
-const confirmacionRate = computed(() => {
-  const hoy = citas.value.filter(c => c.date === new Date().toISOString().split('T')[0])
-  if (hoy.length === 0) return 0
-  return Math.round((hoy.filter(c => c.status === 'confirmed').length / hoy.length) * 100)
-})
-
 const serviciosList = computed(() => (serviciosData.value ?? []).map(service => ({
   id: service.id,
   name: service.name,
@@ -286,7 +250,6 @@ const empleadosList = computed(() => (empleadosData.value ?? []).map(employee =>
   name: employee.name,
 })))
 
-// Actions
 const handleNewCita = () => {
   citaModalRef.value?.open()
 }

@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/auth'
-import type { Appointment, Profile, Service } from '../types/database'
+import type { Profile, Service } from '../types/database'
 
 export const useAgenda = () => {
   const authStore = useAuthStore()
@@ -66,11 +66,11 @@ export const useAgenda = () => {
 
   const { data: appointments, isLoading: loadingAppointments, refetch: refetchAppointments } = useQuery({
     queryKey: ['appointments', businessId, selectedEmployeeId, dateRange],
-    queryFn: async (): Promise<Appointment[]> => {
+    queryFn: async (): Promise<any[]> => {
       if (!businessId.value) return []
       let query = supabase
         .from('appointments')
-        .select('*')
+        .select('*, clients(id, full_name)')
         .eq('business_id', businessId.value)
         .gte('start_time', dateRange.value.start.toISOString())
         .lte('start_time', dateRange.value.end.toISOString())
@@ -79,7 +79,7 @@ export const useAgenda = () => {
       }
       const { data, error } = await query
       if (error) throw error
-      return data as Appointment[]
+      return data as any[]
     },
     enabled: computed(() => !!businessId.value),
   })
