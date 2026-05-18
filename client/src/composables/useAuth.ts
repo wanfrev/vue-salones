@@ -11,8 +11,15 @@ export const useAuth = () => {
 
   const login = async (_email: string, _password: string) => {
     errorMessage.value = ''
-    // MOCK LOGIN: Siempre permite entrar sin validar credenciales.
-    return true
+    try {
+      await authStore.signIn(_email, _password)
+      return true
+    } catch (error) {
+      errorMessage.value = error instanceof Error
+        ? error.message
+        : 'No fue posible iniciar sesión.'
+      return false
+    }
   }
 
   const logout = async () => {

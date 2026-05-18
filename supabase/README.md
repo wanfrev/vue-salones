@@ -10,7 +10,8 @@ supabase/
 ├── migrations/
 │   ├── 20260511190000_init_schema.sql   # tablas, ENUMs, índices, triggers
 │   ├── 20260511190100_rls_policies.sql  # Row Level Security
-│   └── 20260511190200_functions.sql     # funciones públicas + financieras
+│   ├── 20260511190200_functions.sql     # funciones públicas + financieras
+│   └── 20260512143000_extend_operational_schema.sql # campos UI + ausencias
 └── seed.sql                             # negocio demo + servicios típicos
 ```
 
@@ -21,11 +22,13 @@ supabase/
 | `businesses` | Cada salón. `slug` se usa en la URL pública `/book/:slug`. |
 | `profiles` | Extiende `auth.users` con `role` (`superadmin` / `admin` / `empleado`) y `business_id`. |
 | `employee_schedules` | Horario laboral semanal por empleada (`weekday` 0=domingo). |
-| `services` | Catálogo de servicios con `duration_minutes`, `price` y `local_percentage`. |
+| `services` | Catálogo de servicios con `duration_minutes`, `price`, `category`, `icon` y `local_percentage`. |
 | `employee_services` | M:N — qué servicios ofrece cada empleada. |
-| `clients` | Clientes del salón. Único por `(business_id, phone)`. |
+| `clients` | Clientes del salón con estado, cumpleaños y notas. Único por `(business_id, phone)`. |
+| `client_preferred_services` | M:N — servicios favoritos o frecuentes de cada cliente. |
 | `appointments` | Agenda. Constraint anti-solape por empleada en `tstzrange`. |
 | `transactions` | Pagos con snapshot del split local/empleada. |
+| `employee_absences` | Vacaciones, descansos y bloqueos manuales que afectan disponibilidad. |
 
 Multi-tenant estricto: cada tabla tiene `business_id` y RLS la filtra
 usando el perfil del usuario autenticado (`auth.uid()`).
@@ -56,6 +59,7 @@ supabase db execute --file supabase/seed.sql
    - `migrations/20260511190000_init_schema.sql`
    - `migrations/20260511190100_rls_policies.sql`
    - `migrations/20260511190200_functions.sql`
+   - `migrations/20260512143000_extend_operational_schema.sql`
    - `seed.sql` (opcional)
 
 ### Opción C — Local con Docker
@@ -82,6 +86,20 @@ values (
   'superadmin'
 );
 ```
+
+Si el usuario es empleado, puedes completar su puesto visible en la app con
+`job_title`, por ejemplo `Estilista Senior`.
+
+## Variables del frontend
+
+En `client/.env` configura:
+
+```bash
+VITE_SUPABASE_URL=https://<tu-proyecto>.supabase.co
+VITE_SUPABASE_ANON_KEY=<tu-anon-key>
+```
+
+Luego ejecuta el frontend con `npm run dev` dentro de `client/`.
 
 Para crear un **admin** de un salón concreto (usando el seed demo):
 

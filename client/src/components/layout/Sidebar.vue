@@ -1,8 +1,10 @@
 <template>
   <aside
     :class="[
-      'fixed left-0 top-0 z-30 h-full w-64 bg-surface border-r border-border shadow-xl transition-theme transition-transform duration-300 lg:translate-x-0 flex flex-col',
-      isOpen ? 'translate-x-0' : '-translate-x-full'
+      'fixed left-0 top-0 h-full w-64 bg-surface border-r border-border shadow-xl transition-theme transition-transform duration-300 lg:translate-x-0 flex flex-col',
+      // En móvil: z-50 cuando está abierto para estar por encima del header (z-40)
+      // En desktop: z-30 está bien porque el header móvil está oculto
+      isOpen ? 'z-50 translate-x-0' : 'z-30 -translate-x-full lg:z-30'
     ]"
   >
 
@@ -145,7 +147,7 @@
     </nav>
 
     <!-- User Mini Profile & Theme Toggle - Siempre al final -->
-    <div class="border-t border-border bg-bg-secondary p-3 flex-shrink-0">
+    <div class="border-t border-border bg-bg-secondary p-3 shrink-0">
       <div class="flex items-center gap-2">
         <div class="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-primary to-primary-hover text-xs font-bold text-text-inverse shadow-sm">
           {{ getInitials(authStore.profile?.full_name) }}

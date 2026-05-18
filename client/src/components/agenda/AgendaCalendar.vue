@@ -93,6 +93,10 @@ import { isAdminPanelRole } from '../../constants/roles'
 
 const authStore = useAuthStore()
 const isAdmin = computed(() => isAdminPanelRole(authStore.role ?? undefined))
+const emit = defineEmits<{
+  eventClick: [event: { id: string; title: string; start: Date; end: Date; status?: string }]
+  statusChange: [payload: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }]
+}>()
 
 const {
   selectedEmployeeId,
@@ -119,6 +123,17 @@ const getStatusColor = (status: string) => {
     case 'cancelled':
     case 'no_show': return 'var(--color-danger)'
     default: return 'var(--color-primary)'
+  }
+}
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'confirmed': return 'Confirmada'
+    case 'completed': return 'Completada'
+    case 'pending': return 'Pendiente'
+    case 'cancelled':
+    case 'no_show': return 'Cancelada'
+    default: return 'Confirmada'
   }
 }
 
@@ -155,10 +170,13 @@ const calendarEvents = computed<EventInput[]>(() => {
         start: appt.start_time,
         end: appt.end_time,
         color: getStatusColor(appt.status),
+        classNames: ['agenda-event', `agenda-status-${appt.status}`],
         extendedProps: {
           ...appt,
           serviceName: service?.name,
-          employeeName: employee?.full_name
+          employeeName: employee?.full_name,
+          statusLabel: getStatusLabel(appt.status),
+          statusColor: getStatusColor(appt.status),
         }
       })
     })
@@ -181,11 +199,103 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   selectable: true,
   selectMirror: true,
   events: calendarEvents.value,
+  eventContent: (arg) => {
+    const statusLabel = (arg.event.extendedProps as any)?.statusLabel || ''
+    const statusColor = (arg.event.extendedProps as any)?.statusColor || 'var(--color-primary)'
+    const timeText = arg.timeText
+    const titleText = arg.event.title
+
+    const container = document.createElement('div')
+    container.className = 'agenda-event-inner'
+
+    const topRow = document.createElement('div')
+    topRow.className = 'agenda-event-top'
+
+    const dot = document.createElement('span')
+    dot.className = 'agenda-event-dot'
+    dot.style.background = statusColor
+
+    const status = document.createElement('span')
+    status.className = 'agenda-event-status'
+    status.textContent = statusLabel
+
+    topRow.appendChild(dot)
+    topRow.appendChild(status)
+
+    const title = document.createElement('div')
+    title.className = 'agenda-event-title'
+    title.textContent = titleText
+
+    const time = document.createElement('div')
+    time.className = 'agenda-event-time'
+    time.textContent = timeText
+
+    container.appendChild(topRow)
+    container.appendChild(title)
+    container.appendChild(time)
+
+    return { domNodes: [container] }
+  },
   datesSet: (arg) => {
     setDateRange(arg.start, arg.end)
   },
   eventClick: (arg) => {
-    console.log('Cita clickeada:', arg.event.extendedProps)
+    emit('eventClick', {
+      id: arg.event.id,
+      title: arg.event.title,
+      start: arg.event.start!,
+      end: arg.event.end!,
+      status: (arg.event.extendedProps as any)?.status,
+    })
+  },
+  eventDidMount: (info) => {
+    const el = info.el as HTMLElement
+    const status = (info.event.extendedProps as any)?.status as string | undefined
+    if (status) {
+      el.setAttribute('data-status', status)
+    }
+
+    const actions = document.createElement('div')
+    actions.className = 'agenda-event-actions'
+
+    const pending = document.createElement('button')
+    pending.className = 'agenda-event-action agenda-event-pending'
+    pending.title = 'Marcar pendiente'
+    pending.addEventListener('click', (e) => {
+      e.stopPropagation()
+      emit('statusChange', { id: info.event.id, status: 'pending' })
+    })
+
+    const confirmed = document.createElement('button')
+    confirmed.className = 'agenda-event-action agenda-event-confirmed'
+    confirmed.title = 'Marcar confirmada'
+    confirmed.addEventListener('click', (e) => {
+      e.stopPropagation()
+      emit('statusChange', { id: info.event.id, status: 'confirmed' })
+    })
+
+    const cancelled = document.createElement('button')
+    cancelled.className = 'agenda-event-action agenda-event-cancelled'
+    cancelled.title = 'Cancelar'
+    cancelled.addEventListener('click', (e) => {
+      e.stopPropagation()
+      emit('statusChange', { id: info.event.id, status: 'cancelled' })
+    })
+
+    const completed = document.createElement('button')
+    completed.className = 'agenda-event-action agenda-event-completed'
+    completed.title = 'Marcar completada'
+    completed.addEventListener('click', (e) => {
+      e.stopPropagation()
+      emit('statusChange', { id: info.event.id, status: 'completed' })
+    })
+
+    actions.appendChild(confirmed)
+    actions.appendChild(pending)
+    actions.appendChild(completed)
+    actions.appendChild(cancelled)
+
+    el.appendChild(actions)
   },
   select: (arg) => {
     console.log('Rango seleccionado:', arg.start, arg.end)
@@ -475,18 +585,18 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
 /* Celdas de tiempo */
 .fc .fc-timegrid-slot {
-  height: 2.5rem !important;
+  height: 3rem !important;
 }
 
 @media (min-width: 640px) {
   .fc .fc-timegrid-slot {
-    height: 3rem !important;
+    height: 3.5rem !important;
   }
 }
 
 @media (min-width: 1024px) {
   .fc .fc-timegrid-slot {
-    height: 3.5rem !important;
+    height: 4rem !important;
   }
 }
 
@@ -515,13 +625,15 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
 /* Eventos del calendario */
 .fc-v-event {
-  border-radius: 0.375rem;
-  border: none;
-  padding: 0.125rem 0.25rem;
-  box-shadow: var(--shadow-sm);
-  font-size: 0.6875rem;
-  font-weight: 500;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.25rem 0.35rem;
+  box-shadow: var(--shadow-md);
+  font-size: 0.75rem;
+  font-weight: 600;
   transition: all 0.2s ease;
+  overflow: hidden;
+  position: relative;
 }
 
 @media (min-width: 640px) {
@@ -545,6 +657,97 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 .fc-v-event .fc-event-time {
   font-size: 0.625rem;
   opacity: 0.9;
+}
+
+.agenda-event-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.agenda-event-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.agenda-event-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+.agenda-event-status {
+  white-space: nowrap;
+}
+
+.agenda-event-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.agenda-event-time {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.agenda-event-actions {
+  position: absolute;
+  right: 0.25rem;
+  top: 0.25rem;
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.fc-v-event::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0.25rem;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.fc-v-event:hover .agenda-event-actions {
+  opacity: 1;
+}
+
+.agenda-event-action {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.agenda-event-confirmed {
+  background: var(--color-primary);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.agenda-event-pending {
+  background: var(--color-warning);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.agenda-event-cancelled {
+  background: var(--color-danger);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.agenda-event-completed {
+  background: var(--color-text-secondary);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 @media (min-width: 640px) {

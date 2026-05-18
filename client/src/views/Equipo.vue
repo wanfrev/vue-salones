@@ -43,7 +43,10 @@
               <p class="hidden text-sm text-text-muted sm:block">Administra empleados y horarios</p>
             </div>
             <div class="flex gap-2">
-              <button class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover">
+              <button 
+                @click="handleNewEmpleado"
+                class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover"
+              >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
@@ -63,34 +66,8 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">8</p>
+                <p class="text-lg font-bold text-text">{{ totalEmpleados }}</p>
                 <p class="text-xs text-text-muted">Empleados</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-xl bg-surface p-3 shadow-sm">
-            <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-success-light text-success">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-lg font-bold text-text">6</p>
-                <p class="text-xs text-text-muted">Activos Hoy</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-xl bg-surface p-3 shadow-sm">
-            <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-warning-light text-warning">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-lg font-bold text-text">48</p>
-                <p class="text-xs text-text-muted">Citas Hoy</p>
               </div>
             </div>
           </div>
@@ -102,8 +79,34 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">$3,070</p>
-                <p class="text-xs text-text-muted">Producido Hoy</p>
+                <p class="text-lg font-bold text-text">{{ empleadosPorcentaje }}</p>
+                <p class="text-xs text-text-muted">Con % definido</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl bg-surface p-3 shadow-sm">
+            <div class="flex items-center gap-2">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-warning-light text-warning">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-lg font-bold text-text">{{ empleadosSueldoBase }}</p>
+                <p class="text-xs text-text-muted">Con sueldo base</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl bg-surface p-3 shadow-sm">
+            <div class="flex items-center gap-2">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-success-light text-success">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-lg font-bold text-text">{{ empleadosMixto }}</p>
+                <p class="text-xs text-text-muted">Sueldo + %</p>
               </div>
             </div>
           </div>
@@ -122,28 +125,31 @@
                   <p class="text-xs text-text-muted">{{ member.role }}</p>
                 </div>
               </div>
-              <span :class="[
-                'rounded-full px-2 py-0.5 text-xs font-medium',
-                member.status === 'Activo' ? 'bg-success-light text-success' : 'bg-bg-secondary text-text-muted'
-              ]">{{ member.status }}</span>
+              <span class="rounded-full px-2 py-0.5 text-xs font-medium bg-bg-secondary text-text-muted">{{ member.role }}</span>
             </div>
             
             <div class="mt-4 grid grid-cols-2 gap-2 text-center">
               <div class="rounded-lg bg-bg-secondary p-2">
-                <p class="text-sm font-semibold text-text">{{ member.citasHoy }}</p>
-                <p class="text-xs text-text-muted">Citas Hoy</p>
+                <p class="text-sm font-semibold text-text">{{ member.payTypeLabel }}</p>
+                <p class="text-xs text-text-muted">Tipo de pago</p>
               </div>
               <div class="rounded-lg bg-bg-secondary p-2">
-                <p class="text-sm font-semibold text-text">${{ member.producido }}</p>
-                <p class="text-xs text-text-muted">Producido</p>
+                <p class="text-sm font-semibold text-text">{{ member.payValueLabel }}</p>
+                <p class="text-xs text-text-muted">Condición</p>
               </div>
             </div>
             
             <div class="mt-4 flex gap-2">
-              <button class="flex-1 rounded-lg border border-border py-2 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary">
+              <button 
+                @click="handleViewAgenda(member)"
+                class="flex-1 rounded-lg border border-border py-2 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+              >
                 Ver Agenda
               </button>
-              <button class="flex-1 rounded-lg bg-primary py-2 text-xs font-medium text-text-inverse transition-theme hover:bg-primary-hover">
+              <button 
+                @click="handleEditEmpleado(member)"
+                class="flex-1 rounded-lg bg-primary py-2 text-xs font-medium text-text-inverse transition-theme hover:bg-primary-hover"
+              >
                 Editar
               </button>
             </div>
@@ -190,35 +196,90 @@
       </div>
     </main>
   </div>
+
+  <!-- Modals -->
+  <EmpleadoFormModal 
+    ref="empleadoModalRef" 
+    @save="handleSaveEmpleado" 
+  />
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
+import { useNotification } from '../composables/useNotification'
+import { equipoKeys, listEquipo, saveEmpleado } from '../services/equipoService'
 import Sidebar from '../components/layout/Sidebar.vue'
+import { EmpleadoFormModal } from '../components/modals'
+import type { Empleado, EmpleadoFormData } from '../types/empleado'
 
-const { logout } = useAuth()
+const router = useRouter()
+const { logout, authStore } = useAuth()
+const { info, error: showError } = useNotification()
+const queryClient = useQueryClient()
+
 const isSidebarOpen = ref(false)
+const empleadoModalRef = ref<InstanceType<typeof EmpleadoFormModal> | null>(null)
 
-const team = ref([
-  { id: 1, name: 'Carlos Méndez', role: 'Estilista Senior', status: 'Activo', citasHoy: 8, producido: '640' },
-  { id: 2, name: 'Laura Torres', role: 'Colorista', status: 'Activo', citasHoy: 6, producido: '720' },
-  { id: 3, name: 'Diana Flores', role: 'Manicurista', status: 'Activo', citasHoy: 10, producido: '350' },
-  { id: 4, name: 'Ana Ruiz', role: 'Estilista', status: 'Descanso', citasHoy: 0, producido: '0' },
-  { id: 5, name: 'Pedro Sánchez', role: 'Barbero', status: 'Activo', citasHoy: 12, producido: '480' },
-  { id: 6, name: 'María Castro', role: 'Pedicurista', status: 'Activo', citasHoy: 7, producido: '280' },
-  { id: 7, name: 'Juan López', role: 'Estilista', status: 'Vacaciones', citasHoy: 0, producido: '0' },
-  { id: 8, name: 'Sofia Vega', role: 'Asistente', status: 'Activo', citasHoy: 5, producido: '150' },
-])
+const businessId = computed(() => authStore.businessId)
 
-const teamSchedule = ref([
-  { id: 1, name: 'Carlos Méndez', start: '09:00', end: '18:00', break: '13:00 - 14:00', appointments: 8, available: true },
-  { id: 2, name: 'Laura Torres', start: '10:00', end: '19:00', break: '14:00 - 15:00', appointments: 6, available: false },
-  { id: 3, name: 'Diana Flores', start: '09:00', end: '17:00', break: '12:00 - 13:00', appointments: 10, available: true },
-  { id: 4, name: 'Pedro Sánchez', start: '10:00', end: '20:00', break: '15:00 - 16:00', appointments: 12, available: true },
-  { id: 5, name: 'María Castro', start: '09:00', end: '16:00', break: '12:00 - 13:00', appointments: 7, available: false },
-  { id: 6, name: 'Sofia Vega', start: '11:00', end: '19:00', break: '14:00 - 15:00', appointments: 5, available: true },
-])
+const { data: teamData } = useQuery({
+  queryKey: computed(() => equipoKeys.all(businessId.value)),
+  queryFn: () => listEquipo(businessId.value!),
+  enabled: computed(() => !!businessId.value),
+})
+
+const team = computed<Empleado[]>(() => teamData.value ?? [])
+
+const teamSchedule = computed(() => team.value
+  .filter(member => member.schedule)
+  .map(member => ({
+    id: member.id,
+    name: member.name,
+    start: member.schedule?.start ?? '',
+    end: member.schedule?.end ?? '',
+    break: member.schedule?.break || 'Sin descanso registrado',
+    appointments: 0,
+    available: true,
+  }))
+)
+
+const saveEmpleadoMutation = useMutation({
+  mutationFn: (data: EmpleadoFormData & { id?: string }) => saveEmpleado(data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: equipoKeys.all(businessId.value) })
+  },
+})
+
+// Stats
+const totalEmpleados = computed(() => team.value.length)
+const empleadosPorcentaje = computed(() => team.value.filter(e => e.payType === 'percentage' || e.payType === 'mixed').length)
+const empleadosSueldoBase = computed(() => team.value.filter(e => e.payType === 'salary' || e.payType === 'mixed').length)
+const empleadosMixto = computed(() => team.value.filter(e => e.payType === 'mixed').length)
+
+// Actions
+const handleNewEmpleado = () => {
+  empleadoModalRef.value?.open()
+}
+
+const handleEditEmpleado = (empleado: Empleado) => {
+  empleadoModalRef.value?.open(empleado)
+}
+
+const handleSaveEmpleado = async (data: EmpleadoFormData & { id?: string }) => {
+  try {
+    await saveEmpleadoMutation.mutateAsync(data)
+  } catch (err) {
+    showError(err instanceof Error ? err.message : 'No fue posible guardar el empleado')
+  }
+}
+
+const handleViewAgenda = (empleado: Empleado) => {
+  router.push('/admin')
+  info(`Mostrando agenda de ${empleado.name}`)
+}
 
 const getInitials = (name: string): string => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)

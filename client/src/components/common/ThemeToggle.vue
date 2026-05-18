@@ -130,7 +130,6 @@ const showOptions = ref(false)
 const mode = computed(() => themeStore.mode)
 const isLight = computed(() => mode.value === 'light')
 const isDark = computed(() => mode.value === 'dark')
-const isSystem = computed(() => mode.value === 'system')
 
 const themeOptions = [
   { value: 'light' as ThemeMode, label: 'Claro', icon: SunIcon },
@@ -168,8 +167,12 @@ const closeOptions = () => {
 }
 
 // Directiva personalizada para click outside
+type ClickOutsideElement = HTMLElement & {
+  _clickOutside?: (event: Event) => void
+}
+
 const vClickOutside = {
-  mounted(el: HTMLElement, binding: { value: () => void }) {
+  mounted(el: ClickOutsideElement, binding: { value: () => void }) {
     el._clickOutside = (event: Event) => {
       if (!(el === event.target || el.contains(event.target as Node))) {
         binding.value()
@@ -177,8 +180,10 @@ const vClickOutside = {
     }
     document.addEventListener('click', el._clickOutside)
   },
-  unmounted(el: HTMLElement) {
-    document.removeEventListener('click', el._clickOutside)
+  unmounted(el: ClickOutsideElement) {
+    if (el._clickOutside) {
+      document.removeEventListener('click', el._clickOutside)
+    }
   },
 }
 </script>

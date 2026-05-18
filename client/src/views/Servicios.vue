@@ -43,7 +43,10 @@
               <p class="hidden text-sm text-text-muted sm:block">Gestiona tu menú de servicios</p>
             </div>
             <div class="flex gap-2">
-              <button class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover">
+              <button 
+                @click="handleNewServicio"
+                class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover"
+              >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
@@ -63,7 +66,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">24</p>
+                <p class="text-lg font-bold text-text">{{ totalServicios }}</p>
                 <p class="text-xs text-text-muted">Servicios Activos</p>
               </div>
             </div>
@@ -76,7 +79,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">6</p>
+                <p class="text-lg font-bold text-text">{{ totalCategorias }}</p>
                 <p class="text-xs text-text-muted">Categorías</p>
               </div>
             </div>
@@ -89,7 +92,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">156</p>
+                <p class="text-lg font-bold text-text">{{ totalCitasMes }}</p>
                 <p class="text-xs text-text-muted">Citas Este Mes</p>
               </div>
             </div>
@@ -102,7 +105,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">$85</p>
+                <p class="text-lg font-bold text-text">${{ precioPromedio }}</p>
                 <p class="text-xs text-text-muted">Precio Promedio</p>
               </div>
             </div>
@@ -140,12 +143,20 @@
                 </svg>
               </div>
               <div class="flex gap-1">
-                <button class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary">
+                <button 
+                  @click="handleEditServicio(service)"
+                  class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
+                  title="Editar servicio"
+                >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                 </button>
-                <button class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-danger">
+                <button 
+                  @click="handleDeleteServicio(service)"
+                  class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-danger"
+                  title="Eliminar servicio"
+                >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
@@ -179,47 +190,139 @@
             </div>
           </div>
         </div>
+
+        <!-- Empty State -->
+        <div v-if="filteredServices.length === 0" class="mt-8 text-center">
+          <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
+            <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <h3 class="mt-4 text-lg font-medium text-text">No hay servicios</h3>
+          <p class="mt-1 text-sm text-text-muted">No se encontraron servicios en esta categoría.</p>
+        </div>
       </div>
     </main>
   </div>
+
+  <!-- Modals -->
+  <ServicioFormModal 
+    ref="servicioModalRef" 
+    @save="handleSaveServicio" 
+  />
+
+  <!-- Confirm Delete Modal -->
+  <ModalBase
+    :is-open="isDeleteModalOpen"
+    title="Eliminar Servicio"
+    subtitle="Esta acción no se puede deshacer"
+    icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+    variant="danger"
+    size="sm"
+    confirm-text="Eliminar"
+    cancel-text="Cancelar"
+    @close="isDeleteModalOpen = false"
+    @confirm="confirmDelete"
+    @cancel="isDeleteModalOpen = false"
+  >
+    <p class="text-sm text-text-secondary">
+      ¿Estás seguro de que deseas eliminar <strong>{{ servicioToDelete?.name }}</strong>? 
+      Este servicio será eliminado permanentemente del catálogo.
+    </p>
+  </ModalBase>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
+import { useNotification } from '../composables/useNotification'
+import { deleteServicio, listServicios, saveServicio, serviciosKeys } from '../services/serviciosService'
 import Sidebar from '../components/layout/Sidebar.vue'
+import { ServicioFormModal } from '../components/modals'
+import { ModalBase } from '../components/common'
+import type { Servicio, ServicioFormData } from '../types/servicio'
 
-const { logout } = useAuth()
+const { logout, authStore } = useAuth()
+const { warning } = useNotification()
+const queryClient = useQueryClient()
+
 const isSidebarOpen = ref(false)
 const activeCategory = ref('all')
+const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null)
 
-const categories = ref([
-  { id: 'all', name: 'Todos' },
-  { id: 'corte', name: 'Corte de Cabello' },
-  { id: 'color', name: 'Coloración' },
-  { id: 'manos', name: 'Manos & Pies' },
-  { id: 'tratamientos', name: 'Tratamientos' },
-  { id: 'barberia', name: 'Barbería' },
-  { id: 'maquillaje', name: 'Maquillaje' },
-])
+// Delete modal state
+const isDeleteModalOpen = ref(false)
+const servicioToDelete = ref<Servicio | null>(null)
+const businessId = computed(() => authStore.businessId)
 
-const services = ref([
-  { id: 1, category: 'corte', name: 'Corte Mujer', description: 'Corte, lavado y peinado', price: 45, duration: 45, status: 'Activo', citasMes: 68, ingresos: '3,060', icon: 'M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm8.486-.486a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z', iconBg: 'bg-blue-100', iconColor: 'text-blue-600' },
-  { id: 2, category: 'corte', name: 'Corte Hombre', description: 'Corte clásico o moderno', price: 35, duration: 30, status: 'Activo', citasMes: 52, ingresos: '1,820', icon: 'M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm8.486-.486a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z', iconBg: 'bg-blue-100', iconColor: 'text-blue-600' },
-  { id: 3, category: 'color', name: 'Tinte Completo', description: 'Coloración total del cabello', price: 75, duration: 90, status: 'Activo', citasMes: 34, ingresos: '2,550', icon: 'M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01', iconBg: 'bg-purple-100', iconColor: 'text-purple-600' },
-  { id: 4, category: 'color', name: 'Mechas/Balayage', description: 'Técnica de iluminación', price: 95, duration: 120, status: 'Activo', citasMes: 28, ingresos: '2,660', icon: 'M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01', iconBg: 'bg-purple-100', iconColor: 'text-purple-600' },
-  { id: 5, category: 'manos', name: 'Manicure Clásico', description: 'Lima, cutícula y esmalte', price: 25, duration: 30, status: 'Activo', citasMes: 89, ingresos: '2,225', icon: 'M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11', iconBg: 'bg-rose-100', iconColor: 'text-rose-600' },
-  { id: 6, category: 'manos', name: 'Manicure Gel', description: 'Esmalte semipermanente', price: 35, duration: 45, status: 'Activo', citasMes: 76, ingresos: '2,660', icon: 'M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11', iconBg: 'bg-rose-100', iconColor: 'text-rose-600' },
-  { id: 7, category: 'manos', name: 'Pedicure Spa', description: 'Tratamiento completo pies', price: 40, duration: 60, status: 'Activo', citasMes: 43, ingresos: '1,720', icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', iconBg: 'bg-amber-100', iconColor: 'text-amber-600' },
-  { id: 8, category: 'tratamientos', name: 'Hidratación', description: 'Tratamiento hidratante', price: 55, duration: 45, status: 'Activo', citasMes: 31, ingresos: '1,705', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600' },
-  { id: 9, category: 'tratamientos', name: 'Keratina', description: 'Alisado con keratina', price: 120, duration: 150, status: 'Activo', citasMes: 18, ingresos: '2,160', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600' },
-  { id: 10, category: 'barberia', name: 'Afeitado Clásico', description: 'Toalla caliente y navaja', price: 30, duration: 30, status: 'Activo', citasMes: 24, ingresos: '720', icon: 'M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm8.486-.486a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z', iconBg: 'bg-slate-100', iconColor: 'text-slate-600' },
-  { id: 11, category: 'barberia', name: 'Arreglo de Barba', description: 'Diseño y mantenimiento', price: 25, duration: 20, status: 'Activo', citasMes: 38, ingresos: '950', icon: 'M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm8.486-.486a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z', iconBg: 'bg-slate-100', iconColor: 'text-slate-600' },
-  { id: 12, category: 'maquillaje', name: 'Maquillaje Social', description: 'Look para eventos', price: 60, duration: 45, status: 'Activo', citasMes: 15, ingresos: '900', icon: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z', iconBg: 'bg-pink-100', iconColor: 'text-pink-600' },
-])
+const categories = computed(() => {
+  const list = services.value.map(service => service.category).filter(Boolean)
+  const unique = Array.from(new Set(list))
+  return [{ id: 'all', name: 'Todos' }, ...unique.map(cat => ({ id: cat, name: cat }))]
+})
+
+const { data: servicesData } = useQuery({
+  queryKey: computed(() => serviciosKeys.all(businessId.value)),
+  queryFn: () => listServicios(businessId.value!),
+  enabled: computed(() => !!businessId.value),
+})
+
+const services = computed<Servicio[]>(() => servicesData.value ?? [])
+
+const saveServicioMutation = useMutation({
+  mutationFn: (data: ServicioFormData & { id?: string }) => saveServicio(businessId.value!, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: serviciosKeys.all(businessId.value) })
+  },
+})
+
+const deleteServicioMutation = useMutation({
+  mutationFn: (id: string) => deleteServicio(id),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: serviciosKeys.all(businessId.value) })
+  },
+})
+
+// Stats
+const totalServicios = computed(() => services.value.filter(s => s.status === 'Activo').length)
+const totalCategorias = computed(() => categories.value.length - 1) // Exclude 'all'
+const totalCitasMes = computed(() => services.value.reduce((sum, s) => sum + s.citasMes, 0))
+const precioPromedio = computed(() => {
+  if (services.value.length === 0) return 0
+  const total = services.value.reduce((sum, s) => sum + s.price, 0)
+  return Math.round(total / services.value.length)
+})
 
 const filteredServices = computed(() => {
   if (activeCategory.value === 'all') return services.value
   return services.value.filter(s => s.category === activeCategory.value)
 })
+
+// Actions
+const handleNewServicio = () => {
+  servicioModalRef.value?.open()
+}
+
+const handleEditServicio = (servicio: Servicio) => {
+  servicioModalRef.value?.open(servicio)
+}
+
+const handleSaveServicio = async (data: ServicioFormData & { id?: string }) => {
+  await saveServicioMutation.mutateAsync(data)
+}
+
+const handleDeleteServicio = (servicio: Servicio) => {
+  servicioToDelete.value = servicio
+  isDeleteModalOpen.value = true
+}
+
+const confirmDelete = async () => {
+  if (servicioToDelete.value) {
+    await deleteServicioMutation.mutateAsync(servicioToDelete.value.id)
+    warning(`Servicio "${servicioToDelete.value.name}" desactivado`)
+    isDeleteModalOpen.value = false
+    servicioToDelete.value = null
+  }
+}
 </script>

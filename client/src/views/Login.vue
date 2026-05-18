@@ -13,9 +13,6 @@
         </div>
         <h1 class="text-2xl font-bold tracking-tight text-text">Salón</h1>
         <p class="mt-1 text-sm text-primary">Inicia sesión para acceder al panel</p>
-        <div class="mt-4 rounded-lg bg-warning-light p-3 text-center text-xs font-medium text-warning border border-border">
-          Modo Offline activado. Puedes entrar con cualquier dato.
-        </div>
       </div>
 
       <form class="space-y-4" @submit.prevent="submitLogin">

@@ -81,24 +81,6 @@
 
           <div class="rounded-xl bg-surface p-3 shadow-sm">
             <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-light text-primary">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-xs text-text-muted">Ticket Promedio</p>
-                <p class="text-lg font-bold text-text">$85.50</p>
-              </div>
-            </div>
-            <div class="mt-2 flex items-center gap-1 text-xs">
-              <span class="text-success">↑ 5.2%</span>
-              <span class="text-text-muted">vs mes pasado</span>
-            </div>
-          </div>
-
-          <div class="rounded-xl bg-surface p-3 shadow-sm">
-            <div class="flex items-center gap-2">
               <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-warning-light text-warning">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -173,6 +155,75 @@
           </div>
         </div>
 
+        <!-- Gastos del Mes -->
+        <div class="mb-4 rounded-xl border border-border bg-surface p-4 shadow-sm">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-base font-semibold text-text">Gastos del Mes</h3>
+              <p class="text-sm text-text-muted">Controla los egresos fijos y variables</p>
+            </div>
+            <button class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Registrar gasto
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-border-subtle">
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Concepto</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Categoría</th>
+                  <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-subtle">
+                <tr v-for="expense in expenses" :key="expense.id" class="text-sm">
+                  <td class="py-3 text-text-secondary">{{ expense.date }}</td>
+                  <td class="py-3 font-medium text-text">{{ expense.name }}</td>
+                  <td class="py-3 text-text-secondary">{{ expense.category }}</td>
+                  <td class="py-3 text-right font-medium text-text">${{ expense.amount }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pagos a Empleados -->
+        <div class="mb-4 rounded-xl border border-border bg-surface p-4 shadow-sm">
+          <div class="mb-4 flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-semibold text-text">Pagos a Empleados</h3>
+              <p class="text-sm text-text-muted">Servicios realizados y comisión aplicada</p>
+            </div>
+            <button class="text-sm text-primary hover:text-primary-hover transition-theme">Ver detalles</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-border-subtle">
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Empleado</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Servicio</th>
+                  <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Costo</th>
+                  <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">% Empleada</th>
+                  <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Ganancia</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-subtle">
+                <tr v-for="payment in employeePayments" :key="payment.id" class="text-sm">
+                  <td class="py-3 font-medium text-text">{{ payment.employee }}</td>
+                  <td class="py-3 text-text-secondary">{{ payment.service }}</td>
+                  <td class="py-3 text-right text-text">${{ payment.amount }}</td>
+                  <td class="py-3 text-right text-text-secondary">{{ payment.percentage }}%</td>
+                  <td class="py-3 text-right font-semibold text-success">${{ payment.earnings }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Recent Transactions -->
         <div class="rounded-xl border border-border bg-surface p-4 shadow-sm">
           <div class="mb-4 flex items-center justify-between">
@@ -237,6 +288,19 @@ const servicesRevenue = ref([
   { name: 'Manicure', amount: '4,120', percentage: 17 },
   { name: 'Pedicure', amount: '3,580', percentage: 15 },
   { name: 'Tratamientos', amount: '2,200', percentage: 9 },
+])
+
+const expenses = ref([
+  { id: 1, date: '12 May 2026', name: 'Renta del local', category: 'Fijos', amount: '5,500' },
+  { id: 2, date: '10 May 2026', name: 'Productos y tintes', category: 'Insumos', amount: '1,250' },
+  { id: 3, date: '08 May 2026', name: 'Servicios públicos', category: 'Fijos', amount: '820' },
+  { id: 4, date: '06 May 2026', name: 'Publicidad', category: 'Marketing', amount: '670' },
+])
+
+const employeePayments = ref([
+  { id: 1, employee: 'María García', service: 'Corte de cabello', amount: '250', percentage: 45, earnings: '112.50' },
+  { id: 2, employee: 'Ana López', service: 'Manicure', amount: '180', percentage: 40, earnings: '72.00' },
+  { id: 3, employee: 'Sofía Martínez', service: 'Corte de barba', amount: '150', percentage: 50, earnings: '75.00' },
 ])
 
 const transactions = ref([

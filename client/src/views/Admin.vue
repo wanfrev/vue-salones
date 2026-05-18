@@ -59,13 +59,19 @@
             </div>
             
             <div class="flex items-center gap-2 sm:gap-3">
-              <button class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary shadow-sm transition-theme hover:shadow-md hover:border-border-strong sm:px-4 sm:py-2.5">
+              <button 
+                @click="handleExport"
+                class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary shadow-sm transition-theme hover:shadow-md hover:border-border-strong sm:px-4 sm:py-2.5"
+              >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 <span class="hidden sm:inline">Exportar</span>
               </button>
-              <button class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover sm:px-5 sm:py-2.5">
+              <button 
+                @click="handleNewCita"
+                class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover sm:px-5 sm:py-2.5"
+              >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
@@ -85,7 +91,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-base font-bold text-text sm:text-lg">12</p>
+                <p class="text-base font-bold text-text sm:text-lg">{{ stats.citasHoy }}</p>
                 <p class="text-[10px] text-text-muted sm:text-xs">Citas Hoy</p>
               </div>
             </div>
@@ -108,7 +114,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-base font-bold text-text sm:text-lg">4</p>
+                <p class="text-base font-bold text-text sm:text-lg">{{ stats.pendientes }}</p>
                 <p class="text-[10px] text-text-muted sm:text-xs">Pendientes</p>
               </div>
             </div>
@@ -125,7 +131,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-base font-bold text-text sm:text-lg">8</p>
+                <p class="text-base font-bold text-text sm:text-lg">{{ stats.confirmadas }}</p>
                 <p class="text-[10px] text-text-muted sm:text-xs">Confirmadas</p>
               </div>
             </div>
@@ -134,7 +140,7 @@
                 <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
                 </svg>
-                67%
+                {{ confirmacionRate }}%
               </span>
               <span class="text-text-muted">del total</span>
             </div>
@@ -148,7 +154,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-base font-bold text-text sm:text-lg">$850</p>
+                <p class="text-base font-bold text-text sm:text-lg">${{ stats.estimadoHoy }}</p>
                 <p class="text-[10px] text-text-muted sm:text-xs">Estimado Hoy</p>
               </div>
             </div>
@@ -165,20 +171,156 @@
         </section>
 
         <!-- Agenda Calendar Component - Altura ajustada para no solaparse -->
-        <section class="h-[calc(100vh-280px)] min-h-[400px] sm:h-[calc(100vh-300px)] lg:h-[calc(100vh-260px)]">
-          <AgendaCalendar />
-        </section>
+         <section class="h-[calc(100vh-280px)] min-h-[400px] sm:h-[calc(100vh-300px)] lg:h-[calc(100vh-260px)]">
+           <AgendaCalendar @event-click="handleEventClick" @status-change="handleStatusChange" />
+         </section>
       </div>
     </main>
   </div>
+
+  <!-- Modals -->
+  <CitaFormModal 
+    ref="citaModalRef" 
+    :servicios="serviciosList"
+    :empleados="empleadosList"
+    @save="handleSaveCita" 
+  />
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
+import { useNotification } from '../composables/useNotification'
+import { agendaKeys, exportCitasToCsv, listCitas, saveCita, updateCitaStatus } from '../services/agendaService'
+import { equipoKeys, listEquipo } from '../services/equipoService'
+import { listServicios, serviciosKeys } from '../services/serviciosService'
 import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
 import Sidebar from '../components/layout/Sidebar.vue'
+import { CitaFormModal } from '../components/modals'
+import type { Cita, CitaFormData } from '../types/cita'
 
-const { logout } = useAuth()
+const { logout, authStore } = useAuth()
+const { success } = useNotification()
+const queryClient = useQueryClient()
+
 const isSidebarOpen = ref(false)
+const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
+const businessId = computed(() => authStore.businessId)
+
+const todayRange = computed(() => {
+  const start = new Date()
+  start.setHours(0, 0, 0, 0)
+  const end = new Date(start)
+  end.setDate(end.getDate() + 1)
+  return { start, end }
+})
+
+const { data: citasData } = useQuery({
+  queryKey: computed(() => agendaKeys.appointments(businessId.value)),
+  queryFn: () => listCitas(businessId.value!, todayRange.value),
+  enabled: computed(() => !!businessId.value),
+})
+
+const citas = computed<Cita[]>(() => citasData.value ?? [])
+
+const { data: serviciosData } = useQuery({
+  queryKey: computed(() => serviciosKeys.all(businessId.value)),
+  queryFn: () => listServicios(businessId.value!),
+  enabled: computed(() => !!businessId.value),
+})
+
+const { data: empleadosData } = useQuery({
+  queryKey: computed(() => equipoKeys.all(businessId.value)),
+  queryFn: () => listEquipo(businessId.value!),
+  enabled: computed(() => !!businessId.value),
+})
+
+const saveCitaMutation = useMutation({
+  mutationFn: (data: CitaFormData & { id?: string; clientPhone?: string }) => saveCita(
+    businessId.value!,
+    data,
+    authStore.profile?.id
+  ),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: agendaKeys.appointments(businessId.value) })
+  },
+})
+
+const updateStatusMutation = useMutation({
+  mutationFn: ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }) => updateCitaStatus(id, status),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: agendaKeys.appointments(businessId.value) })
+  },
+})
+
+// Stats
+const stats = computed(() => {
+  const hoy = new Date().toISOString().split('T')[0]
+  const citasHoy = citas.value.filter(c => c.date === hoy)
+  
+  return {
+    citasHoy: citasHoy.length,
+    pendientes: citasHoy.filter(c => c.status === 'pending').length,
+    confirmadas: citasHoy.filter(c => c.status === 'confirmed').length,
+    estimadoHoy: citasHoy
+      .filter(c => c.status !== 'cancelled')
+      .reduce((sum, c) => sum + c.price, 0)
+      .toLocaleString(),
+  }
+})
+
+const confirmacionRate = computed(() => {
+  const hoy = citas.value.filter(c => c.date === new Date().toISOString().split('T')[0])
+  if (hoy.length === 0) return 0
+  return Math.round((hoy.filter(c => c.status === 'confirmed').length / hoy.length) * 100)
+})
+
+const serviciosList = computed(() => (serviciosData.value ?? []).map(service => ({
+  id: service.id,
+  name: service.name,
+})))
+
+const empleadosList = computed(() => (empleadosData.value ?? []).map(employee => ({
+  id: employee.id,
+  name: employee.name,
+})))
+
+// Actions
+const handleNewCita = () => {
+  citaModalRef.value?.open()
+}
+
+const handleEventClick = (event: { id: string; title: string; start: Date; end: Date }) => {
+  const cita = citas.value.find(c => c.id === event.id)
+  if (cita) {
+    citaModalRef.value?.open(cita)
+  }
+}
+
+const handleSaveCita = async (data: CitaFormData & { id?: string; clientPhone?: string }) => {
+  await saveCitaMutation.mutateAsync(data)
+}
+
+const handleStatusChange = async ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }) => {
+  await updateStatusMutation.mutateAsync({ id, status })
+  success(`Estado actualizado a ${status}`)
+}
+
+const handleExport = () => {
+  const hoy = new Date().toISOString().split('T')[0]
+  const citasHoy = citas.value.filter(c => c.date === hoy)
+  
+  const csvContent = exportCitasToCsv(citasHoy)
+  
+  const blob = new Blob([csvContent], { type: 'text/csv' })
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `citas-${hoy}.csv`
+  a.click()
+  window.URL.revokeObjectURL(url)
+  
+  success('Citas exportadas correctamente')
+}
 </script>

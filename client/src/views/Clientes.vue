@@ -44,7 +44,10 @@
               <p class="hidden text-sm text-text-muted sm:block">Administra tu base de clientes</p>
             </div>
             <div class="flex items-center gap-2 sm:gap-3">
-              <button class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover sm:px-5 sm:py-2.5">
+              <button 
+                @click="handleNewCliente"
+                class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-text-inverse shadow-lg shadow-primary/25 transition-theme hover:bg-primary-hover sm:px-5 sm:py-2.5"
+              >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
@@ -64,7 +67,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">248</p>
+                <p class="text-lg font-bold text-text">{{ totalClientes }}</p>
                 <p class="text-xs text-text-muted">Total Clientes</p>
               </div>
             </div>
@@ -78,8 +81,8 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">186</p>
-                <p class="text-xs text-text-muted">Clientes Activos</p>
+                <p class="text-lg font-bold text-text">{{ clientesRecientes }}</p>
+                <p class="text-xs text-text-muted">Visitados recientemente</p>
               </div>
             </div>
           </div>
@@ -92,8 +95,8 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">12</p>
-                <p class="text-xs text-text-muted">Citas Hoy</p>
+                <p class="text-lg font-bold text-text">{{ clientesConHistorial }}</p>
+                <p class="text-xs text-text-muted">Con historial</p>
               </div>
             </div>
           </div>
@@ -106,8 +109,8 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">23</p>
-                <p class="text-xs text-text-muted">Sin visitar +30d</p>
+                <p class="text-lg font-bold text-text">{{ clientesSinVisitar }}</p>
+                <p class="text-xs text-text-muted">Sin visitar +{{ daysSinceVisitFilter }}d</p>
               </div>
             </div>
           </div>
@@ -116,8 +119,12 @@
         <!-- Search and Filter Bar -->
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div class="relative flex-1 max-w-md">
-            <input type="text" placeholder="Buscar cliente por nombre, teléfono o email..."
-              class="w-full rounded-xl border border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            <input 
+              v-model="searchQuery"
+              type="text" 
+              placeholder="Buscar cliente por nombre, teléfono o email..."
+              class="w-full rounded-xl border border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20" 
+            />
             <div class="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -125,13 +132,19 @@
             </div>
           </div>
           <div class="flex gap-2">
-            <button class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary">
+            <button 
+              @click="handleOpenFilters"
+              class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+            >
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
               </svg>
               Filtros
             </button>
-            <button class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary">
+            <button 
+              @click="handleExport"
+              class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+            >
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
@@ -151,12 +164,11 @@
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Última Visita</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Total Citas</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Gasto Total</th>
-                  <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Estado</th>
                   <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Acciones</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border">
-                <tr v-for="client in clients" :key="client.id" class="transition-theme hover:bg-bg-secondary">
+                <tr v-for="client in paginatedData" :key="client.id" class="transition-theme hover:bg-bg-secondary">
                   <td class="px-4 py-3">
                     <div class="flex items-center gap-3">
                       <div class="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-primary to-primary-hover text-sm font-bold text-text-inverse">
@@ -182,23 +194,32 @@
                     <span class="text-sm font-medium text-text">${{ client.totalSpent }}</span>
                   </td>
                   <td class="px-4 py-3 text-center">
-                    <span :class="[
-                      'inline-flex rounded-full px-2.5 py-1 text-xs font-medium',
-                      client.status === 'active' ? 'bg-success-light text-success' : 'bg-warning-light text-warning'
-                    ]">
-                      {{ client.status === 'active' ? 'Activo' : 'Inactivo' }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3 text-center">
                     <div class="flex items-center justify-center gap-1">
-                      <button class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary">
+                      <button 
+                        @click="handleEditCliente(client)"
+                        class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
+                        title="Editar cliente"
+                      >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
                       </button>
-                      <button class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary">
+                      <button 
+                        @click="handleViewAgenda(client)"
+                        class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
+                        title="Ver agenda del cliente"
+                      >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                      <button
+                        @click="handleWhatsApp(client)"
+                        class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-success"
+                        title="Escribir por WhatsApp"
+                      >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10l2 2 7-7M12 21a9 9 0 10-9-9c0 1.6.42 3.1 1.16 4.4L3 21l4.7-1.16A8.94 8.94 0 0012 21z" />
                         </svg>
                       </button>
                     </div>
@@ -211,42 +232,237 @@
           <!-- Pagination -->
           <div class="flex items-center justify-between border-t border-border px-4 py-3">
             <div class="text-sm text-text-muted">
-              Mostrando 1-10 de 248 clientes
+              Mostrando {{ paginationStart }}-{{ paginationEnd }} de {{ filteredClients.length }} clientes
             </div>
             <div class="flex gap-1">
-              <button class="rounded-lg px-3 py-1.5 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary">Anterior</button>
-              <button class="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-text-inverse">1</button>
-              <button class="rounded-lg px-3 py-1.5 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary">2</button>
-              <button class="rounded-lg px-3 py-1.5 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary">3</button>
-              <button class="rounded-lg px-3 py-1.5 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary">Siguiente</button>
+              <button 
+                @click="previousPage"
+                :disabled="!hasPreviousPage"
+                class="rounded-lg px-3 py-1.5 text-sm font-medium transition-theme"
+                :class="hasPreviousPage ? 'text-text-secondary hover:bg-bg-secondary' : 'text-text-muted cursor-not-allowed'"
+              >
+                Anterior
+              </button>
+              <button 
+                v-for="page in pageNumbers" 
+                :key="page"
+                @click="page === '...' ? null : goToPage(page as number)"
+                :disabled="page === '...'"
+                class="rounded-lg px-3 py-1.5 text-sm font-medium transition-theme"
+                :class="page === currentPage ? 'bg-primary text-text-inverse' : 'text-text-secondary hover:bg-bg-secondary disabled:cursor-default'"
+              >
+                {{ page }}
+              </button>
+              <button 
+                @click="nextPage"
+                :disabled="!hasNextPage"
+                class="rounded-lg px-3 py-1.5 text-sm font-medium transition-theme"
+                :class="hasNextPage ? 'text-text-secondary hover:bg-bg-secondary' : 'text-text-muted cursor-not-allowed'"
+              >
+                Siguiente
+              </button>
             </div>
           </div>
         </div>
       </div>
     </main>
   </div>
+
+  <!-- Modals -->
+  <ClienteFormModal 
+    ref="clienteModalRef" 
+    @save="handleSaveCliente" 
+  />
+  
+  <FilterDrawer 
+    ref="filterDrawerRef"
+    :show-date-filter="false"
+    :show-days-since-filter="true"
+    @apply="handleApplyFilters"
+    @clear="handleClearFilters"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
+import { useNotification } from '../composables/useNotification'
+import { usePagination } from '../composables/usePagination'
+import { clientesKeys, listClientes, saveCliente } from '../services/clientesService'
 import Sidebar from '../components/layout/Sidebar.vue'
+import { ClienteFormModal } from '../components/modals'
+import { FilterDrawer } from '../components/filters'
+import type { Cliente, ClienteFormData } from '../types/cliente'
+import type { FilterState } from '../components/filters'
 
-const { logout } = useAuth()
+const router = useRouter()
+const { logout, authStore } = useAuth()
+const { success, info } = useNotification()
+const queryClient = useQueryClient()
+
 const isSidebarOpen = ref(false)
+const searchQuery = ref('')
+const clienteModalRef = ref<InstanceType<typeof ClienteFormModal> | null>(null)
+const filterDrawerRef = ref<InstanceType<typeof FilterDrawer> | null>(null)
 
-const clients = ref([
-  { id: 1, name: 'María González', phone: '+52 55 1234 5678', email: 'maria@email.com', lastVisit: 'Hoy', totalAppointments: 24, totalSpent: '2,450', joinDate: '2023-01-15', status: 'active' },
-  { id: 2, name: 'Ana López', phone: '+52 55 2345 6789', email: 'ana@email.com', lastVisit: 'Ayer', totalAppointments: 18, totalSpent: '1,890', joinDate: '2023-03-20', status: 'active' },
-  { id: 3, name: 'Carmen Ruiz', phone: '+52 55 3456 7890', email: 'carmen@email.com', lastVisit: '12 may 2026', totalAppointments: 32, totalSpent: '3,200', joinDate: '2022-08-10', status: 'active' },
-  { id: 4, name: 'Patricia Mendoza', phone: '+52 55 4567 8901', email: 'patricia@email.com', lastVisit: '10 may 2026', totalAppointments: 15, totalSpent: '1,350', joinDate: '2023-06-05', status: 'active' },
-  { id: 5, name: 'Laura Herrera', phone: '+52 55 5678 9012', email: 'laura@email.com', lastVisit: '5 may 2026', totalAppointments: 8, totalSpent: '780', joinDate: '2024-01-10', status: 'inactive' },
-  { id: 6, name: 'Diana Castro', phone: '+52 55 6789 0123', email: 'diana@email.com', lastVisit: '2 may 2026', totalAppointments: 45, totalSpent: '4,500', joinDate: '2022-03-15', status: 'active' },
-  { id: 7, name: 'Sofia Vargas', phone: '+52 55 7890 1234', email: 'sofia@email.com', lastVisit: '28 abr 2026', totalAppointments: 12, totalSpent: '1,200', joinDate: '2023-09-20', status: 'active' },
-  { id: 8, name: 'Elena Morales', phone: '+52 55 8901 2345', email: 'elena@email.com', lastVisit: '25 abr 2026', totalAppointments: 28, totalSpent: '2,800', joinDate: '2022-11-30', status: 'active' },
-])
+const businessId = computed(() => authStore.businessId)
+
+const { data: clientsData } = useQuery({
+  queryKey: computed(() => clientesKeys.all(businessId.value)),
+  queryFn: () => listClientes(businessId.value!),
+  enabled: computed(() => !!businessId.value),
+})
+
+const clients = computed<Cliente[]>(() => clientsData.value ?? [])
+
+const saveClienteMutation = useMutation({
+  mutationFn: (data: ClienteFormData & { id?: string }) => saveCliente(businessId.value!, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: clientesKeys.all(businessId.value) })
+  },
+})
+
+// Filtros activos
+const activeFilters = ref<Partial<FilterState>>({})
+const daysSinceVisitFilter = ref(30)
+
+// Filtrado de clientes
+const filteredClients = computed(() => {
+  let result = clients.value
+
+  // Filtro de búsqueda
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(c => 
+      c.name.toLowerCase().includes(query) ||
+      c.phone.toLowerCase().includes(query) ||
+      c.email?.toLowerCase().includes(query)
+    )
+  }
+
+  // Filtros del drawer
+  if (activeFilters.value.daysSinceVisit && activeFilters.value.daysSinceVisit !== '') {
+    daysSinceVisitFilter.value = Number(activeFilters.value.daysSinceVisit) || 30
+  }
+
+  if (daysSinceVisitFilter.value > 0) {
+    const threshold = new Date()
+    threshold.setDate(threshold.getDate() - daysSinceVisitFilter.value)
+    result = result.filter(c => {
+      if (!c.lastVisit || c.lastVisit === 'Sin visitas') return true
+      const visit = new Date(c.lastVisit)
+      return visit < threshold
+    })
+  }
+
+  // Ordenamiento
+  if (activeFilters.value.sortBy === 'name') {
+    result = [...result].sort((a, b) => a.name.localeCompare(b.name))
+  } else if (activeFilters.value.sortBy === 'oldest') {
+    result = [...result].sort((a, b) => new Date(a.joinDate!).getTime() - new Date(b.joinDate!).getTime())
+  } else {
+    // newest - default
+    result = [...result].sort((a, b) => new Date(b.joinDate!).getTime() - new Date(a.joinDate!).getTime())
+  }
+
+  return result
+})
+
+// Stats
+const totalClientes = computed(() => clients.value.length)
+const clientesRecientes = computed(() => {
+  const threshold = new Date()
+  threshold.setDate(threshold.getDate() - daysSinceVisitFilter.value)
+  return clients.value.filter(c => c.lastVisit && c.lastVisit !== 'Sin visitas' && new Date(c.lastVisit) >= threshold).length
+})
+const clientesSinVisitar = computed(() => {
+  const threshold = new Date()
+  threshold.setDate(threshold.getDate() - daysSinceVisitFilter.value)
+  return clients.value.filter(c => !c.lastVisit || c.lastVisit === 'Sin visitas' || new Date(c.lastVisit) < threshold).length
+})
+const clientesConHistorial = computed(() => clients.value.filter(c => c.lastVisit && c.lastVisit !== 'Sin visitas').length)
+
+// Pagination
+const {
+  currentPage,
+  paginatedData: paginatedClients,
+  pageNumbers,
+  hasNextPage,
+  hasPreviousPage,
+  goToPage,
+  nextPage,
+  previousPage,
+  paginationStart,
+  paginationEnd,
+} = usePagination({
+  data: filteredClients,
+  pageSize: 5,
+})
+
+const paginatedData = paginatedClients
+
+// Actions
+const handleNewCliente = () => {
+  clienteModalRef.value?.open()
+}
+
+const handleEditCliente = (cliente: Cliente) => {
+  clienteModalRef.value?.open(cliente)
+}
+
+const handleSaveCliente = async (data: ClienteFormData & { id?: string }) => {
+  await saveClienteMutation.mutateAsync(data)
+}
+
+const handleViewAgenda = (cliente: Cliente) => {
+  router.push(`/clientes/${cliente.id}`)
+  info(`Mostrando historial de ${cliente.name}`)
+}
+
+const handleOpenFilters = () => {
+  filterDrawerRef.value?.open()
+}
+
+const handleApplyFilters = (filters: FilterState) => {
+  activeFilters.value = filters
+  currentPage.value = 1
+  success('Filtros aplicados')
+}
+
+const handleClearFilters = () => {
+  activeFilters.value = {}
+  daysSinceVisitFilter.value = 30
+  currentPage.value = 1
+  info('Filtros limpiados')
+}
+
+const handleExport = () => {
+  // Mock export functionality
+  const csvContent = [
+    ['Nombre', 'Teléfono', 'Email', 'Última Visita'].join(','),
+    ...filteredClients.value.map(c => [c.name, c.phone, c.email, c.lastVisit].join(',')),
+  ].join('\n')
+  
+  const blob = new Blob([csvContent], { type: 'text/csv' })
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `clientes-${new Date().toISOString().split('T')[0]}.csv`
+  a.click()
+  window.URL.revokeObjectURL(url)
+  
+  success('Clientes exportados correctamente')
+}
 
 const getInitials = (name: string): string => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+}
+
+const handleWhatsApp = (cliente: Cliente) => {
+  const phone = (cliente.phone || '').replace(/[^\d]/g, '')
+  if (!phone) return
+  window.open(`https://wa.me/${phone}`, '_blank')
 }
 </script>

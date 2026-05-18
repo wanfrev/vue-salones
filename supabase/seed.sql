@@ -22,12 +22,12 @@ on conflict (id) do update set
   slug = excluded.slug;
 
 -- Servicios típicos de salón.
-insert into public.services (business_id, name, description, duration_minutes, price, local_percentage, color)
+insert into public.services (business_id, name, description, duration_minutes, price, local_percentage, color, category, icon)
 values
-  ('00000000-0000-0000-0000-000000000001', 'Corte de cabello',  'Corte y peinado básico',          45,  600.00, 50, '#567CB0'),
-  ('00000000-0000-0000-0000-000000000001', 'Tinte',             'Aplicación de color completo',   120, 2500.00, 60, '#2F4156'),
-  ('00000000-0000-0000-0000-000000000001', 'Manicure',          'Manicure clásica',                45,  450.00, 40, '#C9D9E6'),
-  ('00000000-0000-0000-0000-000000000001', 'Pedicure',          'Pedicure spa',                    60,  650.00, 40, '#567CB0'),
-  ('00000000-0000-0000-0000-000000000001', 'Lavado y peinado',  'Lavado + peinado para evento',    60,  900.00, 50, '#2F4156'),
-  ('00000000-0000-0000-0000-000000000001', 'Maquillaje',        'Maquillaje social',               60, 1800.00, 55, '#567CB0')
+  ('00000000-0000-0000-0000-000000000001', 'Corte de cabello',  'Corte y peinado básico',          45,  600.00, 50, '#567CB0', 'corte', null),
+  ('00000000-0000-0000-0000-000000000001', 'Tinte',             'Aplicación de color completo',   120, 2500.00, 60, '#7C3AED', 'color', null),
+  ('00000000-0000-0000-0000-000000000001', 'Manicure',          'Manicure clásica',                45,  450.00, 40, '#E11D48', 'manos', null),
+  ('00000000-0000-0000-0000-000000000001', 'Pedicure',          'Pedicure spa',                    60,  650.00, 40, '#D97706', 'manos', null),
+  ('00000000-0000-0000-0000-000000000001', 'Lavado y peinado',  'Lavado + peinado para evento',    60,  900.00, 50, '#059669', 'tratamientos', null),
+  ('00000000-0000-0000-0000-000000000001', 'Maquillaje',        'Maquillaje social',               60, 1800.00, 55, '#DB2777', 'maquillaje', null)
 on conflict do nothing;

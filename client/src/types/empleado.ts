@@ -1,0 +1,35 @@
+export interface Empleado {
+  id: string
+  name: string
+  role: string
+  citasHoy: number
+  producido: string
+  schedule?: {
+    start: string
+    end: string
+    break: string
+  }
+  phone?: string
+  email?: string
+  specialties?: string[]
+  joinDate?: string
+  payType: 'salary' | 'percentage' | 'mixed'
+  payPercentage?: number
+  baseSalary?: number
+  payTypeLabel: string
+  payValueLabel: string
+}
+
+export interface EmpleadoFormData {
+  name: string
+  role: string
+  phone: string
+  email: string
+  specialties: string[]
+  scheduleStart: string
+  scheduleEnd: string
+  scheduleBreak: string
+  payType: 'salary' | 'percentage' | 'mixed'
+  payPercentage: number
+  baseSalary: number
+}

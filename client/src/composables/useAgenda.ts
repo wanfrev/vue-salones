@@ -4,8 +4,6 @@ import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/auth'
 import type { Appointment, Profile, Service } from '../types/database'
 
-const IS_MOCK = import.meta.env.VITE_USE_LOCAL_MOCK === 'true'
-
 export const useAgenda = () => {
   const authStore = useAuthStore()
   const businessId = computed(() => authStore.businessId)
@@ -20,7 +18,7 @@ export const useAgenda = () => {
   const { data: employees, isLoading: loadingEmployees } = useQuery({
     queryKey: ['employees', businessId],
     queryFn: async (): Promise<Profile[]> => {
-      if (IS_MOCK || !businessId.value) return []
+      if (!businessId.value) return []
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -30,13 +28,13 @@ export const useAgenda = () => {
       if (error) throw error
       return data as Profile[]
     },
-    enabled: computed(() => !IS_MOCK && !!businessId.value),
+    enabled: computed(() => !!businessId.value),
   })
 
   const { data: services } = useQuery({
     queryKey: ['services', businessId],
     queryFn: async (): Promise<Service[]> => {
-      if (IS_MOCK || !businessId.value) return []
+      if (!businessId.value) return []
       const { data, error } = await supabase
         .from('services')
         .select('*')
@@ -45,13 +43,13 @@ export const useAgenda = () => {
       if (error) throw error
       return data as Service[]
     },
-    enabled: computed(() => !IS_MOCK && !!businessId.value),
+    enabled: computed(() => !!businessId.value),
   })
 
   const { data: schedules } = useQuery({
     queryKey: ['schedules', businessId, selectedEmployeeId],
     queryFn: async (): Promise<any[]> => {
-      if (IS_MOCK || !businessId.value) return []
+      if (!businessId.value) return []
       let query = supabase
         .from('employee_schedules')
         .select('*, profiles!inner(business_id)')
@@ -63,13 +61,13 @@ export const useAgenda = () => {
       if (error) throw error
       return data as any[]
     },
-    enabled: computed(() => !IS_MOCK && !!businessId.value),
+    enabled: computed(() => !!businessId.value),
   })
 
   const { data: appointments, isLoading: loadingAppointments, refetch: refetchAppointments } = useQuery({
     queryKey: ['appointments', businessId, selectedEmployeeId, dateRange],
     queryFn: async (): Promise<Appointment[]> => {
-      if (IS_MOCK || !businessId.value) return []
+      if (!businessId.value) return []
       let query = supabase
         .from('appointments')
         .select('*')
@@ -83,7 +81,7 @@ export const useAgenda = () => {
       if (error) throw error
       return data as Appointment[]
     },
-    enabled: computed(() => !IS_MOCK && !!businessId.value),
+    enabled: computed(() => !!businessId.value),
   })
 
   return {
