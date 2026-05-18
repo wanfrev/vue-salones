@@ -89,15 +89,6 @@ export const getClienteById = async (id: string): Promise<Cliente> => {
   return mapClientToCliente(data as Client)
 }
 
-export const setClienteActive = async (id: string, active: boolean): Promise<void> => {
-  const { error } = await writableSupabase
-    .from('clients')
-    .update({ active })
-    .eq('id', id)
-
-  if (error) throw error
-}
-
 export const findOrCreateClientByPhone = async (
   businessId: string,
   input: { fullName: string; phone: string; email?: string | null; notes?: string | null }
@@ -111,7 +102,6 @@ export const findOrCreateClientByPhone = async (
         phone: input.phone.trim(),
         email: input.email?.trim() || null,
         notes: input.notes?.trim() || null,
-        active: true,
       },
       { onConflict: 'business_id,phone' }
     )

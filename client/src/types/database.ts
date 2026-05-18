@@ -84,7 +84,6 @@ export interface Client {
   email: string | null
   notes: string | null
   birthday: string | null
-  active: boolean
   created_at: string
   updated_at: string
 }

@@ -93,14 +93,14 @@ export function createMockDataStore(): MockDataStore {
   ]
 
   const clients: Client[] = [
-    { id: '00000000-0000-0000-0000-000000000401', business_id: BIZ, full_name: 'Laura Pérez', phone: '+525551234601', email: 'laura@ejemplo.com', notes: 'Cliente regular', birthday: '1990-05-15', active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000402', business_id: BIZ, full_name: 'Carlos Ruiz', phone: '+525551234602', email: 'carlos@ejemplo.com', notes: null, birthday: '1985-11-20', active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000403', business_id: BIZ, full_name: 'Diana Torres', phone: '+525551234603', email: null, notes: 'Prefiere sábados', birthday: null, active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000404', business_id: BIZ, full_name: 'Eduardo Vega', phone: '+525551234604', email: 'eduardo@ejemplo.com', notes: null, birthday: '1992-08-10', active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000405', business_id: BIZ, full_name: 'Gabriela Núñez', phone: '+525551234605', email: 'gabriela@ejemplo.com', notes: 'Alérgica a cierto tinte', birthday: '1988-03-25', active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000406', business_id: BIZ, full_name: 'Héctor Mendoza', phone: '+525551234606', email: null, notes: null, birthday: null, active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000407', business_id: BIZ, full_name: 'Isabel Rivas', phone: '+525551234607', email: 'isabel@ejemplo.com', notes: 'Cliente nueva', birthday: '1995-12-05', active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000408', business_id: BIZ, full_name: 'Jorge Salinas', phone: '+525551234608', email: 'jorge@ejemplo.com', notes: 'Paga con tarjeta', birthday: '1982-07-14', active: true, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000401', business_id: BIZ, full_name: 'Laura Pérez', phone: '+525551234601', email: 'laura@ejemplo.com', notes: 'Cliente regular', birthday: '1990-05-15', created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000402', business_id: BIZ, full_name: 'Carlos Ruiz', phone: '+525551234602', email: 'carlos@ejemplo.com', notes: null, birthday: '1985-11-20', created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000403', business_id: BIZ, full_name: 'Diana Torres', phone: '+525551234603', email: null, notes: 'Prefiere sábados', birthday: null, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000404', business_id: BIZ, full_name: 'Eduardo Vega', phone: '+525551234604', email: 'eduardo@ejemplo.com', notes: null, birthday: '1992-08-10', created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000405', business_id: BIZ, full_name: 'Gabriela Núñez', phone: '+525551234605', email: 'gabriela@ejemplo.com', notes: 'Alérgica a cierto tinte', birthday: '1988-03-25', created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000406', business_id: BIZ, full_name: 'Héctor Mendoza', phone: '+525551234606', email: null, notes: null, birthday: null, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000407', business_id: BIZ, full_name: 'Isabel Rivas', phone: '+525551234607', email: 'isabel@ejemplo.com', notes: 'Cliente nueva', birthday: '1995-12-05', created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000408', business_id: BIZ, full_name: 'Jorge Salinas', phone: '+525551234608', email: 'jorge@ejemplo.com', notes: 'Paga con tarjeta', birthday: '1982-07-14', created_at: now, updated_at: now },
   ]
 
   const today = new Date()
