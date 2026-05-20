@@ -5,18 +5,50 @@ import { supabase } from '../lib/supabase'
 import type { Role } from '../constants/roles'
 import { isRole } from '../constants/roles'
 import type { AuthProfile } from '../types/auth'
-import type { Profile } from '../types/database'
+import type { Business, Profile, ThemeConfig, Terminology } from '../types/database'
+
+const DEFAULT_THEME: ThemeConfig = {
+  primary: '#2F4156',
+  secondary: '#567CB0',
+}
+
+const DEFAULT_TERMINOLOGY: Terminology = {
+  client: 'Cliente',
+  employee: 'Empleado',
+  service: 'Servicio',
+  appointment: 'Cita',
+  staff: 'Personal',
+  pet: 'Mascota',
+  owner: 'Dueno',
+  breed: 'Raza',
+  weight: 'Peso',
+  vaccines: 'Vacunas',
+}
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const session = ref<Session | null>(null)
   const profile = ref<AuthProfile | null>(null)
+  const business = ref<Business | null>(null)
   const initialized = ref(false)
   const loading = ref(false)
 
   const isAuthenticated = computed(() => !!session.value && !!user.value)
   const role = computed<Role | null>(() => profile.value?.role ?? null)
   const businessId = computed(() => profile.value?.business_id ?? null)
+  const nicheType = computed(() => business.value?.niche_type ?? 'salon')
+  const themeConfig = computed(() => business.value?.theme_config ?? DEFAULT_THEME)
+  const terminology = computed(() => business.value?.terminology ?? DEFAULT_TERMINOLOGY)
+
+  const applyThemeConfig = (config: ThemeConfig) => {
+    const html = document.documentElement
+    html.style.setProperty('--color-primary', config.primary)
+    html.style.setProperty('--color-primary-hover', config.primary)
+    html.style.setProperty('--color-primary-light', `${config.primary}1A`)
+    html.style.setProperty('--color-primary-dark', config.primary)
+    html.style.setProperty('--color-info', config.secondary)
+    html.style.setProperty('--color-info-light', `${config.secondary}1A`)
+  }
 
   const loadProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -52,10 +84,34 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const loadBusiness = async (nextBusinessId: string | null) => {
+    if (!nextBusinessId) {
+      business.value = null
+      applyThemeConfig(DEFAULT_THEME)
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('id, name, slug, phone, address, timezone, currency, niche_type, theme_config, terminology, active')
+      .eq('id', nextBusinessId)
+      .single()
+
+    if (error) {
+      business.value = null
+      throw error
+    }
+
+    business.value = data as Business
+    applyThemeConfig(business.value.theme_config ?? DEFAULT_THEME)
+  }
+
   const clearAuthState = () => {
     user.value = null
     session.value = null
     profile.value = null
+    business.value = null
+    applyThemeConfig(DEFAULT_THEME)
   }
 
   const initialize = async () => {
@@ -72,6 +128,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (user.value) {
         await loadProfile(user.value.id)
+        await loadBusiness(profile.value?.business_id ?? null)
       }
 
       supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, nextSession: Session | null) => {
@@ -81,11 +138,14 @@ export const useAuthStore = defineStore('auth', () => {
         if (user.value) {
           try {
             await loadProfile(user.value.id)
+            await loadBusiness(profile.value?.business_id ?? null)
           } catch {
             clearAuthState()
           }
         } else {
           profile.value = null
+          business.value = null
+          applyThemeConfig(DEFAULT_THEME)
         }
       })
     } finally {
@@ -105,6 +165,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (data.user) {
         await loadProfile(data.user.id)
+        await loadBusiness(profile.value?.business_id ?? null)
       }
     } finally {
       loading.value = false
@@ -125,11 +186,15 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     session,
     profile,
+    business,
     initialized,
     loading,
     isAuthenticated,
     role,
     businessId,
+    nicheType,
+    themeConfig,
+    terminology,
     initialize,
     signIn,
     signOut,

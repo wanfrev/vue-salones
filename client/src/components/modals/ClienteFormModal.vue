@@ -1,13 +1,13 @@
 <template>
   <ModalBase
     :is-open="isOpen"
-    :title="isEditing ? 'Editar Cliente' : 'Nuevo Cliente'"
-    :subtitle="isEditing ? `Editando a ${formData.name}` : 'Agrega un nuevo cliente a tu base de datos'"
+    :title="isEditing ? `Editar ${terminology.client}` : `Nuevo ${terminology.client}`"
+    :subtitle="isEditing ? `Editando a ${formData.name}` : `Agrega un nuevo ${terminology.client.toLowerCase()} a tu base de datos`"
     :icon="isEditing ? 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' : 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'"
     size="md"
     :is-loading="isLoading"
     :is-confirm-disabled="!isFormValid"
-    confirm-text="Guardar Cliente"
+    :confirm-text="`Guardar ${terminology.client}`"
     @close="close"
     @confirm="handleSubmit"
   >
@@ -64,17 +64,87 @@
         :rows="3"
         :error="errors.notes"
       />
+
+      <!-- Campos dinámicos según el nicho -->
+      <template v-if="isSalonNiche">
+        <div class="border-t border-border pt-4">
+          <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-text-muted">Perfil capilar</p>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormSelect
+              :model-value="salonFields.hair_type"
+              @update:model-value="salonFields.hair_type = $event"
+              label="Tipo de cabello"
+              :options="hairTypeOptions"
+            />
+            <FormSelect
+              :model-value="salonFields.hair_length"
+              @update:model-value="salonFields.hair_length = $event"
+              label="Largo del cabello"
+              :options="hairLengthOptions"
+            />
+          </div>
+          <div class="mt-4">
+            <FormTextarea
+              :model-value="salonFields.chemical_history"
+              @update:model-value="salonFields.chemical_history = $event"
+              label="Historial de químicos"
+              placeholder="Tintes, alisados, decoloraciones recientes..."
+              :rows="2"
+            />
+          </div>
+        </div>
+      </template>
+
+      <template v-if="isPetNiche">
+        <div class="border-t border-border pt-4">
+          <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-text-muted">Datos de la {{ (terminology.pet || 'Mascota').toLowerCase() }}</p>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormInput
+              :model-value="petFields.pet_name"
+              @update:model-value="petFields.pet_name = $event"
+              :label="terminology.pet || 'Mascota'"
+              placeholder="Ej: Firulais"
+              prefix-icon="M20 12a8 8 0 11-16 0 8 8 0 0116 0z"
+            />
+            <FormInput
+              :model-value="petFields.pet_breed"
+              @update:model-value="petFields.pet_breed = $event"
+              :label="terminology.breed || 'Raza'"
+              placeholder="Ej: Golden Retriever"
+              prefix-icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </div>
+          <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormInput
+              :model-value="petFields.pet_weight"
+              @update:model-value="petFields.pet_weight = $event"
+              :label="terminology.weight || 'Peso'"
+              type="text"
+              placeholder="Ej: 12 kg"
+              prefix-icon="M3 6l3 1m0 0-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2 3-1m-3 1-1 4m1-4 4 9m-5-2 3 1"
+            />
+            <FormInput
+              :model-value="petFields.pet_owner"
+              @update:model-value="petFields.pet_owner = $event"
+              :label="terminology.owner || 'Dueño'"
+              placeholder="Ej: Juan Pérez"
+              prefix-icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </div>
+        </div>
+      </template>
     </form>
   </ModalBase>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
+import { useAuthStore } from '../../store/auth'
 import type { Cliente, ClienteFormData } from '../../types/cliente'
 import ModalBase from '../common/ModalBase.vue'
-import { FormInput, FormTextarea } from '../forms'
+import { FormInput, FormSelect, FormTextarea } from '../forms'
 
 const MODAL_ID = 'cliente-form-modal'
 
@@ -88,6 +158,12 @@ const emit = defineEmits<{
 
 const { isOpen, modalData, close, confirm } = useModal(MODAL_ID)
 const { success, error: showError } = useNotification()
+const authStore = useAuthStore()
+
+const terminology = computed(() => authStore.terminology)
+const nicheType = computed(() => authStore.nicheType)
+const isSalonNiche = computed(() => nicheType.value === 'salon')
+const isPetNiche = computed(() => nicheType.value === 'spa_perros')
 
 const isLoading = ref(false)
 
@@ -100,9 +176,33 @@ const defaultFormData: ClienteFormData = {
   notes: '',
   birthday: '',
   preferredServices: [],
+  metadata: {},
 }
 
 const formData = ref<ClienteFormData>({ ...defaultFormData })
+const petFields = reactive({
+  pet_name: '',
+  pet_breed: '',
+  pet_weight: '',
+  pet_owner: '',
+})
+const salonFields = reactive({
+  hair_type: '',
+  hair_length: '',
+  chemical_history: '',
+})
+const hairTypeOptions = [
+  { value: 'liso', label: 'Liso' },
+  { value: 'ondulado', label: 'Ondulado' },
+  { value: 'rizado', label: 'Rizado' },
+  { value: 'crespo', label: 'Crespo' },
+]
+const hairLengthOptions = [
+  { value: 'corto', label: 'Corto' },
+  { value: 'medio', label: 'Medio' },
+  { value: 'largo', label: 'Largo' },
+  { value: 'extra_largo', label: 'Extra largo' },
+]
 const errors = ref<Partial<Record<keyof ClienteFormData, string>>>({})
 
 const isFormValid = computed(() => {
@@ -113,6 +213,7 @@ watch(
   () => modalData.value?.cliente,
   (cliente) => {
     if (cliente) {
+      const meta = cliente.metadata ?? {}
       formData.value = {
         name: cliente.name || '',
         phone: cliente.phone || '',
@@ -120,9 +221,24 @@ watch(
         notes: cliente.notes || '',
         birthday: cliente.birthday || '',
         preferredServices: cliente.preferredServices || [],
+        metadata: { ...meta },
       }
+      petFields.pet_name = (meta as any).pet_name ?? ''
+      petFields.pet_breed = (meta as any).pet_breed ?? ''
+      petFields.pet_weight = (meta as any).pet_weight ?? ''
+      petFields.pet_owner = (meta as any).pet_owner ?? ''
+      salonFields.hair_type = (meta as any).hair_type ?? ''
+      salonFields.hair_length = (meta as any).hair_length ?? ''
+      salonFields.chemical_history = (meta as any).chemical_history ?? ''
     } else {
-      formData.value = { ...defaultFormData }
+      formData.value = { ...defaultFormData, metadata: {} }
+      petFields.pet_name = ''
+      petFields.pet_breed = ''
+      petFields.pet_weight = ''
+      petFields.pet_owner = ''
+      salonFields.hair_type = ''
+      salonFields.hair_length = ''
+      salonFields.chemical_history = ''
     }
     errors.value = {}
   },
@@ -167,6 +283,11 @@ const handleSubmit = async () => {
 
     const clienteData: ClienteFormData & { id?: string } = {
       ...formData.value,
+      metadata: {
+        ...formData.value.metadata,
+        ...(isPetNiche.value ? { ...petFields } : {}),
+        ...(isSalonNiche.value ? { ...salonFields } : {}),
+      },
     }
 
     if (modalData.value?.cliente?.id) {
@@ -174,10 +295,10 @@ const handleSubmit = async () => {
     }
 
     emit('save', clienteData)
-    success(isEditing.value ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente')
+    success(isEditing.value ? `${terminology.value.client} actualizado correctamente` : `${terminology.value.client} creado correctamente`)
     confirm(clienteData)
   } catch (err) {
-    showError('Error al guardar el cliente')
+    showError(`Error al guardar el ${terminology.value.client.toLowerCase()}`)
     console.error(err)
   } finally {
     isLoading.value = false

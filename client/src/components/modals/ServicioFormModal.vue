@@ -1,13 +1,13 @@
 <template>
   <ModalBase
     :is-open="isOpen"
-    :title="isEditing ? 'Editar Servicio' : 'Nuevo Servicio'"
-    :subtitle="isEditing ? `Editando ${formData.name}` : 'Agrega un nuevo servicio al catálogo'"
+    :title="isEditing ? `Editar ${t.service}` : `Nuevo ${t.service}`"
+    :subtitle="isEditing ? `Editando ${formData.name}` : `Agrega un nuevo ${t.service.toLowerCase()} al catálogo`"
     :icon="isEditing ? 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' : 'M12 6v6m0 0v6m0-6h6m-6 0H6'"
     size="md"
     :is-loading="isLoading"
     :is-confirm-disabled="!isFormValid"
-    confirm-text="Guardar Servicio"
+    :confirm-text="`Guardar ${t.service}`"
     @close="close"
     @confirm="handleSubmit"
   >
@@ -82,6 +82,7 @@
 import { ref, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
+import { useAuthStore } from '../../store/auth'
 import type { Servicio, ServicioFormData } from '../../types/servicio'
 import ModalBase from '../common/ModalBase.vue'
 import { FormInput, FormSelect, FormTextarea } from '../forms'
@@ -94,6 +95,9 @@ const emit = defineEmits<{
 
 const { isOpen, modalData, close, confirm } = useModal(MODAL_ID)
 const { success, error: showError } = useNotification()
+const authStore = useAuthStore()
+
+const t = computed(() => authStore.terminology)
 
 const isLoading = ref(false)
 const isEditing = computed(() => !!modalData.value?.servicio)
@@ -189,10 +193,10 @@ const handleSubmit = async () => {
     }
 
     emit('save', servicioData)
-    success(isEditing.value ? 'Servicio actualizado correctamente' : 'Servicio creado correctamente')
+    success(isEditing.value ? `${t.value.service} actualizado correctamente` : `${t.value.service} creado correctamente`)
     confirm(servicioData)
   } catch (err) {
-    showError('Error al guardar el servicio')
+    showError(`Error al guardar el ${t.value.service.toLowerCase()}`)
     console.error(err)
   } finally {
     isLoading.value = false

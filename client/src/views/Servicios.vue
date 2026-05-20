@@ -40,8 +40,8 @@
                 </svg>
                 <span class="font-medium uppercase tracking-wider">Catálogo</span>
               </div>
-              <h1 class="text-xl font-bold text-text lg:text-2xl">Servicios</h1>
-              <p class="hidden text-sm text-text-muted sm:block">Menú de servicios y precios</p>
+              <h1 class="text-xl font-bold text-text lg:text-2xl">{{ authStore.terminology.service || 'Servicio' }}s</h1>
+              <p class="hidden text-sm text-text-muted sm:block">Menú de {{ (authStore.terminology.service || 'servicio').toLowerCase() }}s y precios</p>
             </div>
             <button
               @click="handleNewServicio"
@@ -50,7 +50,7 @@
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              <span class="hidden sm:inline">Nuevo Servicio</span>
+              <span class="hidden sm:inline">Nuevo {{ authStore.terminology.service || 'Servicio' }}</span>
             </button>
           </div>
         </header>
@@ -66,7 +66,7 @@
               </div>
               <div>
                 <p class="text-lg font-bold text-text">{{ totalServicios }}</p>
-                <p class="text-xs text-text-muted">Servicios Activos</p>
+                <p class="text-xs text-text-muted">{{ authStore.terminology.service || 'Servicio' }}s Activos</p>
               </div>
             </div>
           </div>
@@ -92,7 +92,7 @@
               </div>
               <div>
                 <p class="text-lg font-bold text-text">{{ totalCitasMes }}</p>
-                <p class="text-xs text-text-muted">Citas Este Mes</p>
+                <p class="text-xs text-text-muted">{{ authStore.terminology.appointment || 'Cita' }}s Este Mes</p>
               </div>
             </div>
           </div>
@@ -183,7 +183,7 @@
 
             <div class="mt-3 border-t border-border-subtle pt-3">
               <div class="flex items-center justify-between text-xs">
-                <span class="text-text-muted">{{ service.citasMes }} citas este mes</span>
+                <span class="text-text-muted">{{ service.citasMes }} {{ (authStore.terminology.appointment || 'cita').toLowerCase() }}s este mes</span>
                 <span class="font-medium text-success">${{ service.ingresos }} ingresos</span>
               </div>
             </div>
@@ -213,7 +213,7 @@
   <!-- Confirm Delete Modal -->
   <ModalBase
     :is-open="isDeleteModalOpen"
-    title="Eliminar Servicio"
+    :title="`Eliminar ${authStore.terminology.service || 'Servicio'}`"
     subtitle="Esta acción no se puede deshacer"
     icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
     variant="danger"

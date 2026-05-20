@@ -1,13 +1,13 @@
 <template>
   <ModalBase
     :is-open="isOpen"
-    :title="isEditing ? 'Editar Empleado' : 'Nuevo Empleado'"
-    :subtitle="isEditing ? `Editando a ${formData.name}` : 'Agrega un nuevo miembro al equipo'"
+    :title="isEditing ? `Editar ${t.employee}` : `Nuevo ${t.employee}`"
+    :subtitle="isEditing ? `Editando a ${formData.name}` : `Agrega un nuevo ${t.employee.toLowerCase()} al equipo`"
     :icon="isEditing ? 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' : 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'"
     size="lg"
     :is-loading="isLoading"
     :is-confirm-disabled="!isFormValid"
-    confirm-text="Guardar Empleado"
+    :confirm-text="`Guardar ${t.employee}`"
     @close="close"
     @confirm="handleSubmit"
   >
@@ -51,7 +51,7 @@
 
           <FormInput
             v-model.number="formData.payPercentage"
-            label="% Empleada"
+            :label="`% ${t.employee}`"
             type="number"
             min="0"
             max="100"
@@ -138,6 +138,7 @@
 import { ref, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
+import { useAuthStore } from '../../store/auth'
 import type { Empleado, EmpleadoFormData } from '../../types/empleado'
 import ModalBase from '../common/ModalBase.vue'
 import { FormInput, FormSelect } from '../forms'
@@ -150,6 +151,9 @@ const emit = defineEmits<{
 
 const { isOpen, modalData, close, confirm } = useModal(MODAL_ID)
 const { success, error: showError } = useNotification()
+const authStore = useAuthStore()
+
+const t = computed(() => authStore.terminology)
 
 const isLoading = ref(false)
 const isEditing = computed(() => !!modalData.value?.empleado)
@@ -265,10 +269,10 @@ const handleSubmit = async () => {
     }
 
     emit('save', empleadoData)
-    success(isEditing.value ? 'Empleado actualizado correctamente' : 'Empleado creado correctamente')
+    success(isEditing.value ? `${t.value.employee} actualizado correctamente` : `${t.value.employee} creado correctamente`)
     confirm(empleadoData)
   } catch (err) {
-    showError('Error al guardar el empleado')
+    showError(`Error al guardar el ${t.value.employee.toLowerCase()}`)
     console.error(err)
   } finally {
     isLoading.value = false

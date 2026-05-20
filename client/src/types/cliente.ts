@@ -10,6 +10,7 @@ export interface Cliente {
   notes?: string
   birthday?: string
   preferredServices?: string[]
+  metadata?: Record<string, unknown>
 }
 
 export interface ClienteFormData {
@@ -19,4 +20,5 @@ export interface ClienteFormData {
   notes: string
   birthday: string
   preferredServices: string[]
+  metadata?: Record<string, unknown>
 }

@@ -80,7 +80,7 @@
               </div>
               <div>
                 <p class="text-xs text-text-muted">Ingresos</p>
-                <p class="text-lg font-bold text-text">$24,580</p>
+                <p class="text-lg font-bold text-text">{{ formatCurrency(incomeTotal) }}</p>
               </div>
             </div>
             <div class="mt-2 flex items-center gap-1 text-xs">
@@ -98,7 +98,7 @@
               </div>
               <div>
                 <p class="text-xs text-text-muted">Gastos</p>
-                <p class="text-lg font-bold text-text">$8,240</p>
+                <p class="text-lg font-bold text-text">{{ formatCurrency(expenseTotal) }}</p>
               </div>
             </div>
             <div class="mt-2 flex items-center gap-1 text-xs">
@@ -116,7 +116,7 @@
               </div>
               <div>
                 <p class="text-xs text-text-muted">Ganancia Neta</p>
-                <p class="text-lg font-bold text-text">$16,340</p>
+                <p class="text-lg font-bold text-text">{{ formatCurrency(netTotal) }}</p>
               </div>
             </div>
             <div class="mt-2 flex items-center gap-1 text-xs">
@@ -134,7 +134,7 @@
               </div>
               <div>
                 <p class="text-xs text-text-muted">Margen</p>
-                <p class="text-lg font-bold text-text">66.5%</p>
+                <p class="text-lg font-bold text-text">{{ formatPercentage(marginTotal) }}</p>
               </div>
             </div>
             <div class="mt-2 flex items-center gap-1 text-xs">
@@ -185,7 +185,7 @@
               <div v-for="service in servicesRevenue" :key="service.name">
                 <div class="mb-1 flex items-center justify-between">
                   <span class="text-sm text-text-secondary">{{ service.name }}</span>
-                  <span class="text-sm font-medium text-text">${{ service.amount }}</span>
+                  <span class="text-sm font-medium text-text">{{ formatCurrency(service.amount) }}</span>
                 </div>
                 <div class="h-2 w-full rounded-full bg-bg-secondary">
                   <div
@@ -199,7 +199,7 @@
             <div class="mt-4 border-t border-border-subtle pt-3">
               <div class="flex items-center justify-between text-sm">
                 <span class="text-text-muted">Total Servicios</span>
-                <span class="font-semibold text-text">$24,580</span>
+                <span class="font-semibold text-text">{{ formatCurrency(incomeTotal) }}</span>
               </div>
             </div>
           </div>
@@ -241,7 +241,7 @@
                       'bg-primary/10 text-primary'
                     ]">{{ expense.category }}</span>
                   </td>
-                  <td class="py-3 text-right font-medium text-text">${{ expense.amount }}</td>
+                  <td class="py-3 text-right font-medium text-text">{{ formatCurrency(expense.amount) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -261,10 +261,10 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-border-subtle">
-                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Empleado</th>
-                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Servicio</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.employee || 'Empleado' }}</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.service || 'Servicio' }}</th>
                   <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Costo</th>
-                  <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">% Empleada</th>
+                  <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">% {{ authStore.terminology.employee || 'Empleado' }}</th>
                   <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Ganancia</th>
                 </tr>
               </thead>
@@ -272,9 +272,9 @@
                 <tr v-for="payment in employeePayments" :key="payment.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
                   <td class="py-3 font-medium text-text">{{ payment.employee }}</td>
                   <td class="py-3 text-text-secondary">{{ payment.service }}</td>
-                  <td class="py-3 text-right text-text">${{ payment.amount }}</td>
+                  <td class="py-3 text-right text-text">{{ formatCurrency(payment.amount) }}</td>
                   <td class="py-3 text-right text-text-secondary">{{ payment.percentage }}%</td>
-                  <td class="py-3 text-right font-semibold text-success">${{ payment.earnings }}</td>
+                  <td class="py-3 text-right font-semibold text-success">{{ formatCurrency(payment.earnings) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -295,8 +295,8 @@
               <thead>
                 <tr class="border-b border-border-subtle">
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
-                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Cliente</th>
-                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Servicio</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.client || 'Cliente' }}</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.service || 'Servicio' }}</th>
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
                   <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
                 </tr>
@@ -314,7 +314,7 @@
                       'bg-info/10 text-info'
                     ]">{{ tx.method }}</span>
                   </td>
-                  <td class="py-3 text-right font-medium text-text">${{ tx.amount }}</td>
+                  <td class="py-3 text-right font-medium text-text">{{ formatCurrency(tx.amount) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -326,11 +326,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { supabase } from '../lib/supabase'
 import { useAuth } from '../composables/useAuth'
 import Sidebar from '../components/layout/Sidebar.vue'
+import type { Expense, Transaction } from '../types/database'
 
-const { logout } = useAuth()
+type SummaryBucket = {
+  bucket: string
+  appointments: number
+  total_amount: number
+  local_amount: number
+  employee_amount: number
+}
+
+type ExpenseRow = {
+  id: string
+  date: string
+  name: string
+  category: string
+  amount: number
+}
+
+type PaymentRow = {
+  id: string
+  employee: string
+  service: string
+  amount: number
+  percentage: number
+  earnings: number
+}
+
+type TransactionRow = {
+  id: string
+  date: string
+  client: string
+  service: string
+  method: string
+  amount: number
+}
+
+const { logout, authStore } = useAuth()
 const isSidebarOpen = ref(false)
 
 const periods = [
@@ -338,43 +374,237 @@ const periods = [
   { label: 'Trimestre', value: 'quarter' },
   { label: 'Año', value: 'year' },
 ]
-const selectedPeriod = ref('month')
+const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
 
-const chartData = ref([
-  { label: 'Ene', income: 80, expense: 40 },
-  { label: 'Feb', income: 95, expense: 45 },
-  { label: 'Mar', income: 85, expense: 35 },
-  { label: 'Abr', income: 110, expense: 50 },
-  { label: 'May', income: 125, expense: 55 },
-  { label: 'Jun', income: 140, expense: 60 },
-])
+const summaryBuckets = ref<SummaryBucket[]>([])
+const expenses = ref<ExpenseRow[]>([])
+const payments = ref<PaymentRow[]>([])
+const transactions = ref<TransactionRow[]>([])
+const transactionsAll = ref<TransactionRow[]>([])
 
-const servicesRevenue = ref([
-  { name: 'Corte de Cabello', amount: '8,450', percentage: 34 },
-  { name: 'Coloración', amount: '6,230', percentage: 25 },
-  { name: 'Manicure', amount: '4,120', percentage: 17 },
-  { name: 'Pedicure', amount: '3,580', percentage: 15 },
-  { name: 'Tratamientos', amount: '2,200', percentage: 9 },
-])
+const incomeTotal = computed(() => summaryBuckets.value.reduce((acc, row) => acc + row.total_amount, 0))
+const expenseTotal = computed(() => expenses.value.reduce((acc, row) => acc + row.amount, 0))
+const netTotal = computed(() => incomeTotal.value - expenseTotal.value)
+const marginTotal = computed(() => (incomeTotal.value > 0 ? (netTotal.value / incomeTotal.value) * 100 : 0))
 
-const expenses = ref([
-  { id: 1, date: '12 May 2026', name: 'Renta del local', category: 'Fijos', amount: '5,500' },
-  { id: 2, date: '10 May 2026', name: 'Productos y tintes', category: 'Insumos', amount: '1,250' },
-  { id: 3, date: '08 May 2026', name: 'Servicios públicos', category: 'Fijos', amount: '820' },
-  { id: 4, date: '06 May 2026', name: 'Publicidad', category: 'Marketing', amount: '670' },
-])
+const servicesRevenue = computed(() => {
+  const totals = new Map<string, number>()
+  for (const tx of transactionsAll.value) {
+    const key = tx.service || 'Sin servicio'
+    totals.set(key, (totals.get(key) ?? 0) + tx.amount)
+  }
+  const total = incomeTotal.value
+  return [...totals.entries()]
+    .map(([name, amount]) => ({
+      name,
+      amount,
+      percentage: total > 0 ? Math.round((amount / total) * 100) : 0,
+    }))
+    .sort((a, b) => b.amount - a.amount)
+  })
 
-const employeePayments = ref([
-  { id: 1, employee: 'María García', service: 'Corte de cabello', amount: '250', percentage: 45, earnings: '112.50' },
-  { id: 2, employee: 'Ana López', service: 'Manicure', amount: '180', percentage: 40, earnings: '72.00' },
-  { id: 3, employee: 'Sofía Martínez', service: 'Corte de barba', amount: '150', percentage: 50, earnings: '75.00' },
-])
+const chartData = computed(() => {
+  const expenseBuckets = buildExpenseBuckets(expenses.value, resolvePeriod(selectedPeriod.value).bucket)
+  const entries = summaryBuckets.value.map(row => {
+    const bucketKey = normalizeBucketKey(new Date(row.bucket), resolvePeriod(selectedPeriod.value).bucket)
+    const expenseValue = expenseBuckets.get(bucketKey) ?? 0
+    return {
+      label: formatBucketLabel(new Date(row.bucket), resolvePeriod(selectedPeriod.value).bucket),
+      incomeValue: row.total_amount,
+      expenseValue,
+    }
+  })
 
-const transactions = ref([
-  { id: 1, date: '11 May 2026', client: 'María González', service: 'Corte + Color', method: 'Tarjeta', amount: '95.00' },
-  { id: 2, date: '11 May 2026', client: 'Ana López', service: 'Manicure Gel', method: 'Efectivo', amount: '35.00' },
-  { id: 3, date: '10 May 2026', client: 'Carmen Ruiz', service: 'Tratamiento', method: 'Transferencia', amount: '120.00' },
-  { id: 4, date: '10 May 2026', client: 'Patricia Mendoza', service: 'Corte', method: 'Tarjeta', amount: '45.00' },
-  { id: 5, date: '10 May 2026', client: 'Laura Herrera', service: 'Pedicure', method: 'Efectivo', amount: '40.00' },
-])
+  const maxValue = Math.max(1, ...entries.map(item => Math.max(item.incomeValue, item.expenseValue)))
+  return entries.map(item => ({
+    label: item.label,
+    income: Math.max(4, Math.round((item.incomeValue / maxValue) * 140)),
+    expense: Math.max(4, Math.round((item.expenseValue / maxValue) * 140)),
+  }))
+})
+
+const employeePayments = computed(() => payments.value)
+
+const formatCurrency = (value: number) => {
+  const currency = authStore.business?.currency ?? 'USD'
+  return new Intl.NumberFormat('es-DO', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
+
+const formatPercentage = (value: number) => `${value.toFixed(1)}%`
+
+const formatDate = (value: string) => {
+  const date = new Date(value)
+  return new Intl.DateTimeFormat('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
+
+const formatMethod = (method: string) => {
+  switch (method) {
+    case 'cash':
+      return 'Efectivo'
+    case 'card':
+      return 'Tarjeta'
+    case 'transfer':
+      return 'Transferencia'
+    default:
+      return method
+  }
+}
+
+const resolvePeriod = (value: 'month' | 'quarter' | 'year') => {
+  const today = new Date()
+  if (value === 'month') {
+    return {
+      bucket: 'day' as const,
+      start: new Date(today.getFullYear(), today.getMonth(), 1),
+      end: today,
+    }
+  }
+  if (value === 'quarter') {
+    const quarterStartMonth = Math.floor(today.getMonth() / 3) * 3
+    return {
+      bucket: 'week' as const,
+      start: new Date(today.getFullYear(), quarterStartMonth, 1),
+      end: today,
+    }
+  }
+  return {
+    bucket: 'month' as const,
+    start: new Date(today.getFullYear(), 0, 1),
+    end: today,
+  }
+}
+
+const normalizeBucketKey = (date: Date, bucket: 'day' | 'week' | 'month') => {
+  const normalized = new Date(date)
+  normalized.setHours(0, 0, 0, 0)
+  if (bucket === 'day') {
+    return normalized.toISOString().slice(0, 10)
+  }
+  if (bucket === 'month') {
+    return `${normalized.getFullYear()}-${String(normalized.getMonth() + 1).padStart(2, '0')}-01`
+  }
+  const day = (normalized.getDay() + 6) % 7
+  normalized.setDate(normalized.getDate() - day)
+  return normalized.toISOString().slice(0, 10)
+}
+
+const formatBucketLabel = (date: Date, bucket: 'day' | 'week' | 'month') => {
+  if (bucket === 'month') {
+    return date.toLocaleDateString('es-ES', { month: 'short' })
+  }
+  if (bucket === 'week') {
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+  }
+  return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+}
+
+const buildExpenseBuckets = (rows: ExpenseRow[], bucket: 'day' | 'week' | 'month') => {
+  const map = new Map<string, number>()
+  for (const row of rows) {
+    const key = normalizeBucketKey(new Date(row.date), bucket)
+    map.set(key, (map.get(key) ?? 0) + row.amount)
+  }
+  return map
+}
+
+const loadFinancialData = async () => {
+  const businessId = authStore.businessId
+  if (!businessId) return
+
+  const periodConfig = resolvePeriod(selectedPeriod.value)
+  const startDate = periodConfig.start.toISOString().slice(0, 10)
+  const endDate = periodConfig.end.toISOString().slice(0, 10)
+
+  const summaryResponse = await supabase.rpc('financial_summary', {
+    p_business_id: businessId,
+    p_period_start: startDate,
+    p_period_end: endDate,
+    p_period: periodConfig.bucket,
+  })
+
+  summaryBuckets.value = (summaryResponse.data ?? []) as SummaryBucket[]
+
+  const expensesResponse = await supabase
+    .from('expenses')
+    .select('id, name, category, amount, expense_date')
+    .eq('business_id', businessId)
+    .gte('expense_date', startDate)
+    .lte('expense_date', endDate)
+    .order('expense_date', { ascending: false })
+
+  const rawExpenses = (expensesResponse.data ?? []) as Expense[]
+  expenses.value = rawExpenses.map(row => ({
+    id: row.id,
+    date: row.expense_date,
+    name: row.name,
+    category: row.category,
+    amount: row.amount,
+  }))
+
+  const transactionsResponse = await supabase
+    .from('transactions')
+    .select(`
+      id,
+      paid_at,
+      total_amount,
+      method,
+      employee_percentage,
+      appointments (
+        client_id,
+        service_id,
+        employee_id,
+        clients ( full_name ),
+        services ( name ),
+        profiles ( full_name )
+      )
+    `)
+    .eq('business_id', businessId)
+    .gte('paid_at', periodConfig.start.toISOString())
+    .lte('paid_at', periodConfig.end.toISOString())
+    .order('paid_at', { ascending: false })
+
+  const rawTransactions = (transactionsResponse.data ?? []) as Array<
+    Transaction & {
+      appointments?: {
+        clients?: { full_name: string | null } | null
+        services?: { name: string | null } | null
+        profiles?: { full_name: string | null } | null
+      } | null
+    }
+  >
+
+  const mappedTransactions = rawTransactions.map(row => ({
+    id: row.id,
+    date: formatDate(row.paid_at),
+    client: row.appointments?.clients?.full_name ?? '—',
+    service: row.appointments?.services?.name ?? '—',
+    method: formatMethod(row.method),
+    amount: row.total_amount,
+  }))
+
+  transactionsAll.value = mappedTransactions
+  transactions.value = mappedTransactions.slice(0, 10)
+
+  payments.value = rawTransactions.map(row => ({
+    id: row.id,
+    employee: row.appointments?.profiles?.full_name ?? '—',
+    service: row.appointments?.services?.name ?? '—',
+    amount: row.total_amount,
+    percentage: row.employee_percentage ?? 0,
+    earnings: row.total_amount * ((row.employee_percentage ?? 0) / 100),
+  }))
+}
+
+watch([() => authStore.businessId, selectedPeriod], () => {
+  void loadFinancialData()
+}, { immediate: true })
 </script>

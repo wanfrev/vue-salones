@@ -9,6 +9,22 @@ export type PaymentStatus = 'unpaid' | 'partial' | 'paid'
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'other'
 export type AppointmentSource = 'internal' | 'public'
 export type EmployeeAbsenceType = 'break' | 'vacation' | 'sick_leave' | 'personal' | 'blocked'
+export type InventoryMovementType =
+  | 'purchase'
+  | 'sale'
+  | 'adjustment'
+  | 'transfer_in'
+  | 'transfer_out'
+  | 'return'
+  | 'consumption'
+
+export type ThemeConfig = {
+  primary: string
+  secondary: string
+  [key: string]: string
+}
+
+export type Terminology = Record<string, string>
 
 export interface Business {
   id: string
@@ -18,7 +34,9 @@ export interface Business {
   address: string | null
   timezone: string
   currency: string
-  primary_color: string | null
+  niche_type: string
+  theme_config: ThemeConfig
+  terminology: Terminology
   active: boolean
   created_at: string
   updated_at: string
@@ -58,6 +76,7 @@ export interface Service {
   price: number
   local_percentage: number
   color: string | null
+  service_category_id?: string | null
   category: string
   icon: string | null
   active: boolean
@@ -84,6 +103,7 @@ export interface Client {
   email: string | null
   notes: string | null
   birthday: string | null
+  metadata: Record<string, unknown>
   created_at: string
   updated_at: string
 }
@@ -155,6 +175,113 @@ export interface EmployeeAbsence {
   updated_at: string
 }
 
+export interface ServiceCategory {
+  id: string
+  business_id: string
+  parent_id: string | null
+  name: string
+  description: string | null
+  active: boolean
+  metadata: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export interface ServiceVariant {
+  id: string
+  business_id: string
+  service_id: string
+  name: string
+  description: string | null
+  duration_minutes: number | null
+  price: number | null
+  active: boolean
+  metadata: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export interface ProductCategory {
+  id: string
+  business_id: string
+  parent_id: string | null
+  name: string
+  description: string | null
+  active: boolean
+  metadata: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export interface Product {
+  id: string
+  business_id: string
+  category_id: string | null
+  name: string
+  description: string | null
+  sku: string | null
+  barcode: string | null
+  unit: string
+  unit_cost: number
+  unit_price: number
+  reorder_point: number
+  active: boolean
+  metadata: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export interface ProductVariant {
+  id: string
+  product_id: string
+  name: string
+  sku: string | null
+  unit_cost: number
+  unit_price: number
+  metadata: Record<string, unknown>
+  active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface InventoryLocation {
+  id: string
+  business_id: string
+  name: string
+  is_default: boolean
+  active: boolean
+  metadata: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export interface InventoryStock {
+  id: string
+  business_id: string
+  location_id: string
+  product_id: string
+  variant_id: string | null
+  quantity: number
+  reserved_qty: number
+  updated_at: string
+}
+
+export interface InventoryMovement {
+  id: string
+  business_id: string
+  location_id: string
+  product_id: string
+  variant_id: string | null
+  movement_type: InventoryMovementType
+  quantity: number
+  unit_cost: number
+  reference_type: string | null
+  reference_id: string | null
+  notes: string | null
+  created_by: string | null
+  created_at: string
+}
+
 type TableShape<Row> = {
   Row: Row
   Insert: Partial<Row>
@@ -169,6 +296,8 @@ export interface Database {
       profiles: TableShape<Profile>
       employee_schedules: TableShape<EmployeeSchedule>
       services: TableShape<Service>
+      service_categories: TableShape<ServiceCategory>
+      service_variants: TableShape<ServiceVariant>
       employee_services: TableShape<EmployeeService>
       client_preferred_services: TableShape<ClientPreferredService>
       clients: TableShape<Client>
@@ -176,12 +305,18 @@ export interface Database {
       transactions: TableShape<Transaction>
       expenses: TableShape<Expense>
       employee_absences: TableShape<EmployeeAbsence>
+      product_categories: TableShape<ProductCategory>
+      products: TableShape<Product>
+      product_variants: TableShape<ProductVariant>
+      inventory_locations: TableShape<InventoryLocation>
+      inventory_stock: TableShape<InventoryStock>
+      inventory_movements: TableShape<InventoryMovement>
     }
     Views: Record<string, never>
     Functions: {
       public_business_info: {
         Args: { p_slug: string }
-        Returns: Array<Pick<Business, 'id' | 'name' | 'timezone' | 'currency' | 'primary_color' | 'phone' | 'address'>>
+        Returns: Array<Pick<Business, 'id' | 'name' | 'timezone' | 'currency' | 'niche_type' | 'theme_config' | 'terminology' | 'phone' | 'address'>>
       }
       public_list_services: {
         Args: { p_slug: string }
@@ -253,6 +388,7 @@ export interface Database {
       payment_method: PaymentMethod
       appointment_source: AppointmentSource
       employee_absence_type: EmployeeAbsenceType
+      inventory_movement_type: InventoryMovementType
     }
     CompositeTypes: Record<string, never>
   }

@@ -11,6 +11,7 @@ export const mapClientToCliente = (
   email: client.email ?? '',
   notes: client.notes ?? '',
   birthday: client.birthday ?? '',
+  metadata: client.metadata ?? {},
   joinDate: client.created_at.split('T')[0],
   lastVisit: stats?.lastVisit ?? 'Sin visitas',
   totalAppointments: stats?.totalAppointments ?? 0,
@@ -25,4 +26,5 @@ export const mapClienteFormToClientInsert = (businessId: string, data: ClienteFo
   email: data.email.trim() || null,
   notes: data.notes.trim() || null,
   birthday: data.birthday || null,
+  metadata: data.metadata ?? {},
 })

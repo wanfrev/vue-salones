@@ -391,11 +391,82 @@ export function createMockClient() {
   const mockRpc = {
     financial_summary: async (_args: any) => ({ data: [], error: null }),
     record_payment: async (_args: any) => ({ data: 'mock-txn-id', error: null }),
-    public_business_info: async (_args: any) => ({ data: null, error: null }),
+    public_business_info: async (_args: any) => ({ data: store.businesses.slice(0, 1), error: null }),
     public_list_services: async (_args: any) => ({ data: [], error: null }),
     public_list_employees_for_service: async (_args: any) => ({ data: [], error: null }),
     public_get_available_slots: async (_args: any) => ({ data: [], error: null }),
     public_book_appointment: async (_args: any) => ({ data: null, error: null }),
+  }
+
+  const mockFunctions = {
+    invoke: async (fnName: string, options?: { body?: any }) => {
+      if (fnName !== 'superadmin-invite') {
+        return { data: null, error: { message: 'Function not found' } }
+      }
+
+      const payload = options?.body || {}
+      const now = new Date().toISOString()
+      const baseSlug = String(payload.businessName || '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || `biz-${Date.now()}`
+
+      let slug = baseSlug
+      let suffix = 1
+      while (store.businesses.some(b => b.slug === slug)) {
+        suffix += 1
+        slug = `${baseSlug}-${suffix}`
+      }
+
+      const business = {
+        id: crypto.randomUUID?.() || `biz-${Date.now()}`,
+        name: payload.businessName || 'Nuevo negocio',
+        slug,
+        phone: null,
+        address: null,
+        timezone: 'America/Santo_Domingo',
+        currency: 'DOP',
+        niche_type: payload.nicheType || 'salon',
+        theme_config: {
+          primary: payload.primaryColor || '#2F4156',
+          secondary: payload.secondaryColor || '#567CB0',
+        },
+        terminology: {
+          client: 'Cliente',
+          employee: 'Empleado',
+          service: 'Servicio',
+          appointment: 'Cita',
+          staff: 'Personal',
+          pet: 'Mascota',
+          owner: 'Dueno',
+          breed: 'Raza',
+          weight: 'Peso',
+          vaccines: 'Vacunas',
+        },
+        active: true,
+        created_at: now,
+        updated_at: now,
+      }
+
+      store.businesses.push(business as any)
+
+      const invitedUserId = crypto.randomUUID?.() || `user-${Date.now()}`
+      store.profiles.push({
+        id: invitedUserId,
+        business_id: business.id,
+        full_name: `Admin ${business.name}`,
+        role: 'admin',
+        job_title: 'Administrador',
+        phone: null,
+        avatar_url: null,
+        active: true,
+        created_at: now,
+        updated_at: now,
+      } as any)
+
+      return { data: { business, invitedUserId }, error: null }
+    },
   }
 
   return {
@@ -406,5 +477,6 @@ export function createMockClient() {
       if (fn) return fn(args)
       return Promise.resolve({ data: null, error: null })
     },
+    functions: mockFunctions,
   } as any
 }

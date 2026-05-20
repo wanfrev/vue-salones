@@ -42,13 +42,13 @@
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Agenda
+                {{ authStore.terminology.appointment || 'Cita' }}s
               </div>
               <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">
                 {{ todayLabel }}
               </h1>
               <p class="text-sm text-text-muted">
-                {{ stats.citasHoy }} cita{{ stats.citasHoy !== 1 ? 's' : '' }} programada{{ stats.citasHoy !== 1 ? 's' : '' }} · ${{ stats.estimadoHoy }} estimado
+                {{ stats.citasHoy }} {{ (authStore.terminology.appointment || 'cita').toLowerCase() }}{{ stats.citasHoy !== 1 ? 's' : '' }} programada{{ stats.citasHoy !== 1 ? 's' : '' }} · ${{ stats.estimadoHoy }} estimado
               </p>
             </div>
             
@@ -69,7 +69,7 @@
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                <span>Nueva cita</span>
+                <span>Nueva {{ (authStore.terminology.appointment || 'cita').toLowerCase() }}</span>
               </button>
             </div>
           </div>
@@ -86,7 +86,7 @@
               </div>
               <div>
                 <p class="text-xl font-bold tabular-nums text-text sm:text-2xl">{{ stats.citasHoy }}</p>
-                <p class="text-xs text-text-muted">Citas hoy</p>
+                <p class="text-xs text-text-muted">{{ authStore.terminology.appointment || 'Cita' }}s hoy</p>
               </div>
             </div>
           </div>

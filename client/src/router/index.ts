@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/Login.vue'
 import DashboardView from '../views/Dashboard.vue'
 import AdminView from '../views/Admin.vue'
+import SuperadminView from '../views/Superadmin.vue'
 import ClientesView from '../views/Clientes.vue'
 import ClienteHistorialView from '../views/ClienteHistorial.vue'
 import FinanzasView from '../views/Finanzas.vue'
@@ -30,6 +31,12 @@ const router = createRouter({
       name: 'admin',
       component: AdminView,
       meta: { requiresAuth: true, adminOnly: true },
+    },
+    {
+      path: '/superadmin',
+      name: 'superadmin',
+      component: SuperadminView,
+      meta: { requiresAuth: true, superadminOnly: true },
     },
     {
       path: '/clientes',
@@ -75,6 +82,10 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return '/'
+  }
+
+  if (to.meta.superadminOnly && authStore.role !== 'superadmin') {
+    return resolveHomeByRole(authStore.role ?? undefined)
   }
 
   if (to.meta.adminOnly && !isAdminPanelRole(authStore.role ?? undefined)) {

@@ -38,9 +38,9 @@
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10M7 16h6" />
                 </svg>
-                <span class="font-medium uppercase tracking-wider">Clientes</span>
+                <span class="font-medium uppercase tracking-wider">{{ authStore.terminology.client || 'Cliente' }}s</span>
               </div>
-              <h1 class="text-xl font-bold text-text lg:text-2xl">Historial de {{ cliente?.name || 'Cliente' }}</h1>
+              <h1 class="text-xl font-bold text-text lg:text-2xl">Historial de {{ cliente?.name || authStore.terminology.client || 'Cliente' }}</h1>
               <p class="hidden text-sm text-text-muted sm:block">Servicios y visitas anteriores</p>
             </div>
             <div class="flex gap-2">
@@ -75,8 +75,8 @@
                 <thead>
                   <tr class="border-b border-border-subtle">
                     <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
-                    <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Servicio</th>
-                    <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Empleado</th>
+                    <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.service || 'Servicio' }}</th>
+                    <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.employee || 'Empleado' }}</th>
                     <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
                     <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Estado</th>
                   </tr>
@@ -103,7 +103,7 @@
             <h3 class="mb-4 text-base font-semibold text-text">Resumen</h3>
             <div class="space-y-3">
               <div class="rounded-lg bg-bg-secondary p-3">
-                <p class="text-xs text-text-muted">Total citas</p>
+                <p class="text-xs text-text-muted">Total {{ (authStore.terminology.appointment || 'cita').toLowerCase() }}s</p>
                 <p class="text-lg font-bold text-text">{{ historial.length }}</p>
               </div>
               <div class="rounded-lg bg-bg-secondary p-3">

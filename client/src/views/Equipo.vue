@@ -38,10 +38,10 @@
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span class="font-medium uppercase tracking-wider">Equipo</span>
+                <span class="font-medium uppercase tracking-wider">{{ authStore.terminology.employee || 'Empleado' }}s</span>
               </div>
-              <h1 class="text-xl font-bold text-text lg:text-2xl">Gestión de Equipo</h1>
-              <p class="hidden text-sm text-text-muted sm:block">Empleados, horarios y comisiones</p>
+              <h1 class="text-xl font-bold text-text lg:text-2xl">Gestión de {{ (authStore.terminology.employee || 'Empleado').toLowerCase() }}s</h1>
+              <p class="hidden text-sm text-text-muted sm:block">{{ authStore.terminology.employee || 'Empleado' }}s, horarios y comisiones</p>
             </div>
             <button
               @click="handleNewEmpleado"
@@ -50,7 +50,7 @@
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
-              <span class="hidden sm:inline">Nuevo Empleado</span>
+              <span class="hidden sm:inline">Nuevo {{ authStore.terminology.employee || 'Empleado' }}</span>
             </button>
           </div>
         </header>
@@ -66,7 +66,7 @@
               </div>
               <div>
                 <p class="text-lg font-bold text-text">{{ totalEmpleados }}</p>
-                <p class="text-xs text-text-muted">Empleados</p>
+                <p class="text-xs text-text-muted">{{ authStore.terminology.employee || 'Empleado' }}s</p>
               </div>
             </div>
           </div>
@@ -166,11 +166,11 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-border-subtle">
-                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Empleado</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.employee || 'Empleado' }}</th>
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Entrada</th>
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Salida</th>
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Descanso</th>
-                  <th class="pb-3 text-center text-xs font-semibold uppercase text-text-muted">Citas</th>
+                  <th class="pb-3 text-center text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.appointment || 'Cita' }}s</th>
                   <th class="pb-3 text-center text-xs font-semibold uppercase text-text-muted">Disponible</th>
                 </tr>
               </thead>

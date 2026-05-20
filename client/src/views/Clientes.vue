@@ -42,10 +42,10 @@
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                Clientes
+                {{ authStore.terminology.client || 'Cliente' }}s
               </div>
               <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">
-                {{ totalClientes }} {{ totalClientes === 1 ? 'cliente' : 'clientes' }}
+                {{ totalClientes }} {{ totalClientes === 1 ? (authStore.terminology.client || 'cliente').toLowerCase() : (authStore.terminology.client || 'cliente').toLowerCase() + 's' }}
               </h1>
               <p class="text-sm text-text-muted">
                 {{ clientesConHistorial }} con historial · {{ clientesSinVisitar }} sin visitar en {{ daysSinceVisitFilter }} días
@@ -60,7 +60,7 @@
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
-                <span>Nuevo cliente</span>
+                <span>Nuevo {{ (authStore.terminology.client || 'cliente').toLowerCase() }}</span>
               </button>
             </div>
           </div>
@@ -168,10 +168,10 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-border">
-                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Cliente</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">{{ authStore.terminology.client || 'Cliente' }}</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Contacto</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Última visita</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Citas</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">{{ authStore.terminology.appointment || 'Cita' }}s</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Gasto</th>
                   <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Acciones</th>
                 </tr>
@@ -207,7 +207,7 @@
                       <button 
                         @click.stop="handleEditCliente(client)"
                         class="rounded-md p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
-                        title="Editar cliente"
+                        title="Editar {{ (authStore.terminology.client || 'cliente').toLowerCase() }}"
                       >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />

@@ -1,13 +1,13 @@
 <template>
   <ModalBase
     :is-open="isOpen"
-    :title="isEditing ? 'Editar Cita' : 'Nueva Cita'"
-    :subtitle="isEditing ? 'Modifica los detalles de la cita' : 'Agenda una nueva cita para un cliente'"
+    :title="isEditing ? `Editar ${t.appointment}` : `Nueva ${t.appointment}`"
+    :subtitle="isEditing ? `Modifica los detalles de la ${t.appointment.toLowerCase()}` : `Agenda una nueva ${t.appointment.toLowerCase()} para un ${t.client.toLowerCase()}`"
     :icon="isEditing ? 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' : 'M12 6v6m0 0v6m0-6h6m-6 0H6'"
     size="lg"
     :is-loading="isLoading"
     :is-confirm-disabled="!isFormValid"
-    :confirm-text="isEditing ? 'Actualizar Cita' : 'Agendar Cita'"
+    :confirm-text="isEditing ? `Actualizar ${t.appointment}` : `Agendar ${t.appointment}`"
     @close="close"
     @confirm="handleSubmit"
   >
@@ -15,8 +15,8 @@
       <!-- Cliente -->
       <FormInput
         v-model="formData.clientName"
-        label="Cliente"
-        placeholder="Nombre del cliente"
+        :label="t.client"
+        :placeholder="`Nombre del ${t.client.toLowerCase()}`"
         required
         prefix-icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
         :error="errors.clientName"
@@ -24,7 +24,7 @@
 
       <FormInput
         v-model="formData.clientPhone"
-        label="Teléfono del cliente"
+        :label="`Teléfono del ${t.client.toLowerCase()}`"
         type="tel"
         placeholder="+52 55 1234 5678"
         required
@@ -33,19 +33,17 @@
       />
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <!-- Servicio -->
         <FormSelect
           v-model="formData.service"
-          label="Servicio"
+          :label="t.service"
           :options="serviceOptions"
           required
           :error="errors.service"
         />
 
-        <!-- Empleado -->
         <FormSelect
           v-model="formData.employee"
-          label="Empleado"
+          :label="t.employee"
           :options="employeeOptions"
           required
           :error="errors.employee"
@@ -123,6 +121,7 @@
 import { ref, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
+import { useAuthStore } from '../../store/auth'
 import type { Cita, CitaFormData } from '../../types/cita'
 import ModalBase from '../common/ModalBase.vue'
 import { FormInput, FormSelect, FormTextarea } from '../forms'
@@ -140,6 +139,9 @@ const emit = defineEmits<{
 
 const { isOpen, modalData, close, confirm } = useModal(MODAL_ID)
 const { success, error: showError } = useNotification()
+const authStore = useAuthStore()
+
+const t = computed(() => authStore.terminology)
 
 const isLoading = ref(false)
 const isEditing = computed(() => !!modalData.value?.cita)
@@ -278,10 +280,10 @@ const handleSubmit = async () => {
     }
 
     emit('save', citaData)
-    success(isEditing.value ? 'Cita actualizada correctamente' : 'Cita agendada correctamente')
+    success(isEditing.value ? `${t.value.appointment} actualizada correctamente` : `${t.value.appointment} agendada correctamente`)
     confirm(citaData)
   } catch (err) {
-    showError('Error al guardar la cita')
+    showError(`Error al guardar la ${t.value.appointment.toLowerCase()}`)
     console.error(err)
   } finally {
     isLoading.value = false
