@@ -55,7 +55,7 @@ create table if not exists public.businesses (
   phone         text,
   address       text,
   timezone      text not null default 'America/Santo_Domingo',
-  currency      text not null default 'DOP',
+  currency      text not null default 'USD',
   primary_color text,                          -- color de marca (hex)
   active        boolean not null default true,
   created_at    timestamptz not null default now(),

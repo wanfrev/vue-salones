@@ -1,0 +1,8 @@
+export { default as FormSalon } from './FormSalon.vue'
+export { default as FormBarber } from './FormBarber.vue'
+export { default as FormSpaHumano } from './FormSpaHumano.vue'
+export { default as FormMascota } from './FormMascota.vue'
+export type { SalonFields } from './FormSalon.vue'
+export type { BarberFields } from './FormBarber.vue'
+export type { SpaHumanoFields } from './FormSpaHumano.vue'
+export type { MascotaFields } from './FormMascota.vue'

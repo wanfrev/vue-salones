@@ -69,6 +69,46 @@
           </div>
         </header>
 
+        <!-- Exchange Rate Card -->
+        <div v-if="isTasaAdmin" class="mb-4 rounded-xl border border-border bg-surface p-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/10">
+                <svg class="h-5 w-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-text">Tasa del Día (VES)</p>
+                <p class="text-xs text-text-muted">
+                  1 USD = <strong>{{ exchangeRateDisplay }}</strong> Bs
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                v-model="editRateValue"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Tasa Bs/USD"
+                class="w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary"
+              />
+              <button
+                @click="handleUpdateRate"
+                :disabled="updatingRate"
+                class="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover disabled:opacity-50"
+              >
+                <svg v-if="updatingRate" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Actualizar
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- KPI Cards -->
         <div class="mb-4 grid grid-cols-2 gap-2 sm:gap-3 lg:mb-6 lg:grid-cols-4">
           <div class="rounded-xl border border-border bg-surface p-3 transition-theme hover:border-border-strong">
@@ -272,9 +312,15 @@
                 <tr v-for="payment in employeePayments" :key="payment.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
                   <td class="py-3 font-medium text-text">{{ payment.employee }}</td>
                   <td class="py-3 text-text-secondary">{{ payment.service }}</td>
-                  <td class="py-3 text-right text-text">{{ formatCurrency(payment.amount) }}</td>
+                  <td class="py-3 text-right">
+                    <div class="text-text">{{ formatUSD(payment.amount) }}</div>
+                    <div class="text-xs text-text-muted">Bs {{ formatVESInline(payment.amount) }}</div>
+                  </td>
                   <td class="py-3 text-right text-text-secondary">{{ payment.percentage }}%</td>
-                  <td class="py-3 text-right font-semibold text-success">{{ formatCurrency(payment.earnings) }}</td>
+                  <td class="py-3 text-right">
+                    <div class="font-semibold text-success">{{ formatUSD(payment.earnings) }}</div>
+                    <div class="text-xs text-text-muted">Bs {{ formatVESInline(payment.earnings) }}</div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -311,10 +357,17 @@
                       'rounded-full px-2 py-0.5 text-xs',
                       tx.method === 'Efectivo' ? 'bg-success/10 text-success' :
                       tx.method === 'Tarjeta' ? 'bg-primary/10 text-primary' :
-                      'bg-info/10 text-info'
+                      tx.method === 'Transferencia' ? 'bg-info/10 text-info' :
+                      tx.method === 'Zelle' ? 'bg-warning/10 text-warning' :
+                      tx.method === 'Pago Móvil' ? 'bg-info/10 text-info' :
+                      tx.method === 'Mixto' ? 'bg-primary/10 text-primary' :
+                      'bg-bg-secondary text-text-muted'
                     ]">{{ tx.method }}</span>
                   </td>
-                  <td class="py-3 text-right font-medium text-text">{{ formatCurrency(tx.amount) }}</td>
+                  <td class="py-3 text-right">
+                    <div class="font-medium text-text">{{ formatUSD(tx.amount) }}</div>
+                    <div class="text-xs text-text-muted">Bs {{ formatVESInline(tx.amount) }}</div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -329,6 +382,8 @@
 import { computed, ref, watch } from 'vue'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../composables/useAuth'
+import { useCurrency } from '../composables/useCurrency'
+import { useNotification } from '../composables/useNotification'
 import Sidebar from '../components/layout/Sidebar.vue'
 import type { Expense, Transaction } from '../types/database'
 
@@ -367,7 +422,36 @@ type TransactionRow = {
 }
 
 const { logout, authStore } = useAuth()
+const { exchangeRate, formatUSD, setExchangeRate, isAdmin } = useCurrency()
+const { success: notifySuccess, error: notifyError } = useNotification()
 const isSidebarOpen = ref(false)
+const editRateValue = ref(0)
+const updatingRate = ref(false)
+
+const isTasaAdmin = computed(() => isAdmin.value)
+const exchangeRateDisplay = computed(() =>
+  exchangeRate.value.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+)
+
+const handleUpdateRate = async () => {
+  if (!editRateValue.value || editRateValue.value <= 0) {
+    notifyError('Ingresa una tasa válida mayor a 0')
+    return
+  }
+  updatingRate.value = true
+  try {
+    await setExchangeRate(editRateValue.value)
+    notifySuccess(`Tasa actualizada a 1 USD = ${editRateValue.value} Bs`)
+  } catch {
+    notifyError('Error al actualizar la tasa')
+  } finally {
+    updatingRate.value = false
+  }
+}
+
+watch(exchangeRate, (val) => {
+  editRateValue.value = val
+}, { immediate: true })
 
 const periods = [
   { label: 'Mes', value: 'month' },
@@ -427,7 +511,7 @@ const employeePayments = computed(() => payments.value)
 
 const formatCurrency = (value: number) => {
   const currency = authStore.business?.currency ?? 'USD'
-  return new Intl.NumberFormat('es-DO', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
@@ -454,6 +538,12 @@ const formatMethod = (method: string) => {
       return 'Tarjeta'
     case 'transfer':
       return 'Transferencia'
+    case 'zelle':
+      return 'Zelle'
+    case 'pago_movil':
+      return 'Pago Móvil'
+    case 'mixed':
+      return 'Mixto'
     default:
       return method
   }

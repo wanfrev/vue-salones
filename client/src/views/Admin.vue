@@ -136,7 +136,11 @@
 
         <!-- Agenda Calendar Component -->
          <section class="h-[calc(100vh-260px)] min-h-[400px] sm:h-[calc(100vh-280px)] lg:h-[calc(100vh-220px)]">
-           <AgendaCalendar @event-click="handleEventClick" @status-change="handleStatusChange" />
+           <AgendaCalendar
+           @event-click="handleEventClick"
+           @status-change="handleStatusChange"
+           @event-change="handleEventChange"
+         />
          </section>
       </div>
     </main>
@@ -156,7 +160,7 @@ import { ref, computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
-import { agendaKeys, exportCitasToCsv, listCitas, saveCita, updateCitaStatus } from '../services/agendaService'
+import { agendaKeys, exportCitasToCsv, listCitas, saveCita, updateCitaStatus, updateAppointmentTime } from '../services/agendaService'
 import { equipoKeys, listEquipo } from '../services/equipoService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
@@ -218,6 +222,13 @@ const updateStatusMutation = useMutation({
   },
 })
 
+const updateTimeMutation = useMutation({
+  mutationFn: ({ id, start, end }: { id: string; start: string; end: string }) => updateAppointmentTime(id, start, end),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: agendaKeys.appointments(businessId.value) })
+  },
+})
+
 const todayLabel = computed(() => {
   const now = new Date()
   const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }
@@ -268,6 +279,11 @@ const handleSaveCita = async (data: CitaFormData & { id?: string; clientPhone?: 
 const handleStatusChange = async ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }) => {
   await updateStatusMutation.mutateAsync({ id, status })
   success(`Estado actualizado a ${status}`)
+}
+
+const handleEventChange = async ({ id, start, end }: { id: string; start: string; end: string }) => {
+  await updateTimeMutation.mutateAsync({ id, start, end })
+  success('Cita reagendada correctamente')
 }
 
 const handleExport = () => {

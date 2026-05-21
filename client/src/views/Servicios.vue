@@ -104,7 +104,8 @@
                 </svg>
               </div>
               <div>
-                <p class="text-lg font-bold text-text">${{ precioPromedio }}</p>
+                <p class="text-lg font-bold text-text">{{ formatUSD(precioPromedioNumerico) }}</p>
+                <p class="text-xs text-text-muted">Bs {{ formatVESInline(precioPromedioNumerico) }}</p>
                 <p class="text-xs text-text-muted">Precio Promedio</p>
               </div>
             </div>
@@ -171,7 +172,8 @@
             <div class="mt-3 flex items-center justify-between">
               <div>
                 <span class="text-lg font-bold text-text">${{ service.price }}</span>
-                <span class="text-xs text-text-muted"> / {{ service.duration }} min</span>
+                <span class="block text-xs text-text-muted">Bs {{ formatVESInline(service.price) }}</span>
+                <span class="text-xs text-text-muted">{{ service.duration }} min</span>
               </div>
               <span :class="[
                 'rounded-full px-2 py-1 text-xs font-medium',
@@ -184,7 +186,7 @@
             <div class="mt-3 border-t border-border-subtle pt-3">
               <div class="flex items-center justify-between text-xs">
                 <span class="text-text-muted">{{ service.citasMes }} {{ (authStore.terminology.appointment || 'cita').toLowerCase() }}s este mes</span>
-                <span class="font-medium text-success">${{ service.ingresos }} ingresos</span>
+                <span class="font-medium text-success">{{ formatUSD(service.ingresos) }} ingresos</span>
               </div>
             </div>
           </div>
@@ -235,6 +237,7 @@
 import { ref, computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
+import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
 import { deleteServicio, listServicios, saveServicio, serviciosKeys } from '../services/serviciosService'
 import Sidebar from '../components/layout/Sidebar.vue'
@@ -243,6 +246,7 @@ import { ModalBase } from '../components/common'
 import type { Servicio, ServicioFormData } from '../types/servicio'
 
 const { logout, authStore } = useAuth()
+const { formatDual, formatVESInline, formatUSD } = useCurrency()
 const { warning } = useNotification()
 const queryClient = useQueryClient()
 
@@ -287,11 +291,13 @@ const deleteServicioMutation = useMutation({
 const totalServicios = computed(() => services.value.filter(s => s.status === 'Activo').length)
 const totalCategorias = computed(() => categories.value.length - 1) // Exclude 'all'
 const totalCitasMes = computed(() => services.value.reduce((sum, s) => sum + s.citasMes, 0))
-const precioPromedio = computed(() => {
+const precioPromedioNumerico = computed(() => {
   if (services.value.length === 0) return 0
   const total = services.value.reduce((sum, s) => sum + s.price, 0)
   return Math.round(total / services.value.length)
 })
+
+const precioPromedio = computed(() => precioPromedioNumerico.value)
 
 const filteredServices = computed(() => {
   if (activeCategory.value === 'all') return services.value

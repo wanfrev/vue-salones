@@ -8,6 +8,9 @@ import ClienteHistorialView from '../views/ClienteHistorial.vue'
 import FinanzasView from '../views/Finanzas.vue'
 import EquipoView from '../views/Equipo.vue'
 import ServiciosView from '../views/Servicios.vue'
+import ProductosView from '../views/Productos.vue'
+import InventarioView from '../views/Inventario.vue'
+import POSView from '../views/POS.vue'
 import { useAuthStore } from '../store/auth'
 import { isAdminPanelRole, resolveHomeByRole } from '../constants/roles'
 
@@ -66,6 +69,24 @@ const router = createRouter({
       path: '/servicios',
       name: 'servicios',
       component: ServiciosView,
+      meta: { requiresAuth: true, adminOnly: true },
+    },
+    {
+      path: '/productos',
+      name: 'productos',
+      component: ProductosView,
+      meta: { requiresAuth: true, adminOnly: true },
+    },
+    {
+      path: '/inventario',
+      name: 'inventario',
+      component: InventarioView,
+      meta: { requiresAuth: true, adminOnly: true },
+    },
+    {
+      path: '/pos',
+      name: 'pos',
+      component: POSView,
       meta: { requiresAuth: true, adminOnly: true },
     },
   ],

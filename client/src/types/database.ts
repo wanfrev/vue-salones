@@ -6,7 +6,7 @@
 export type AppRole = 'superadmin' | 'admin' | 'empleado'
 export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show'
 export type PaymentStatus = 'unpaid' | 'partial' | 'paid'
-export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'other'
+export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'other' | 'zelle' | 'pago_movil' | 'mixed'
 export type AppointmentSource = 'internal' | 'public'
 export type EmployeeAbsenceType = 'break' | 'vacation' | 'sick_leave' | 'personal' | 'blocked'
 export type InventoryMovementType =
@@ -34,6 +34,7 @@ export interface Business {
   address: string | null
   timezone: string
   currency: string
+  ves_exchange_rate: number
   niche_type: string
   theme_config: ThemeConfig
   terminology: Terminology
@@ -143,6 +144,8 @@ export interface Transaction {
   local_percentage: number
   employee_percentage: number
   method: PaymentMethod
+  exchange_rate_used: number
+  payments_breakdown: any
   paid_at: string
   created_by: string | null
   notes: string | null
@@ -377,6 +380,20 @@ export interface Database {
           p_amount: number
           p_method?: PaymentMethod
           p_notes?: string | null
+          p_exchange_rate?: number | null
+          p_payments_breakdown?: string
+        }
+        Returns: string
+      }
+      record_sale: {
+        Args: {
+          p_appointment_id: string
+          p_amount: number
+          p_method?: PaymentMethod
+          p_products?: string
+          p_notes?: string | null
+          p_exchange_rate?: number | null
+          p_payments_breakdown?: string
         }
         Returns: string
       }

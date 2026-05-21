@@ -1,6 +1,8 @@
 import type {
   Business, Profile, EmployeeSchedule, Service,
-  Client, Appointment, Transaction
+  Client, Appointment, Transaction,
+  ProductCategory, Product, ProductVariant,
+  InventoryLocation, InventoryStock, InventoryMovement
 } from '../../types/database'
 
 const BIZ = '00000000-0000-0000-0000-000000000001'
@@ -8,18 +10,35 @@ const ADMIN = '00000000-0000-0000-0000-000000000100'
 const EMP1 = '00000000-0000-0000-0000-000000000201'
 const EMP2 = '00000000-0000-0000-0000-000000000202'
 const EMP3 = '00000000-0000-0000-0000-000000000203'
+const CAT1 = '00000000-0000-0000-0000-000000000501'
+const CAT2 = '00000000-0000-0000-0000-000000000502'
+const PROD1 = '00000000-0000-0000-0000-000000000601'
+const PROD2 = '00000000-0000-0000-0000-000000000602'
+const VAR1 = '00000000-0000-0000-0000-000000000701'
+const VAR2 = '00000000-0000-0000-0000-000000000702'
+const LOC1 = '00000000-0000-0000-0000-000000000801'
+const LOC2 = '00000000-0000-0000-0000-000000000802'
 
 export interface MockDataStore {
   businesses: Business[]
   profiles: Profile[]
   employee_schedules: EmployeeSchedule[]
   services: Service[]
+  service_categories: any[]
+  service_variants: any[]
   employee_services: { employee_id: string; service_id: string }[]
   clients: Client[]
   client_preferred_services: { client_id: string; service_id: string; created_at: string }[]
   appointments: Appointment[]
   transactions: Transaction[]
+  expenses: any[]
   employee_absences: any[]
+  product_categories: ProductCategory[]
+  products: Product[]
+  product_variants: ProductVariant[]
+  inventory_locations: InventoryLocation[]
+  inventory_stock: InventoryStock[]
+  inventory_movements: InventoryMovement[]
   [key: string]: any[]
 }
 
@@ -40,7 +59,7 @@ export function createMockDataStore(): MockDataStore {
   const businesses: Business[] = [{
     id: BIZ, name: 'Salón Demo', slug: 'demo',
     phone: '+525551234567', address: 'Av. Principal #123',
-    timezone: 'America/Mexico_City', currency: 'MXN',
+    timezone: 'America/New_York', currency: 'USD', ves_exchange_rate: 36.50,
     niche_type: 'salon',
     theme_config: { primary: '#8B5CF6', secondary: '#60A5FA' },
     terminology: {
@@ -107,14 +126,15 @@ export function createMockDataStore(): MockDataStore {
   ]
 
   const clients: Client[] = [
-    { id: '00000000-0000-0000-0000-000000000401', business_id: BIZ, full_name: 'Laura Pérez', phone: '+525551234601', email: 'laura@ejemplo.com', notes: 'Cliente regular', birthday: '1990-05-15', metadata: { tipo_pelo: 'rizado', alergias: 'decolorante' }, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000402', business_id: BIZ, full_name: 'Carlos Ruiz', phone: '+525551234602', email: 'carlos@ejemplo.com', notes: null, birthday: '1985-11-20', metadata: { tipo_pelo: 'liso' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000401', business_id: BIZ, full_name: 'Laura Pérez', phone: '+525551234601', email: 'laura@ejemplo.com', notes: 'Cliente regular', birthday: '1990-05-15', metadata: { hair_type: 'rizado', hair_length: 'largo', chemical_history: 'decoloracion hace 6 meses' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000402', business_id: BIZ, full_name: 'Carlos Ruiz', phone: '+525551234602', email: 'carlos@ejemplo.com', notes: null, birthday: '1985-11-20', metadata: { hair_type: 'liso', beard_style: 'corta', fade_preference: 'medio' }, created_at: now, updated_at: now },
     { id: '00000000-0000-0000-0000-000000000403', business_id: BIZ, full_name: 'Diana Torres', phone: '+525551234603', email: null, notes: 'Prefiere sábados', birthday: null, metadata: {}, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000404', business_id: BIZ, full_name: 'Eduardo Vega', phone: '+525551234604', email: 'eduardo@ejemplo.com', notes: null, birthday: '1992-08-10', metadata: {}, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000405', business_id: BIZ, full_name: 'Gabriela Núñez', phone: '+525551234605', email: 'gabriela@ejemplo.com', notes: 'Alérgica a cierto tinte', birthday: '1988-03-25', metadata: { alergias: 'tinte' }, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000406', business_id: BIZ, full_name: 'Héctor Mendoza', phone: '+525551234606', email: null, notes: null, birthday: null, metadata: {}, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000404', business_id: BIZ, full_name: 'Eduardo Vega', phone: '+525551234604', email: 'eduardo@ejemplo.com', notes: null, birthday: '1992-08-10', metadata: { skin_type: 'mixta', massage_preference: 'relajante' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000405', business_id: BIZ, full_name: 'Gabriela Núñez', phone: '+525551234605', email: 'gabriela@ejemplo.com', notes: 'Alérgica a cierto tinte', birthday: '1988-03-25', metadata: { hair_type: 'ondulado', hair_length: 'medio', chemical_history: 'tinte permanente' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000406', business_id: BIZ, full_name: 'Héctor Mendoza', phone: '+525551234606', email: null, notes: null, birthday: null, metadata: { skin_type: 'sensible', massage_preference: 'descontracturante', allergies: 'aceite de almendras' }, created_at: now, updated_at: now },
     { id: '00000000-0000-0000-0000-000000000407', business_id: BIZ, full_name: 'Isabel Rivas', phone: '+525551234607', email: 'isabel@ejemplo.com', notes: 'Cliente nueva', birthday: '1995-12-05', metadata: {}, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000408', business_id: BIZ, full_name: 'Jorge Salinas', phone: '+525551234608', email: 'jorge@ejemplo.com', notes: 'Paga con tarjeta', birthday: '1982-07-14', metadata: {}, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000408', business_id: BIZ, full_name: 'Jorge Salinas', phone: '+525551234608', email: 'jorge@ejemplo.com', notes: 'Paga con tarjeta', birthday: '1982-07-14', metadata: { beard_style: 'larga', hair_type: 'crespo', fade_preference: 'alto', products_used: 'cera' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000409', business_id: BIZ, full_name: 'Firulais (Golden)', phone: '+525551234609', email: null, notes: 'Paciente canino', birthday: '2022-03-10', metadata: { pet_name: 'Firulais', pet_breed: 'Golden Retriever', pet_weight: '28 kg', pet_owner: 'Laura Pérez' }, created_at: now, updated_at: now },
   ]
 
   const today = new Date()
@@ -165,22 +185,58 @@ export function createMockDataStore(): MockDataStore {
       id: 'txn-01', business_id: BIZ, appointment_id: 'apt-04',
       total_amount: 250, local_amount: 125, employee_amount: 125,
       local_percentage: 50, employee_percentage: 50,
-      method: 'cash', paid_at: dateOffset(-1).toISOString(),
+      method: 'cash', exchange_rate_used: 36.50, payments_breakdown: [], paid_at: dateOffset(-1).toISOString(),
       created_by: ADMIN, notes: null, created_at: now,
     },
     {
       id: 'txn-02', business_id: BIZ, appointment_id: 'apt-12',
       total_amount: 250, local_amount: 125, employee_amount: 125,
       local_percentage: 50, employee_percentage: 50,
-      method: 'card', paid_at: dateOffset(-2).toISOString(),
+      method: 'card', exchange_rate_used: 36.50, payments_breakdown: [], paid_at: dateOffset(-2).toISOString(),
       created_by: ADMIN, notes: null, created_at: now,
     },
   ]
 
+  const product_categories: ProductCategory[] = [
+    { id: CAT1, business_id: BIZ, parent_id: null, name: 'Shampoos y Tratamientos', description: 'Productos para el cuidado capilar', active: true, metadata: {}, created_at: now, updated_at: now },
+    { id: CAT2, business_id: BIZ, parent_id: null, name: 'Antipulgas y Accesorios', description: 'Accesorios para mascotas', active: true, metadata: {}, created_at: now, updated_at: now },
+  ]
+
+  const products: Product[] = [
+    { id: PROD1, business_id: BIZ, category_id: CAT1, name: 'Shampoo Kerastase', description: 'Shampoo profesional para cabello teñido', sku: 'KER-SHM-001', barcode: '7501234567890', unit: 'botella', unit_cost: 180, unit_price: 350, reorder_point: 5, active: true, metadata: {}, created_at: now, updated_at: now },
+    { id: PROD2, business_id: BIZ, category_id: CAT2, name: 'Collar Antipulgas', description: 'Collar antipulgas para perros', sku: 'COL-ANT-001', barcode: '7509876543210', unit: 'unidad', unit_cost: 250, unit_price: 450, reorder_point: 3, active: true, metadata: {}, created_at: now, updated_at: now },
+  ]
+
+  const product_variants: ProductVariant[] = [
+    { id: VAR1, product_id: PROD1, name: '250ml', sku: 'KER-SHM-250', unit_cost: 180, unit_price: 350, metadata: {}, active: true, created_at: now, updated_at: now },
+    { id: VAR2, product_id: PROD1, name: '500ml', sku: 'KER-SHM-500', unit_cost: 300, unit_price: 580, metadata: {}, active: true, created_at: now, updated_at: now },
+  ]
+
+  const inventory_locations: InventoryLocation[] = [
+    { id: LOC1, business_id: BIZ, name: 'Vitrina Principal', is_default: true, active: true, metadata: {}, created_at: now, updated_at: now },
+    { id: LOC2, business_id: BIZ, name: 'Mostrador Tienda', is_default: false, active: true, metadata: {}, created_at: now, updated_at: now },
+  ]
+
+  const inventory_stock: InventoryStock[] = [
+    { id: 'stk-01', business_id: BIZ, location_id: LOC1, product_id: PROD1, variant_id: VAR1, quantity: 20, reserved_qty: 0, updated_at: now },
+    { id: 'stk-02', business_id: BIZ, location_id: LOC1, product_id: PROD1, variant_id: VAR2, quantity: 10, reserved_qty: 0, updated_at: now },
+    { id: 'stk-03', business_id: BIZ, location_id: LOC2, product_id: PROD2, variant_id: null, quantity: 50, reserved_qty: 0, updated_at: now },
+  ]
+
+  const inventory_movements: InventoryMovement[] = [
+    { id: 'mov-01', business_id: BIZ, location_id: LOC1, product_id: PROD1, variant_id: VAR1, movement_type: 'purchase', quantity: 20, unit_cost: 180, reference_type: null, reference_id: null, notes: 'Compra inicial', created_by: ADMIN, created_at: now },
+    { id: 'mov-02', business_id: BIZ, location_id: LOC1, product_id: PROD1, variant_id: VAR2, movement_type: 'purchase', quantity: 10, unit_cost: 300, reference_type: null, reference_id: null, notes: 'Compra inicial', created_by: ADMIN, created_at: now },
+    { id: 'mov-03', business_id: BIZ, location_id: LOC2, product_id: PROD2, variant_id: null, movement_type: 'purchase', quantity: 50, unit_cost: 250, reference_type: null, reference_id: null, notes: 'Compra inicial', created_by: ADMIN, created_at: now },
+  ]
+
   return {
     businesses, profiles, employee_schedules,
-    services, employee_services, clients,
+    services, service_categories: [], service_variants: [],
+    employee_services, clients,
     client_preferred_services: [],
-    appointments, transactions, employee_absences: [],
+    appointments, transactions, expenses: [],
+    employee_absences: [],
+    product_categories, products, product_variants,
+    inventory_locations, inventory_stock, inventory_movements,
   }
 }

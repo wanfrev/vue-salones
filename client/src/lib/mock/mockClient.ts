@@ -1,4 +1,7 @@
-import { MOCK_USER_ID, MOCK_EMAIL, MOCK_PASSWORD, createMockDataStore, type MockDataStore } from './mockData'
+import { MOCK_USER_ID, MOCK_BUSINESS_ID, MOCK_EMAIL, MOCK_PASSWORD, createMockDataStore, type MockDataStore } from './mockData'
+
+const BIZ = MOCK_BUSINESS_ID
+const ADMIN = MOCK_USER_ID
 
 type MockAuthChangeCallback = (event: string, session: any) => void
 
@@ -13,6 +16,14 @@ const RELATION_CONFIG: Record<string, Record<string, { table: string; localKey: 
   },
   employee_schedules: {
     profiles: { table: 'profiles', localKey: 'employee_id', foreignKey: 'id', isArray: false },
+  },
+  inventory_stock: {
+    products: { table: 'products', localKey: 'product_id', foreignKey: 'id', isArray: false },
+    inventory_locations: { table: 'inventory_locations', localKey: 'location_id', foreignKey: 'id', isArray: false },
+  },
+  inventory_movements: {
+    products: { table: 'products', localKey: 'product_id', foreignKey: 'id', isArray: false },
+    inventory_locations: { table: 'inventory_locations', localKey: 'location_id', foreignKey: 'id', isArray: false },
   },
 }
 
@@ -391,6 +402,57 @@ export function createMockClient() {
   const mockRpc = {
     financial_summary: async (_args: any) => ({ data: [], error: null }),
     record_payment: async (_args: any) => ({ data: 'mock-txn-id', error: null }),
+    record_sale: async (args: any) => {
+      const now = new Date().toISOString()
+      const txnId = `txn-mock-${Date.now()}`
+
+      const appointment = store.appointments.find((a: any) => a.id === args.p_appointment_id)
+      if (!appointment) return { data: null, error: { message: 'Appointment not found' } }
+
+      const exchangeRate = args.p_exchange_rate ?? 36.50
+      let paymentsBreakdown = []
+      try {
+        paymentsBreakdown = typeof args.p_payments_breakdown === 'string'
+          ? JSON.parse(args.p_payments_breakdown)
+          : (args.p_payments_breakdown || [])
+      } catch { paymentsBreakdown = [] }
+
+      const business = store.businesses.find((b: any) => b.id === BIZ)
+      if (business) business.ves_exchange_rate = exchangeRate
+
+      store.transactions.push({
+        id: txnId,
+        business_id: BIZ,
+        appointment_id: args.p_appointment_id,
+        total_amount: args.p_amount,
+        local_amount: args.p_amount * 0.5,
+        employee_amount: args.p_amount * 0.5,
+        local_percentage: 50,
+        employee_percentage: 50,
+        method: args.p_method || 'cash',
+        exchange_rate_used: exchangeRate,
+        payments_breakdown: paymentsBreakdown,
+        paid_at: now,
+        created_by: ADMIN,
+        notes: args.p_notes || null,
+        created_at: now,
+      } as any)
+
+      appointment.payment_status = 'paid'
+
+      const products = typeof args.p_products === 'string' ? JSON.parse(args.p_products) : (args.p_products || [])
+      for (const p of products) {
+        const stockItem = store.inventory_stock.find((s: any) =>
+          s.product_id === p.product_id &&
+          (s.variant_id === p.variant_id || (!s.variant_id && !p.variant_id))
+        )
+        if (stockItem) {
+          stockItem.quantity = Math.max(0, Number(stockItem.quantity) - Number(p.quantity))
+        }
+      }
+
+      return { data: txnId, error: null }
+    },
     public_business_info: async (_args: any) => ({ data: store.businesses.slice(0, 1), error: null }),
     public_list_services: async (_args: any) => ({ data: [], error: null }),
     public_list_employees_for_service: async (_args: any) => ({ data: [], error: null }),
@@ -426,7 +488,7 @@ export function createMockClient() {
         phone: null,
         address: null,
         timezone: 'America/Santo_Domingo',
-        currency: 'DOP',
+        currency: 'USD',
         niche_type: payload.nicheType || 'salon',
         theme_config: {
           primary: payload.primaryColor || '#2F4156',

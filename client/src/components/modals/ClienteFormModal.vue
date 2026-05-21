@@ -12,7 +12,6 @@
     @confirm="handleSubmit"
   >
     <form @submit.prevent="handleSubmit" class="space-y-4">
-      <!-- Nombre -->
       <FormInput
         v-model="formData.name"
         label="Nombre completo"
@@ -23,7 +22,6 @@
       />
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <!-- Teléfono -->
         <FormInput
           v-model="formData.phone"
           label="Teléfono"
@@ -34,7 +32,6 @@
           :error="errors.phone"
         />
 
-        <!-- Email -->
         <FormInput
           v-model="formData.email"
           label="Email"
@@ -46,7 +43,6 @@
       </div>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <!-- Cumpleaños -->
         <FormInput
           v-model="formData.birthday"
           label="Cumpleaños"
@@ -56,7 +52,6 @@
         />
       </div>
 
-      <!-- Notas -->
       <FormTextarea
         v-model="formData.notes"
         label="Notas adicionales"
@@ -65,74 +60,30 @@
         :error="errors.notes"
       />
 
-      <!-- Campos dinámicos según el nicho -->
-      <template v-if="isSalonNiche">
-        <div class="border-t border-border pt-4">
-          <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-text-muted">Perfil capilar</p>
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormSelect
-              :model-value="salonFields.hair_type"
-              @update:model-value="salonFields.hair_type = $event"
-              label="Tipo de cabello"
-              :options="hairTypeOptions"
-            />
-            <FormSelect
-              :model-value="salonFields.hair_length"
-              @update:model-value="salonFields.hair_length = $event"
-              label="Largo del cabello"
-              :options="hairLengthOptions"
-            />
-          </div>
-          <div class="mt-4">
-            <FormTextarea
-              :model-value="salonFields.chemical_history"
-              @update:model-value="salonFields.chemical_history = $event"
-              label="Historial de químicos"
-              placeholder="Tintes, alisados, decoloraciones recientes..."
-              :rows="2"
-            />
-          </div>
-        </div>
-      </template>
+      <FormSalon
+        v-if="isSalonNiche"
+        :fields="salonFields"
+        @update:fields="onUpdateSalon"
+      />
 
-      <template v-if="isPetNiche">
-        <div class="border-t border-border pt-4">
-          <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-text-muted">Datos de la {{ (terminology.pet || 'Mascota').toLowerCase() }}</p>
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormInput
-              :model-value="petFields.pet_name"
-              @update:model-value="petFields.pet_name = $event"
-              :label="terminology.pet || 'Mascota'"
-              placeholder="Ej: Firulais"
-              prefix-icon="M20 12a8 8 0 11-16 0 8 8 0 0116 0z"
-            />
-            <FormInput
-              :model-value="petFields.pet_breed"
-              @update:model-value="petFields.pet_breed = $event"
-              :label="terminology.breed || 'Raza'"
-              placeholder="Ej: Golden Retriever"
-              prefix-icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </div>
-          <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormInput
-              :model-value="petFields.pet_weight"
-              @update:model-value="petFields.pet_weight = $event"
-              :label="terminology.weight || 'Peso'"
-              type="text"
-              placeholder="Ej: 12 kg"
-              prefix-icon="M3 6l3 1m0 0-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2 3-1m-3 1-1 4m1-4 4 9m-5-2 3 1"
-            />
-            <FormInput
-              :model-value="petFields.pet_owner"
-              @update:model-value="petFields.pet_owner = $event"
-              :label="terminology.owner || 'Dueño'"
-              placeholder="Ej: Juan Pérez"
-              prefix-icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
-          </div>
-        </div>
-      </template>
+      <FormBarber
+        v-if="isBarberNiche"
+        :fields="barberFields"
+        @update:fields="onUpdateBarber"
+      />
+
+      <FormSpaHumano
+        v-if="isSpaNiche"
+        :fields="spaFields"
+        @update:fields="onUpdateSpa"
+      />
+
+      <FormMascota
+        v-if="isPetNiche"
+        :fields="petFields"
+        :is-vet="isVetNiche"
+        @update:fields="onUpdatePet"
+      />
     </form>
   </ModalBase>
 </template>
@@ -144,7 +95,9 @@ import { useNotification } from '../../composables/useNotification'
 import { useAuthStore } from '../../store/auth'
 import type { Cliente, ClienteFormData } from '../../types/cliente'
 import ModalBase from '../common/ModalBase.vue'
-import { FormInput, FormSelect, FormTextarea } from '../forms'
+import { FormInput, FormTextarea } from '../forms'
+import { FormSalon, FormBarber, FormSpaHumano, FormMascota } from '../clients'
+import type { SalonFields, BarberFields, SpaHumanoFields, MascotaFields } from '../clients'
 
 const MODAL_ID = 'cliente-form-modal'
 
@@ -162,8 +115,13 @@ const authStore = useAuthStore()
 
 const terminology = computed(() => authStore.terminology)
 const nicheType = computed(() => authStore.nicheType)
+
+const PET_NICHES = ['spa_perros', 'dog_spa', 'vet']
 const isSalonNiche = computed(() => nicheType.value === 'salon')
-const isPetNiche = computed(() => nicheType.value === 'spa_perros')
+const isBarberNiche = computed(() => nicheType.value === 'barberia')
+const isSpaNiche = computed(() => nicheType.value === 'spa')
+const isPetNiche = computed(() => PET_NICHES.includes(nicheType.value))
+const isVetNiche = computed(() => nicheType.value === 'vet')
 
 const isLoading = ref(false)
 
@@ -180,29 +138,38 @@ const defaultFormData: ClienteFormData = {
 }
 
 const formData = ref<ClienteFormData>({ ...defaultFormData })
-const petFields = reactive({
+const petFields = reactive<MascotaFields>({
   pet_name: '',
   pet_breed: '',
   pet_weight: '',
   pet_owner: '',
+  last_vaccine: '',
+  last_checkup: '',
+  medical_notes: '',
 })
-const salonFields = reactive({
+const salonFields = reactive<SalonFields>({
   hair_type: '',
   hair_length: '',
   chemical_history: '',
 })
-const hairTypeOptions = [
-  { value: 'liso', label: 'Liso' },
-  { value: 'ondulado', label: 'Ondulado' },
-  { value: 'rizado', label: 'Rizado' },
-  { value: 'crespo', label: 'Crespo' },
-]
-const hairLengthOptions = [
-  { value: 'corto', label: 'Corto' },
-  { value: 'medio', label: 'Medio' },
-  { value: 'largo', label: 'Largo' },
-  { value: 'extra_largo', label: 'Extra largo' },
-]
+const barberFields = reactive<BarberFields>({
+  beard_style: '',
+  hair_type: '',
+  fade_preference: '',
+  products_used: '',
+  notes: '',
+})
+const spaFields = reactive<SpaHumanoFields>({
+  skin_type: '',
+  massage_preference: '',
+  allergies: '',
+})
+
+const onUpdateSalon = (fields: SalonFields) => { Object.assign(salonFields, fields) }
+const onUpdateBarber = (fields: BarberFields) => { Object.assign(barberFields, fields) }
+const onUpdateSpa = (fields: SpaHumanoFields) => { Object.assign(spaFields, fields) }
+const onUpdatePet = (fields: MascotaFields) => { Object.assign(petFields, fields) }
+
 const errors = ref<Partial<Record<keyof ClienteFormData, string>>>({})
 
 const isFormValid = computed(() => {
@@ -223,22 +190,45 @@ watch(
         preferredServices: cliente.preferredServices || [],
         metadata: { ...meta },
       }
-      petFields.pet_name = (meta as any).pet_name ?? ''
-      petFields.pet_breed = (meta as any).pet_breed ?? ''
-      petFields.pet_weight = (meta as any).pet_weight ?? ''
-      petFields.pet_owner = (meta as any).pet_owner ?? ''
-      salonFields.hair_type = (meta as any).hair_type ?? ''
-      salonFields.hair_length = (meta as any).hair_length ?? ''
-      salonFields.chemical_history = (meta as any).chemical_history ?? ''
+      const m = meta as Record<string, string>
+      petFields.pet_name = m.pet_name ?? ''
+      petFields.pet_breed = m.pet_breed ?? ''
+      petFields.pet_weight = m.pet_weight ?? ''
+      petFields.pet_owner = m.pet_owner ?? ''
+      petFields.last_vaccine = m.last_vaccine ?? ''
+      petFields.last_checkup = m.last_checkup ?? ''
+      petFields.medical_notes = m.medical_notes ?? ''
+      salonFields.hair_type = m.hair_type ?? ''
+      salonFields.hair_length = m.hair_length ?? ''
+      salonFields.chemical_history = m.chemical_history ?? ''
+      barberFields.beard_style = m.beard_style ?? ''
+      barberFields.hair_type = m.hair_type ?? ''
+      barberFields.fade_preference = m.fade_preference ?? ''
+      barberFields.products_used = m.products_used ?? ''
+      barberFields.notes = m.notes ?? ''
+      spaFields.skin_type = m.skin_type ?? ''
+      spaFields.massage_preference = m.massage_preference ?? ''
+      spaFields.allergies = m.allergies ?? ''
     } else {
       formData.value = { ...defaultFormData, metadata: {} }
       petFields.pet_name = ''
       petFields.pet_breed = ''
       petFields.pet_weight = ''
       petFields.pet_owner = ''
+      petFields.last_vaccine = ''
+      petFields.last_checkup = ''
+      petFields.medical_notes = ''
       salonFields.hair_type = ''
       salonFields.hair_length = ''
       salonFields.chemical_history = ''
+      barberFields.beard_style = ''
+      barberFields.hair_type = ''
+      barberFields.fade_preference = ''
+      barberFields.products_used = ''
+      barberFields.notes = ''
+      spaFields.skin_type = ''
+      spaFields.massage_preference = ''
+      spaFields.allergies = ''
     }
     errors.value = {}
   },
@@ -281,12 +271,25 @@ const handleSubmit = async () => {
   try {
     await new Promise(resolve => setTimeout(resolve, 500))
 
+    let nicheMeta: Record<string, unknown> = {}
+    if (isPetNiche.value) {
+      nicheMeta = { ...petFields }
+      for (const key of Object.keys(nicheMeta)) {
+        if (!nicheMeta[key]) delete nicheMeta[key]
+      }
+    } else if (isSalonNiche.value) {
+      nicheMeta = { ...salonFields }
+    } else if (isBarberNiche.value) {
+      nicheMeta = { ...barberFields }
+    } else if (isSpaNiche.value) {
+      nicheMeta = { ...spaFields }
+    }
+
     const clienteData: ClienteFormData & { id?: string } = {
       ...formData.value,
       metadata: {
         ...formData.value.metadata,
-        ...(isPetNiche.value ? { ...petFields } : {}),
-        ...(isSalonNiche.value ? { ...salonFields } : {}),
+        ...nicheMeta,
       },
     }
 

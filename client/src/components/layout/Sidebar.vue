@@ -114,6 +114,72 @@
           </span>
           <span>{{ authStore.terminology.service || 'Servicio' }}s</span>
         </router-link>
+
+        <router-link 
+          to="/productos" 
+          :class="[
+            'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
+            isActive('/productos') 
+              ? 'bg-primary text-text-inverse shadow-sm' 
+              : 'text-text-secondary hover:bg-bg-secondary hover:text-text'
+          ]"
+        >
+          <span :class="[
+            'flex h-7 w-7 items-center justify-center rounded-md transition-theme',
+            isActive('/productos') ? 'bg-white/20' : 'bg-bg-secondary group-hover:bg-border'
+          ]">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </span>
+          <span>Productos</span>
+        </router-link>
+
+        <router-link 
+          to="/inventario" 
+          :class="[
+            'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
+            isActive('/inventario') 
+              ? 'bg-primary text-text-inverse shadow-sm' 
+              : 'text-text-secondary hover:bg-bg-secondary hover:text-text'
+          ]"
+        >
+          <span :class="[
+            'flex h-7 w-7 items-center justify-center rounded-md transition-theme',
+            isActive('/inventario') ? 'bg-white/20' : 'bg-bg-secondary group-hover:bg-border'
+          ]">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          </span>
+          <span>Inventario</span>
+        </router-link>
+      </div>
+
+      <!-- Ventas -->
+      <div class="mb-1">
+        <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-text-muted/70">Ventas</p>
+
+        <router-link 
+          to="/pos" 
+          :class="[
+            'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
+            isActive('/pos') 
+              ? 'bg-primary text-text-inverse shadow-sm' 
+              : 'text-text-secondary hover:bg-bg-secondary hover:text-text'
+          ]"
+        >
+          <span :class="[
+            'flex h-7 w-7 items-center justify-center rounded-md transition-theme',
+            isActive('/pos') ? 'bg-white/20' : 'bg-bg-secondary group-hover:bg-border'
+          ]">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+            </svg>
+          </span>
+          <span class="flex-1">Punto de Venta</span>
+          <span class="rounded-full bg-primary-light px-2 py-0.5 text-[10px] font-bold text-primary" v-if="!isActive('/pos')">Nuevo</span>
+        </router-link>
       </div>
 
       <!-- Separador sutil -->

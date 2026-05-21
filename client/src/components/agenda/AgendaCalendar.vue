@@ -92,6 +92,7 @@ const isAdmin = computed(() => isAdminPanelRole(authStore.role ?? undefined))
 const emit = defineEmits<{
   eventClick: [event: { id: string; title: string; start: Date; end: Date; status?: string }]
   statusChange: [payload: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }]
+  eventChange: [payload: { id: string; start: string; end: string }]
 }>()
 
 const {
@@ -211,6 +212,9 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   allDaySlot: false,
   selectable: true,
   selectMirror: true,
+  editable: true,
+  eventDurationEditable: true,
+  eventStartEditable: true,
   events: calendarEvents.value,
   eventContent: (arg) => {
     const extProps = arg.event.extendedProps as any
@@ -405,6 +409,20 @@ const calendarOptions = computed<CalendarOptions>(() => ({
       }
     })
     observer.observe(document.body, { childList: true, subtree: true })
+  },
+  eventDrop: (arg) => {
+    emit('eventChange', {
+      id: arg.event.id,
+      start: arg.event.start!.toISOString(),
+      end: arg.event.end!.toISOString(),
+    })
+  },
+  eventResize: (arg) => {
+    emit('eventChange', {
+      id: arg.event.id,
+      start: arg.event.start!.toISOString(),
+      end: arg.event.end!.toISOString(),
+    })
   },
   select: (arg) => {
     console.log('Rango seleccionado:', arg.start, arg.end)

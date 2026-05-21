@@ -89,10 +89,10 @@
                 v-model="form.nicheType"
                 class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
               >
-                <option value="salon">Salon</option>
-                <option value="barberia">Barberia</option>
-                <option value="spa">Spa</option>
-                <option value="vet">Spa canino</option>
+                <option value="salon">Salón de belleza</option>
+                <option value="barberia">Barbería</option>
+                <option value="spa">Spa (humano)</option>
+                <option value="dog_spa">Spa canino / Veterinaria</option>
               </select>
             </div>
 

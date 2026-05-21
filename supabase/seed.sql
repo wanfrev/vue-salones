@@ -16,7 +16,7 @@ values
   '+1 809 555 1111',
   'Plaza Central',
   'America/Santo_Domingo',
-  'DOP',
+  'USD',
   'salon',
   '{"primary": "#e11d48", "secondary": "#be123c", "accent": "#f43f5e"}'::jsonb,
   '{"client": "Cliente", "employee": "Estilista", "service": "Servicio", "appointment": "Cita", "staff": "Personal"}'::jsonb
@@ -28,7 +28,7 @@ values
   '+1 809 555 2222',
   'Avenida Canina 45, Naco',
   'America/Santo_Domingo',
-  'DOP',
+  'USD',
   'dog_spa',
   '{"primary": "#059669", "secondary": "#047857", "accent": "#10b981"}'::jsonb,
   '{"client": "Mascota", "owner": "Dueño", "employee": "Groomer", "service": "Tratamiento", "appointment": "Turno", "staff": "Groomers"}'::jsonb

@@ -87,6 +87,19 @@ export const updateCitaStatus = async (
   if (error) throw error
 }
 
+export const updateAppointmentTime = async (
+  id: string,
+  startTime: string,
+  endTime: string
+): Promise<void> => {
+  const { error } = await writableSupabase
+    .from('appointments')
+    .update({ start_time: startTime, end_time: endTime })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
 export const exportCitasToCsv = (citas: Cita[]) => {
   return [
     ['Cliente', 'Servicio', 'Empleado', 'Fecha', 'Hora', 'Duración', 'Precio', 'Estado'].join(','),
