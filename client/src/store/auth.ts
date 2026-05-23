@@ -40,14 +40,17 @@ export const useAuthStore = defineStore('auth', () => {
   const themeConfig = computed(() => business.value?.theme_config ?? DEFAULT_THEME)
   const terminology = computed(() => business.value?.terminology ?? DEFAULT_TERMINOLOGY)
 
-  const applyThemeConfig = (config: ThemeConfig) => {
+  const SALON_PRIMARY = '#8B5CF6'
+  const SALON_SECONDARY = '#60A5FA'
+
+  const applyThemeConfig = (_config?: ThemeConfig) => {
     const html = document.documentElement
-    html.style.setProperty('--color-primary', config.primary)
-    html.style.setProperty('--color-primary-hover', config.primary)
-    html.style.setProperty('--color-primary-light', `${config.primary}1A`)
-    html.style.setProperty('--color-primary-dark', config.primary)
-    html.style.setProperty('--color-info', config.secondary)
-    html.style.setProperty('--color-info-light', `${config.secondary}1A`)
+    html.style.setProperty('--color-primary', SALON_PRIMARY)
+    html.style.setProperty('--color-primary-hover', SALON_PRIMARY)
+    html.style.setProperty('--color-primary-light', `${SALON_PRIMARY}1A`)
+    html.style.setProperty('--color-primary-dark', SALON_PRIMARY)
+    html.style.setProperty('--color-info', SALON_SECONDARY)
+    html.style.setProperty('--color-info-light', `${SALON_SECONDARY}1A`)
   }
 
   const loadProfile = async (userId: string) => {

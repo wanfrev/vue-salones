@@ -182,8 +182,6 @@ const handleSubmit = async () => {
   isLoading.value = true
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
     const servicioData: ServicioFormData & { id?: string } = {
       ...formData.value,
     }
@@ -193,8 +191,6 @@ const handleSubmit = async () => {
     }
 
     emit('save', servicioData)
-    success(isEditing.value ? `${t.value.service} actualizado correctamente` : `${t.value.service} creado correctamente`)
-    confirm(servicioData)
   } catch (err) {
     showError(`Error al guardar el ${t.value.service.toLowerCase()}`)
     console.error(err)

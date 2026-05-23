@@ -93,6 +93,7 @@
                     <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Reservado</th>
                     <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Disponible</th>
                     <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Valor</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Acción</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-border-subtle">
@@ -115,6 +116,14 @@
                       {{ item.availableQty }}
                     </td>
                     <td class="px-4 py-3 text-right text-text">${{ (item.quantity * item.unitCost).toFixed(2) }}</td>
+                    <td class="px-4 py-3 text-center">
+                      <button
+                        @click="openAdjustModal(item)"
+                        class="rounded-lg px-2 py-1 text-xs font-medium text-primary transition-theme hover:bg-primary/10"
+                      >
+                        Ajustar
+                      </button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -201,18 +210,56 @@
         </div>
       </div>
     </main>
+    <!-- Adjust Stock Modal -->
+    <ModalBase
+      :is-open="adjustModalOpen"
+      title="Ajustar stock"
+      subtitle="Agrega o reduce la cantidad disponible"
+      icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+      size="sm"
+      confirm-text="Guardar ajuste"
+      :is-confirm-disabled="adjustQuantity === 0"
+      @close="closeAdjustModal"
+      @confirm="confirmAdjust"
+    >
+      <div class="space-y-4">
+        <div class="rounded-lg bg-bg-secondary p-3">
+          <p class="text-sm font-medium text-text">{{ adjustItem?.productName }}</p>
+          <p class="text-xs text-text-muted">{{ adjustItem?.locationName }} · Actual: {{ adjustItem?.quantity }}</p>
+        </div>
+        <FormInput
+          v-model.number="adjustQuantity"
+          label="Cantidad a ajustar"
+          type="number"
+          placeholder="Ej: 5 o -3"
+          prefix-icon="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
+        <p class="text-xs text-text-muted">Usa valores positivos para agregar stock, negativos para reducir.</p>
+        <FormInput
+          v-model="adjustNotes"
+          label="Motivo del ajuste"
+          placeholder="Ej: Compra nueva, producto dañado..."
+          prefix-icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+        />
+      </div>
+    </ModalBase>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
-import { inventarioKeys, listInventario, listInventoryLocations, listInventoryMovements } from '../services/inventarioService'
+import { useNotification } from '../composables/useNotification'
+import { adjustInventory, inventarioKeys, listInventario, listInventoryLocations, listInventoryMovements } from '../services/inventarioService'
 import Sidebar from '../components/layout/Sidebar.vue'
+import { ModalBase } from '../components/common'
+import { FormInput } from '../components/forms'
 import type { InventarioItem, InventarioLocation, InventarioMovimiento } from '../types/inventario'
 
 const { logout, authStore } = useAuth()
+const { success, error: showError } = useNotification()
+const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
 const showMovements = ref(false)
@@ -267,6 +314,51 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('es-ES', {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
+  })
+}
+
+// Adjust stock modal
+const adjustModalOpen = ref(false)
+const adjustItem = ref<InventarioItem | null>(null)
+const adjustQuantity = ref(0)
+const adjustNotes = ref('')
+
+const adjustMutation = useMutation({
+  mutationFn: (params: { productId: string; locationId: string; quantity: number; notes: string; variantId?: string | null }) =>
+    adjustInventory(businessId.value!, params.productId, params.locationId, params.quantity, params.notes, params.variantId),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(businessId.value) })
+    closeAdjustModal()
+    success('Stock ajustado correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al ajustar el stock')
+  },
+})
+
+const openAdjustModal = (item: InventarioItem) => {
+  adjustItem.value = item
+  adjustQuantity.value = 0
+  adjustNotes.value = ''
+  adjustModalOpen.value = true
+}
+
+const closeAdjustModal = () => {
+  adjustModalOpen.value = false
+  adjustItem.value = null
+  adjustQuantity.value = 0
+  adjustNotes.value = ''
+}
+
+const confirmAdjust = async () => {
+  if (!adjustItem.value || adjustQuantity.value === 0) return
+  await adjustMutation.mutateAsync({
+    productId: adjustItem.value.productId,
+    locationId: adjustItem.value.locationId,
+    quantity: adjustQuantity.value,
+    notes: adjustNotes.value,
+    variantId: adjustItem.value.variantId,
   })
 }
 

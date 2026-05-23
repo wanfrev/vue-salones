@@ -137,6 +137,9 @@ const emit = defineEmits<{
   save: [cita: CitaFormData & { id?: string }]
 }>()
 
+const saveInProgress = ref(false)
+const isSaving = computed(() => saveInProgress.value)
+
 const { isOpen, modalData, close, confirm } = useModal(MODAL_ID)
 const { success, error: showError } = useNotification()
 const authStore = useAuthStore()
@@ -146,29 +149,12 @@ const t = computed(() => authStore.terminology)
 const isLoading = ref(false)
 const isEditing = computed(() => !!modalData.value?.cita)
 
-// Opciones por defecto si no se pasan props
-const defaultServicios = [
-  { id: 'corte-mujer', name: 'Corte Mujer' },
-  { id: 'corte-hombre', name: 'Corte Hombre' },
-  { id: 'tinte-completo', name: 'Tinte Completo' },
-  { id: 'manicure-clasico', name: 'Manicure Clásico' },
-  { id: 'pedicure-spa', name: 'Pedicure Spa' },
-]
-
-const defaultEmpleados = [
-  { id: 'carlos-mendez', name: 'Carlos Méndez' },
-  { id: 'laura-torres', name: 'Laura Torres' },
-  { id: 'diana-flores', name: 'Diana Flores' },
-  { id: 'ana-ruiz', name: 'Ana Ruiz' },
-  { id: 'pedro-sanchez', name: 'Pedro Sánchez' },
-]
-
 const serviceOptions = computed(() => 
-  (props.servicios || defaultServicios).map(s => ({ value: s.id, label: s.name }))
+  (props.servicios ?? []).map(s => ({ value: s.id, label: s.name }))
 )
 
 const employeeOptions = computed(() => 
-  (props.empleados || defaultEmpleados).map(e => ({ value: e.id, label: e.name }))
+  (props.empleados ?? []).map(e => ({ value: e.id, label: e.name }))
 )
 
 const statusOptions = [
@@ -193,13 +179,19 @@ const defaultFormData: CitaFormData = {
 const formData = ref<CitaFormData>({ ...defaultFormData })
 const errors = ref<Partial<Record<keyof CitaFormData, string>>>({})
 
+const servicesLoaded = computed(() => (props.servicios?.length ?? 0) > 0)
+const employeesLoaded = computed(() => (props.empleados?.length ?? 0) > 0)
+
 const isFormValid = computed(() => {
   return formData.value.clientName.trim().length >= 2 && 
+         /^[\d\s\-\+\(\)]+$/.test(formData.value.clientPhone.trim()) &&
          formData.value.clientPhone.trim().length >= 7 &&
          formData.value.service !== '' && 
          formData.value.employee !== '' &&
          formData.value.date !== '' &&
-         formData.value.time !== ''
+         formData.value.time !== '' &&
+         servicesLoaded.value &&
+         employeesLoaded.value
 })
 
 watch(
@@ -233,8 +225,11 @@ const validateForm = (): boolean => {
     errors.value.clientName = 'El nombre del cliente es requerido'
   }
 
-  if (!formData.value.clientPhone.trim() || formData.value.clientPhone.length < 7) {
+  const phoneRaw = formData.value.clientPhone.trim()
+  if (!phoneRaw || phoneRaw.length < 7) {
     errors.value.clientPhone = 'El teléfono del cliente es requerido'
+  } else if (!/^[\d\s\-\+\(\)]+$/.test(phoneRaw)) {
+    errors.value.clientPhone = 'El teléfono solo puede contener números, espacios, +, -, (, )'
   }
 
   if (!formData.value.service) {
@@ -267,10 +262,9 @@ const handleSubmit = async () => {
   }
 
   isLoading.value = true
+  saveInProgress.value = true
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
     const citaData: CitaFormData & { id?: string } = {
       ...formData.value,
     }
@@ -280,13 +274,12 @@ const handleSubmit = async () => {
     }
 
     emit('save', citaData)
-    success(isEditing.value ? `${t.value.appointment} actualizada correctamente` : `${t.value.appointment} agendada correctamente`)
-    confirm(citaData)
   } catch (err) {
     showError(`Error al guardar la ${t.value.appointment.toLowerCase()}`)
     console.error(err)
   } finally {
     isLoading.value = false
+    saveInProgress.value = false
   }
 }
 

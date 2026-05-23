@@ -109,8 +109,8 @@ const emit = defineEmits<{
   save: [cliente: ClienteFormData & { id?: string }]
 }>()
 
-const { isOpen, modalData, close, confirm } = useModal(MODAL_ID)
-const { success, error: showError } = useNotification()
+const { isOpen, modalData, close } = useModal(MODAL_ID)
+const { error: showError } = useNotification()
 const authStore = useAuthStore()
 
 const terminology = computed(() => authStore.terminology)
@@ -269,8 +269,6 @@ const handleSubmit = async () => {
   isLoading.value = true
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
     let nicheMeta: Record<string, unknown> = {}
     if (isPetNiche.value) {
       nicheMeta = { ...petFields }
@@ -298,8 +296,6 @@ const handleSubmit = async () => {
     }
 
     emit('save', clienteData)
-    success(isEditing.value ? `${terminology.value.client} actualizado correctamente` : `${terminology.value.client} creado correctamente`)
-    confirm(clienteData)
   } catch (err) {
     showError(`Error al guardar el ${terminology.value.client.toLowerCase()}`)
     console.error(err)

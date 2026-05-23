@@ -47,10 +47,10 @@ export const listPendingAppointments = async (businessId: string) => {
       profiles ( id, full_name )
     `)
     .eq('business_id', businessId)
-    .in('status', ['confirmed', 'completed'])
+    .in('status', ['confirmed', 'completed', 'pending'])
     .neq('payment_status', 'paid')
     .order('start_time', { ascending: false })
-    .limit(20)
+    .limit(50)
 
   if (error) throw error
   return data ?? []

@@ -258,8 +258,6 @@ const handleSubmit = async () => {
   isLoading.value = true
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
     const empleadoData: EmpleadoFormData & { id?: string } = {
       ...formData.value,
     }
@@ -269,8 +267,6 @@ const handleSubmit = async () => {
     }
 
     emit('save', empleadoData)
-    success(isEditing.value ? `${t.value.employee} actualizado correctamente` : `${t.value.employee} creado correctamente`)
-    confirm(empleadoData)
   } catch (err) {
     showError(`Error al guardar el ${t.value.employee.toLowerCase()}`)
     console.error(err)

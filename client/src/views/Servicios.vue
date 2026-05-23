@@ -247,7 +247,7 @@ import type { Servicio, ServicioFormData } from '../types/servicio'
 
 const { logout, authStore } = useAuth()
 const { formatDual, formatVESInline, formatUSD } = useCurrency()
-const { warning } = useNotification()
+const { success, error: showError, warning } = useNotification()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
@@ -277,6 +277,11 @@ const saveServicioMutation = useMutation({
   mutationFn: (data: ServicioFormData & { id?: string }) => saveServicio(businessId.value!, data),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: serviciosKeys.all(businessId.value) })
+    servicioModalRef.value?.close()
+    success('Servicio guardado correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al guardar el servicio')
   },
 })
 

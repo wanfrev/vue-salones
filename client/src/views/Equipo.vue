@@ -220,7 +220,7 @@ import type { Empleado, EmpleadoFormData } from '../types/empleado'
 
 const router = useRouter()
 const { logout, authStore } = useAuth()
-const { info, error: showError } = useNotification()
+const { success, info, error: showError } = useNotification()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
@@ -250,9 +250,14 @@ const teamSchedule = computed(() => team.value
 )
 
 const saveEmpleadoMutation = useMutation({
-  mutationFn: (data: EmpleadoFormData & { id?: string }) => saveEmpleado(data),
+  mutationFn: (data: EmpleadoFormData & { id?: string }) => saveEmpleado(data, businessId.value!),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: equipoKeys.all(businessId.value) })
+    empleadoModalRef.value?.close()
+    success('Empleado guardado correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al guardar el empleado')
   },
 })
 

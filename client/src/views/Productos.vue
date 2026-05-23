@@ -273,7 +273,7 @@ import type { Producto, ProductoFormData } from '../types/producto'
 
 const { logout, authStore } = useAuth()
 const { formatUSD, formatVESInline } = useCurrency()
-const { warning } = useNotification()
+const { success, error: showError, warning } = useNotification()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
@@ -302,6 +302,11 @@ const saveProductoMutation = useMutation({
   mutationFn: (data: ProductoFormData & { id?: string }) => saveProducto(businessId.value!, data),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
+    productoModalRef.value?.close()
+    success('Producto guardado correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al guardar el producto')
   },
 })
 

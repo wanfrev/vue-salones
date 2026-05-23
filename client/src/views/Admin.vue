@@ -169,7 +169,7 @@ import { CitaFormModal } from '../components/modals'
 import type { Cita, CitaFormData } from '../types/cita'
 
 const { logout, authStore } = useAuth()
-const { success } = useNotification()
+const { success, error: showError } = useNotification()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
@@ -212,6 +212,11 @@ const saveCitaMutation = useMutation({
   ),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: agendaKeys.appointments(businessId.value) })
+    citaModalRef.value?.close()
+    success('Cita guardada correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al guardar la cita')
   },
 })
 
@@ -219,6 +224,10 @@ const updateStatusMutation = useMutation({
   mutationFn: ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }) => updateCitaStatus(id, status),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: agendaKeys.appointments(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: ['appointments'] })
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al actualizar el estado de la cita')
   },
 })
 
@@ -226,6 +235,10 @@ const updateTimeMutation = useMutation({
   mutationFn: ({ id, start, end }: { id: string; start: string; end: string }) => updateAppointmentTime(id, start, end),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: agendaKeys.appointments(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: ['appointments'] })
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al reagendar la cita')
   },
 })
 

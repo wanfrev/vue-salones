@@ -49,7 +49,7 @@ export function useCurrency() {
     if (error) throw error
 
     if (authStore.business) {
-      authStore.business.ves_exchange_rate = rate
+      authStore.business = { ...authStore.business, ves_exchange_rate: rate }
     }
   }
 

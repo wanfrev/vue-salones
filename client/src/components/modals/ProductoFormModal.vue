@@ -217,8 +217,6 @@ const handleSubmit = async () => {
   isLoading.value = true
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
     const productoData: ProductoFormData & { id?: string } = {
       ...formData.value,
     }
@@ -228,8 +226,6 @@ const handleSubmit = async () => {
     }
 
     emit('save', productoData)
-    success(isEditing.value ? 'Producto actualizado correctamente' : 'Producto creado correctamente')
-    confirm(productoData)
   } catch (err) {
     showError('Error al guardar el producto')
     console.error(err)

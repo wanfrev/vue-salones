@@ -299,7 +299,7 @@ import type { FilterState } from '../components/filters'
 
 const router = useRouter()
 const { logout, authStore } = useAuth()
-const { success, info } = useNotification()
+const { success, info, error: showError } = useNotification()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
@@ -321,6 +321,11 @@ const saveClienteMutation = useMutation({
   mutationFn: (data: ClienteFormData & { id?: string }) => saveCliente(businessId.value!, data),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: clientesKeys.all(businessId.value) })
+    clienteModalRef.value?.close()
+    success('Cliente guardado correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al guardar el cliente')
   },
 })
 

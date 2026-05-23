@@ -59,7 +59,7 @@ export const mapEmpleadoFormToProfileUpdate = (data: EmpleadoFormData) => ({
 })
 
 export const mapEmpleadoFormToScheduleBlocks = (employeeId: string, data: EmpleadoFormData) => {
-  return [1, 2, 3, 4, 5].map(weekday => ({
+  return [1, 2, 3, 4, 5, 6].map(weekday => ({
     employee_id: employeeId,
     weekday,
     start_time: data.scheduleStart,
