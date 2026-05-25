@@ -246,7 +246,7 @@ import { ModalBase } from '../components/common'
 import type { Servicio, ServicioFormData } from '../types/servicio'
 
 const { logout, authStore } = useAuth()
-const { formatDual, formatVESInline, formatUSD } = useCurrency()
+const { formatVESInline, formatUSD } = useCurrency()
 const { success, error: showError, warning } = useNotification()
 const queryClient = useQueryClient()
 
@@ -301,8 +301,6 @@ const precioPromedioNumerico = computed(() => {
   const total = services.value.reduce((sum, s) => sum + s.price, 0)
   return Math.round(total / services.value.length)
 })
-
-const precioPromedio = computed(() => precioPromedioNumerico.value)
 
 const filteredServices = computed(() => {
   if (activeCategory.value === 'all') return services.value

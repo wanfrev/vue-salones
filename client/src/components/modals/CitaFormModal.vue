@@ -138,10 +138,9 @@ const emit = defineEmits<{
 }>()
 
 const saveInProgress = ref(false)
-const isSaving = computed(() => saveInProgress.value)
 
-const { isOpen, modalData, close, confirm } = useModal(MODAL_ID)
-const { success, error: showError } = useNotification()
+const { isOpen, modalData, close } = useModal(MODAL_ID)
+const { error: showError } = useNotification()
 const authStore = useAuthStore()
 
 const t = computed(() => authStore.terminology)

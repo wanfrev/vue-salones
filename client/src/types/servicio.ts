@@ -7,7 +7,7 @@ export interface Servicio {
   status: 'Activo' | 'Inactivo'
   category: string
   citasMes: number
-  ingresos: string
+  ingresos: number
   icon: string
   iconBg: string
   iconColor: string

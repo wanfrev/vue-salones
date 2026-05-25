@@ -93,8 +93,8 @@ const emit = defineEmits<{
   save: [servicio: ServicioFormData & { id?: string }]
 }>()
 
-const { isOpen, modalData, close, confirm } = useModal(MODAL_ID)
-const { success, error: showError } = useNotification()
+const { isOpen, modalData, close } = useModal(MODAL_ID)
+const { error: showError } = useNotification()
 const authStore = useAuthStore()
 
 const t = computed(() => authStore.terminology)

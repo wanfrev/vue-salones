@@ -68,7 +68,7 @@ export const mapServiceToServicio = (service: Service, citasMes = 0, ingresos = 
     status: service.active ? 'Activo' : 'Inactivo',
     category: service.category,
     citasMes,
-    ingresos: ingresos.toLocaleString(),
+    ingresos,
     icon: visuals.icon,
     iconBg: visuals.iconBg,
     iconColor: visuals.iconColor,

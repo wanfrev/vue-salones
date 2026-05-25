@@ -327,10 +327,6 @@ const valorInventarioNumerico = computed(() => {
   return productos.value.reduce((sum, p) => sum + p.unitCost * p.stockTotal, 0)
 })
 
-const valorInventario = computed(() => {
-  return valorInventarioNumerico.value.toLocaleString('en-US', { minimumFractionDigits: 2 })
-})
-
 const filteredProductos = computed(() => {
   let result = productos.value
   if (searchQuery.value) {

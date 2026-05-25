@@ -95,6 +95,17 @@
             :error="errors.email"
           />
         </div>
+
+        <FormInput
+          v-if="!isEditing"
+          v-model="formData.password"
+          label="Contraseña"
+          type="password"
+          placeholder="••••••••"
+          required
+          prefix-icon="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+          :error="errors.password"
+        />
       </div>
 
       <!-- Horario -->
@@ -149,8 +160,8 @@ const emit = defineEmits<{
   save: [empleado: EmpleadoFormData & { id?: string }]
 }>()
 
-const { isOpen, modalData, close, confirm } = useModal(MODAL_ID)
-const { success, error: showError } = useNotification()
+const { isOpen, modalData, close } = useModal(MODAL_ID)
+const { error: showError } = useNotification()
 const authStore = useAuthStore()
 
 const t = computed(() => authStore.terminology)
@@ -181,6 +192,7 @@ const defaultFormData: EmpleadoFormData = {
   role: 'Estilista',
   phone: '',
   email: '',
+  password: '',
   specialties: [],
   scheduleStart: '09:00',
   scheduleEnd: '18:00',
@@ -194,7 +206,10 @@ const formData = ref<EmpleadoFormData>({ ...defaultFormData })
 const errors = ref<Partial<Record<keyof EmpleadoFormData, string>>>({})
 
 const isFormValid = computed(() => {
-  return formData.value.name.trim().length >= 2 && formData.value.role !== ''
+  const nameValid = formData.value.name.trim().length >= 2
+  const roleValid = formData.value.role !== ''
+  const passwordValid = isEditing.value || formData.value.password.length >= 4
+  return nameValid && roleValid && passwordValid
 })
 
 watch(
@@ -206,6 +221,7 @@ watch(
         role: empleado.role || 'Estilista',
         phone: empleado.phone || '',
         email: empleado.email || '',
+        password: '',
         specialties: empleado.specialties || [],
         scheduleStart: empleado.schedule?.start || '09:00',
         scheduleEnd: empleado.schedule?.end || '18:00',
@@ -239,6 +255,10 @@ const validateForm = (): boolean => {
 
   if (formData.value.email && !isValidEmail(formData.value.email)) {
     errors.value.email = 'El email no es válido'
+  }
+
+  if (!isEditing.value && formData.value.password.length < 4) {
+    errors.value.password = 'La contraseña debe tener al menos 4 caracteres'
   }
 
   return Object.keys(errors.value).length === 0

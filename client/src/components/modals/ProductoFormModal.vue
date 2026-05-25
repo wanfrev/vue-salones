@@ -116,8 +116,8 @@ const emit = defineEmits<{
   save: [producto: ProductoFormData & { id?: string }]
 }>()
 
-const { isOpen, modalData, close, confirm } = useModal(MODAL_ID)
-const { success, error: showError } = useNotification()
+const { isOpen, modalData, close } = useModal(MODAL_ID)
+const { error: showError } = useNotification()
 const authStore = useAuthStore()
 
 const isLoading = ref(false)
@@ -139,8 +139,8 @@ const categoryOptions = computed(() => {
 })
 
 const statusOptions = [
-  { value: true, label: 'Activo' },
-  { value: false, label: 'Inactivo' },
+  { value: 'Activo', label: 'Activo' },
+  { value: 'Inactivo', label: 'Inactivo' },
 ]
 
 const defaultFormData: ProductoFormData = {
@@ -153,7 +153,7 @@ const defaultFormData: ProductoFormData = {
   unitCost: 0,
   unitPrice: 0,
   reorderPoint: 0,
-  active: true,
+  active: 'Activo',
 }
 
 const formData = ref<ProductoFormData>({ ...defaultFormData })
@@ -179,7 +179,7 @@ watch(
         unitCost: producto.unitCost || 0,
         unitPrice: producto.unitPrice || 0,
         reorderPoint: producto.reorderPoint || 0,
-        active: producto.status === 'Activo',
+        active: producto.status,
       }
     } else {
       formData.value = { ...defaultFormData }

@@ -25,6 +25,7 @@ export interface EmpleadoFormData {
   role: string
   phone: string
   email: string
+  password: string
   specialties: string[]
   scheduleStart: string
   scheduleEnd: string

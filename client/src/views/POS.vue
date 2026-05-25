@@ -304,7 +304,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
@@ -315,7 +315,7 @@ import type { PaymentMethod } from '../types/database'
 import type { POSProductItem, PaymentBreakdownItem } from '../types/pos'
 
 const { logout, authStore } = useAuth()
-const { exchangeRate, formatDual, formatUSD, formatVESInline } = useCurrency()
+const { exchangeRate, formatDual } = useCurrency()
 const { success, error: showError } = useNotification()
 const queryClient = useQueryClient()
 

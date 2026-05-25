@@ -6,8 +6,7 @@ const writableSupabase = supabase as any
 export type CreateBusinessInput = {
   businessName: string
   ownerEmail: string
-  primaryColor: string
-  secondaryColor: string
+  ownerPassword: string
   nicheType?: string
 }
 
@@ -36,9 +35,8 @@ export const createBusinessWithOwner = async (input: CreateBusinessInput): Promi
     body: {
       businessName: input.businessName.trim(),
       ownerEmail: input.ownerEmail.trim(),
-      primaryColor: input.primaryColor.trim(),
-      secondaryColor: input.secondaryColor.trim(),
-      nicheType: input.nicheType?.trim() || 'salon',
+      ownerPassword: input.ownerPassword,
+      nicheType: input.nicheType?.trim() || null,
     },
   })
 

@@ -1,4 +1,4 @@
-import { MOCK_USER_ID, MOCK_BUSINESS_ID, MOCK_EMAIL, MOCK_PASSWORD, createMockDataStore, type MockDataStore } from './mockData'
+import { MOCK_USER_ID, MOCK_BUSINESS_ID, MOCK_EMAIL, MOCK_PASSWORD, SUPERADMIN_USER_ID, SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD, createMockDataStore, type MockDataStore } from './mockData'
 
 const BIZ = MOCK_BUSINESS_ID
 const ADMIN = MOCK_USER_ID
@@ -337,22 +337,45 @@ class MockQueryBuilder {
 export function createMockClient() {
   const store = createMockDataStore()
 
-  const mockUser = {
-    id: MOCK_USER_ID,
-    email: MOCK_EMAIL,
-    user_metadata: { full_name: 'Admin Demo' },
+  const makeMockUser = (id: string, email: string, fullName: string) => ({
+    id,
+    email,
+    user_metadata: { full_name: fullName },
     app_metadata: {},
     aud: 'authenticated',
     created_at: new Date().toISOString(),
+  })
+
+  const resolveUser = (email: string, password: string) => {
+    if (email === SUPERADMIN_EMAIL && password === SUPERADMIN_PASSWORD) {
+      return makeMockUser(SUPERADMIN_USER_ID, SUPERADMIN_EMAIL, 'Super Admin')
+    }
+    if (email === MOCK_EMAIL && password === MOCK_PASSWORD) {
+      return makeMockUser(MOCK_USER_ID, MOCK_EMAIL, 'Admin Demo')
+    }
+    return null
   }
 
-  let currentSession: any = {
+  const MOCK_SESSION_KEY = 'mock-session'
+
+  const buildSession = (user: any) => ({
     access_token: 'mock-access-token',
     refresh_token: 'mock-refresh-token',
     expires_in: 36000,
     expires_at: Math.floor(Date.now() / 1000) + 36000,
     token_type: 'bearer',
-    user: mockUser,
+    user,
+  })
+
+  const saved = localStorage.getItem(MOCK_SESSION_KEY)
+  let currentSession: any = saved ? JSON.parse(saved) : null
+
+  const persistSession = () => {
+    if (currentSession) {
+      localStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(currentSession))
+    } else {
+      localStorage.removeItem(MOCK_SESSION_KEY)
+    }
   }
 
   const authCallbacks: MockAuthChangeCallback[] = []
@@ -363,11 +386,10 @@ export function createMockClient() {
       error: null,
     }),
     signInWithPassword: async ({ email, password }: { email: string; password: string }) => {
-      if (email === MOCK_EMAIL && password === MOCK_PASSWORD) {
-        currentSession = {
-          ...currentSession,
-          user: { ...mockUser, email },
-        }
+      const user = resolveUser(email, password)
+      if (user) {
+        currentSession = buildSession(user)
+        persistSession()
         for (const cb of authCallbacks) cb('SIGNED_IN', currentSession)
         return {
           data: { user: currentSession.user, session: currentSession },
@@ -381,6 +403,7 @@ export function createMockClient() {
     },
     signOut: async () => {
       currentSession = null
+      persistSession()
       for (const cb of authCallbacks) cb('SIGNED_OUT', null)
       return { error: null }
     },
@@ -462,12 +485,59 @@ export function createMockClient() {
 
   const mockFunctions = {
     invoke: async (fnName: string, options?: { body?: any }) => {
+      const payload = options?.body || {}
+      const now = new Date().toISOString()
+
+      if (fnName === 'manage-user') {
+        const action = payload.action || 'create'
+        const meta = payload.user_metadata || {}
+
+        if (action === 'create') {
+          const userId = crypto.randomUUID?.() || `user-${Date.now()}`
+          store.profiles.push({
+            id: userId,
+            business_id: meta.business_id || null,
+            full_name: meta.full_name || payload.email?.split('@')[0] || 'Nuevo usuario',
+            role: meta.role || 'empleado',
+            job_title: meta.job_title || null,
+            phone: meta.phone || null,
+            avatar_url: null,
+            pay_type: meta.pay_type || 'percentage',
+            pay_percentage: meta.pay_percentage ?? 50,
+            base_salary: meta.base_salary ?? 0,
+            active: true,
+            created_at: now,
+            updated_at: now,
+          } as any)
+          return { data: { user: { id: userId, email: payload.email } }, error: null }
+        }
+
+        if (action === 'update') {
+          const profile = store.profiles.find(p => p.id === payload.user_id)
+          if (profile && meta) {
+            if (meta.full_name) profile.full_name = meta.full_name
+            if (meta.job_title) profile.job_title = meta.job_title
+            if (meta.phone) profile.phone = meta.phone
+            if (meta.pay_type) profile.pay_type = meta.pay_type
+            if (meta.pay_percentage != null) profile.pay_percentage = meta.pay_percentage
+            if (meta.base_salary != null) profile.base_salary = meta.base_salary
+          }
+          return { data: { success: true }, error: null }
+        }
+
+        if (action === 'delete') {
+          const idx = store.profiles.findIndex(p => p.id === payload.user_id)
+          if (idx >= 0) store.profiles.splice(idx, 1)
+          return { data: { success: true }, error: null }
+        }
+
+        return { data: null, error: { message: `Unknown action: ${action}` } }
+      }
+
       if (fnName !== 'superadmin-invite') {
         return { data: null, error: { message: 'Function not found' } }
       }
 
-      const payload = options?.body || {}
-      const now = new Date().toISOString()
       const baseSlug = String(payload.businessName || '')
         .toLowerCase()
         .trim()
@@ -490,10 +560,7 @@ export function createMockClient() {
         timezone: 'America/Santo_Domingo',
         currency: 'USD',
         niche_type: payload.nicheType || 'salon',
-        theme_config: {
-          primary: payload.primaryColor || '#2F4156',
-          secondary: payload.secondaryColor || '#567CB0',
-        },
+        theme_config: { primary: '#8B5CF6', secondary: '#60A5FA' },
         terminology: {
           client: 'Cliente',
           employee: 'Empleado',

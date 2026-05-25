@@ -6,8 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const isHex = (value: string) => /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(value)
-
 const slugify = (value: string) => {
   const base = value
     .toLowerCase()
@@ -69,19 +67,11 @@ serve(async (req) => {
     const body = await req.json()
     const businessName = String(body.businessName || '').trim()
     const ownerEmail = String(body.ownerEmail || '').trim()
-    const primaryColor = String(body.primaryColor || '').trim()
-    const secondaryColor = String(body.secondaryColor || '').trim()
+    const ownerPassword = String(body.ownerPassword || '').trim()
     const nicheType = String(body.nicheType || 'salon').trim()
 
-    if (!businessName || !ownerEmail) {
-      return new Response(JSON.stringify({ error: 'businessName and ownerEmail are required.' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    if (!isHex(primaryColor) || !isHex(secondaryColor)) {
-      return new Response(JSON.stringify({ error: 'Invalid color hex values.' }), {
+    if (!businessName || !ownerEmail || !ownerPassword) {
+      return new Response(JSON.stringify({ error: 'businessName, ownerEmail, and ownerPassword are required.' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -108,10 +98,6 @@ serve(async (req) => {
         name: businessName,
         slug,
         niche_type: nicheType || 'salon',
-        theme_config: {
-          primary: primaryColor,
-          secondary: secondaryColor,
-        },
       })
       .select('*')
       .single()
@@ -123,40 +109,35 @@ serve(async (req) => {
       })
     }
 
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      ownerEmail,
-      {
-        data: { full_name: `Admin ${businessName}` },
-      }
-    )
-
-    if (inviteError || !inviteData?.user?.id) {
-      await supabaseAdmin.from('businesses').delete().eq('id', business.id)
-      return new Response(JSON.stringify({ error: inviteError?.message || 'Unable to invite user.' }), {
+    const ownerPassword = String(body.ownerPassword || '').trim()
+    if (!ownerPassword) {
+      return new Response(JSON.stringify({ error: 'ownerPassword is required.' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    const invitedUserId = inviteData.user.id
-
-    const { error: profileInsertError } = await supabaseAdmin.from('profiles').insert({
-      id: invitedUserId,
-      business_id: business.id,
-      full_name: inviteData.user.user_metadata?.full_name || `Admin ${businessName}`,
-      role: 'admin',
+    // Create the auth user with password (trigger auto-creates the profile)
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
+      email: ownerEmail,
+      password: ownerPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: `Admin ${businessName}`,
+        business_id: business.id,
+        role: 'admin',
+      },
     })
 
-    if (profileInsertError) {
-      await supabaseAdmin.auth.admin.deleteUser(invitedUserId)
+    if (userError || !userData?.user?.id) {
       await supabaseAdmin.from('businesses').delete().eq('id', business.id)
-      return new Response(JSON.stringify({ error: profileInsertError.message }), {
+      return new Response(JSON.stringify({ error: userError?.message || 'Unable to create user.' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    return new Response(JSON.stringify({ business, invitedUserId }), {
+    return new Response(JSON.stringify({ business, invitedUserId: userData.user.id }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })

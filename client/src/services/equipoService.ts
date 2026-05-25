@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { createAuthUser } from './adminService'
 import { mapEmpleadoFormToProfileUpdate, mapEmpleadoFormToScheduleBlocks, mapProfileToEmpleado } from '../mappers/equipoMapper'
 import type { EmployeeProfile } from '../mappers/equipoMapper'
 import type { Empleado, EmpleadoFormData } from '../types/empleado'
@@ -27,23 +28,24 @@ export const saveEmpleado = async (
   businessId?: string
 ): Promise<void> => {
   if (!data.id) {
-    const profileId = crypto.randomUUID?.() ?? `emp-${Date.now()}`
-    const { error: insertError } = await writableSupabase
-      .from('profiles')
-      .insert({
-        id: profileId,
-        business_id: businessId,
-        full_name: data.name.trim(),
+    const profileUpdate = mapEmpleadoFormToProfileUpdate(data)
+
+    const { user } = await createAuthUser({
+      email: data.email,
+      password: data.password,
+      user_metadata: {
+        full_name: profileUpdate.full_name,
+        business_id: businessId!,
         role: 'empleado',
-        job_title: data.role.trim() || null,
-        phone: data.phone.trim() || null,
-        active: true,
-        ...mapEmpleadoFormToProfileUpdate(data),
-      })
+        phone: profileUpdate.phone || undefined,
+        job_title: profileUpdate.job_title || undefined,
+        pay_type: profileUpdate.pay_type,
+        pay_percentage: profileUpdate.pay_percentage,
+        base_salary: profileUpdate.base_salary,
+      },
+    })
 
-    if (insertError) throw insertError
-
-    const scheduleBlocks = mapEmpleadoFormToScheduleBlocks(profileId, data)
+    const scheduleBlocks = mapEmpleadoFormToScheduleBlocks(user.id, data)
     const { error: scheduleError } = await writableSupabase
       .from('employee_schedules')
       .insert(scheduleBlocks)

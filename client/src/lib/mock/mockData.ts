@@ -6,7 +6,9 @@ import type {
 } from '../../types/database'
 
 const BIZ = '00000000-0000-0000-0000-000000000001'
+const BIZ2 = '00000000-0000-0000-0000-000000000002'
 const ADMIN = '00000000-0000-0000-0000-000000000100'
+const SUPERADMIN = '00000000-0000-0000-0000-000000000101'
 const EMP1 = '00000000-0000-0000-0000-000000000201'
 const EMP2 = '00000000-0000-0000-0000-000000000202'
 const EMP3 = '00000000-0000-0000-0000-000000000203'
@@ -52,6 +54,9 @@ export const MOCK_USER_ID = ADMIN
 export const MOCK_BUSINESS_ID = BIZ
 export const MOCK_EMAIL = 'admin@demo.com'
 export const MOCK_PASSWORD = 'demo123'
+export const SUPERADMIN_USER_ID = SUPERADMIN
+export const SUPERADMIN_EMAIL = 'superadmin@demo.com'
+export const SUPERADMIN_PASSWORD = 'superdemo123'
 
 export function createMockDataStore(): MockDataStore {
   const now = new Date().toISOString()
@@ -76,9 +81,30 @@ export function createMockDataStore(): MockDataStore {
     },
     active: true,
     created_at: now, updated_at: now,
+  }, {
+    id: BIZ2, name: 'Barbería El Clásico', slug: 'barberia-clasico',
+    phone: '+525551234000', address: 'Calle Real #456',
+    timezone: 'America/New_York', currency: 'USD', ves_exchange_rate: 36.50,
+    niche_type: 'barberia',
+    theme_config: { primary: '#1E3A5F', secondary: '#4A6FA5' },
+    terminology: {
+      client: 'Cliente',
+      employee: 'Barbero',
+      service: 'Servicio',
+      appointment: 'Cita',
+      staff: 'Personal',
+      pet: 'Mascota',
+      owner: 'Dueno',
+      breed: 'Raza',
+      weight: 'Peso',
+      vaccines: 'Vacunas',
+    },
+    active: true,
+    created_at: now, updated_at: now,
   }]
 
   const profiles: Profile[] = [
+    { id: SUPERADMIN, business_id: null, full_name: 'Super Admin', role: 'superadmin', job_title: null, phone: null, avatar_url: null, active: true, created_at: now, updated_at: now },
     { id: ADMIN, business_id: BIZ, full_name: 'Admin Demo', role: 'admin', job_title: 'Administrador', phone: '+525551234500', avatar_url: null, active: true, created_at: now, updated_at: now },
     { id: EMP1, business_id: BIZ, full_name: 'María García', role: 'empleado', job_title: 'Estilista Senior', phone: '+525551234501', avatar_url: null, active: true, created_at: now, updated_at: now },
     { id: EMP2, business_id: BIZ, full_name: 'Ana López', role: 'empleado', job_title: 'Manicurista', phone: '+525551234502', avatar_url: null, active: true, created_at: now, updated_at: now },

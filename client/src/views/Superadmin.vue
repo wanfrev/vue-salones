@@ -53,47 +53,51 @@
               />
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-text" for="primaryColor">Color primario (hex)</label>
-                <div class="flex items-center gap-2">
-                  <span class="h-9 w-9 rounded-lg border border-border" :style="{ backgroundColor: form.primaryColor }"></span>
-                  <input
-                    id="primaryColor"
-                    v-model="form.primaryColor"
-                    type="text"
-                    class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-                    placeholder="#2F4156"
-                  />
-                </div>
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium text-text" for="secondaryColor">Color secundario (hex)</label>
-                <div class="flex items-center gap-2">
-                  <span class="h-9 w-9 rounded-lg border border-border" :style="{ backgroundColor: form.secondaryColor }"></span>
-                  <input
-                    id="secondaryColor"
-                    v-model="form.secondaryColor"
-                    type="text"
-                    class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-                    placeholder="#567CB0"
-                  />
-                </div>
-              </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text" for="ownerPassword">Contraseña del dueno</label>
+              <input
+                id="ownerPassword"
+                v-model="form.ownerPassword"
+                type="password"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                placeholder="••••••••"
+              />
             </div>
 
             <div>
               <label class="mb-1 block text-sm font-medium text-text" for="nicheType">Nicho</label>
               <select
+                v-if="!showingCustomNiche"
                 id="nicheType"
-                v-model="form.nicheType"
+                :value="form.nicheType"
                 class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                @change="onNicheSelect"
               >
+                <option value="" disabled selected>Selecciona un nicho</option>
+                <option value="__new__">+ Agregar nuevo</option>
                 <option value="salon">Salón de belleza</option>
                 <option value="barberia">Barbería</option>
                 <option value="spa">Spa (humano)</option>
                 <option value="dog_spa">Spa canino / Veterinaria</option>
+                <option value="nail_bar">Barra de uñas</option>
+                <option value="centro_estetico">Centro estético</option>
               </select>
+              <div v-else class="flex gap-2">
+                <input
+                  id="nicheType"
+                  v-model="form.nicheType"
+                  type="text"
+                  class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  placeholder="Escribe el nicho..."
+                />
+                <button
+                  type="button"
+                  class="shrink-0 rounded-lg border border-border px-3 py-2 text-sm text-text-muted transition-theme hover:bg-bg-secondary"
+                  @click="cancelCustomNiche"
+                >
+                  Volver
+                </button>
+              </div>
             </div>
 
             <p v-if="formError" class="text-sm text-danger">{{ formError }}</p>
@@ -137,18 +141,6 @@
                   <p class="text-xs text-text-muted">Slug: {{ biz.slug }} · Nicho: {{ biz.niche_type }}</p>
                   <p class="text-xs text-text-muted">Creado: {{ formatDate(biz.created_at) }}</p>
                 </div>
-                <div class="flex items-center gap-2">
-                  <span
-                    class="h-8 w-8 rounded-lg border border-border"
-                    :style="{ backgroundColor: biz.theme_config?.primary || '#2F4156' }"
-                    title="Primary"
-                  ></span>
-                  <span
-                    class="h-8 w-8 rounded-lg border border-border"
-                    :style="{ backgroundColor: biz.theme_config?.secondary || '#567CB0' }"
-                    title="Secondary"
-                  ></span>
-                </div>
               </div>
             </div>
 
@@ -177,10 +169,26 @@ const queryClient = useQueryClient()
 const form = ref({
   businessName: '',
   ownerEmail: '',
-  primaryColor: '#2F4156',
-  secondaryColor: '#567CB0',
-  nicheType: 'salon',
+  ownerPassword: '',
+  nicheType: '',
 })
+
+const showingCustomNiche = ref(false)
+
+const onNicheSelect = (event: Event) => {
+  const value = (event.target as HTMLSelectElement).value
+  if (value === '__new__') {
+    showingCustomNiche.value = true
+    form.value.nicheType = ''
+    return
+  }
+  form.value.nicheType = value
+}
+
+const cancelCustomNiche = () => {
+  showingCustomNiche.value = false
+  form.value.nicheType = ''
+}
 
 const search = ref('')
 const formError = ref('')
@@ -196,9 +204,11 @@ const businessesCount = computed(() => businesses.value.length)
 const { mutateAsync: createBusiness, isPending: isCreating } = useMutation({
   mutationFn: createBusinessWithOwner,
   onSuccess: async () => {
-    success('Negocio creado e invitacion enviada.')
+    success('Negocio creado. El admin ya puede iniciar sesión.')
     form.value.businessName = ''
     form.value.ownerEmail = ''
+    form.value.ownerPassword = ''
+    form.value.nicheType = ''
     formError.value = ''
     await queryClient.invalidateQueries({ queryKey: superadminKeys.businesses() })
   },
@@ -218,27 +228,19 @@ const filteredBusinesses = computed(() => {
   )
 })
 
-const isHex = (value: string) => /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(value.trim())
-
 const handleSubmit = async () => {
   formError.value = ''
 
-  if (!form.value.businessName.trim() || !form.value.ownerEmail.trim()) {
-    formError.value = 'Nombre y email son requeridos.'
-    return
-  }
-
-  if (!isHex(form.value.primaryColor) || !isHex(form.value.secondaryColor)) {
-    formError.value = 'Los colores deben ser hex validos, ej: #2F4156.'
+  if (!form.value.businessName.trim() || !form.value.ownerEmail.trim() || !form.value.ownerPassword.trim()) {
+    formError.value = 'Nombre, email y contraseña son requeridos.'
     return
   }
 
   await createBusiness({
     businessName: form.value.businessName,
     ownerEmail: form.value.ownerEmail,
-    primaryColor: form.value.primaryColor,
-    secondaryColor: form.value.secondaryColor,
-    nicheType: form.value.nicheType,
+    ownerPassword: form.value.ownerPassword,
+    nicheType: form.value.nicheType.trim() || undefined,
   })
 }
 

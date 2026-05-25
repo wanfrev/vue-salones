@@ -5,12 +5,7 @@ import { supabase } from '../lib/supabase'
 import type { Role } from '../constants/roles'
 import { isRole } from '../constants/roles'
 import type { AuthProfile } from '../types/auth'
-import type { Business, Profile, ThemeConfig, Terminology } from '../types/database'
-
-const DEFAULT_THEME: ThemeConfig = {
-  primary: '#2F4156',
-  secondary: '#567CB0',
-}
+import type { Business, Profile, Terminology } from '../types/database'
 
 const DEFAULT_TERMINOLOGY: Terminology = {
   client: 'Cliente',
@@ -37,32 +32,23 @@ export const useAuthStore = defineStore('auth', () => {
   const role = computed<Role | null>(() => profile.value?.role ?? null)
   const businessId = computed(() => profile.value?.business_id ?? null)
   const nicheType = computed(() => business.value?.niche_type ?? 'salon')
-  const themeConfig = computed(() => business.value?.theme_config ?? DEFAULT_THEME)
   const terminology = computed(() => business.value?.terminology ?? DEFAULT_TERMINOLOGY)
-
-  const SALON_PRIMARY = '#8B5CF6'
-  const SALON_SECONDARY = '#60A5FA'
-
-  const applyThemeConfig = (_config?: ThemeConfig) => {
-    const html = document.documentElement
-    html.style.setProperty('--color-primary', SALON_PRIMARY)
-    html.style.setProperty('--color-primary-hover', SALON_PRIMARY)
-    html.style.setProperty('--color-primary-light', `${SALON_PRIMARY}1A`)
-    html.style.setProperty('--color-primary-dark', SALON_PRIMARY)
-    html.style.setProperty('--color-info', SALON_SECONDARY)
-    html.style.setProperty('--color-info-light', `${SALON_SECONDARY}1A`)
-  }
 
   const loadProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
       .select('id, business_id, full_name, role, phone, avatar_url, active')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
 
     if (error) {
       profile.value = null
       throw error
+    }
+
+    if (!data) {
+      profile.value = null
+      throw new Error('Perfil de usuario no encontrado. Contacta al administrador.')
     }
 
     const authProfile = data as Profile
@@ -90,7 +76,6 @@ export const useAuthStore = defineStore('auth', () => {
   const loadBusiness = async (nextBusinessId: string | null) => {
     if (!nextBusinessId) {
       business.value = null
-      applyThemeConfig(DEFAULT_THEME)
       return
     }
 
@@ -106,7 +91,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     business.value = data as Business
-    applyThemeConfig(business.value.theme_config ?? DEFAULT_THEME)
   }
 
   const clearAuthState = () => {
@@ -114,7 +98,6 @@ export const useAuthStore = defineStore('auth', () => {
     session.value = null
     profile.value = null
     business.value = null
-    applyThemeConfig(DEFAULT_THEME)
   }
 
   const initialize = async () => {
@@ -130,8 +113,13 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = data.session?.user ?? null
 
       if (user.value) {
-        await loadProfile(user.value.id)
-        await loadBusiness(profile.value?.business_id ?? null)
+        try {
+          await loadProfile(user.value.id)
+          await loadBusiness(profile.value?.business_id ?? null)
+        } catch {
+          clearAuthState()
+          await supabase.auth.signOut()
+        }
       }
 
       supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, nextSession: Session | null) => {
@@ -148,7 +136,6 @@ export const useAuthStore = defineStore('auth', () => {
         } else {
           profile.value = null
           business.value = null
-          applyThemeConfig(DEFAULT_THEME)
         }
       })
     } finally {
@@ -170,6 +157,9 @@ export const useAuthStore = defineStore('auth', () => {
         await loadProfile(data.user.id)
         await loadBusiness(profile.value?.business_id ?? null)
       }
+    } catch (err) {
+      clearAuthState()
+      throw err
     } finally {
       loading.value = false
     }
@@ -196,7 +186,6 @@ export const useAuthStore = defineStore('auth', () => {
     role,
     businessId,
     nicheType,
-    themeConfig,
     terminology,
     initialize,
     signIn,

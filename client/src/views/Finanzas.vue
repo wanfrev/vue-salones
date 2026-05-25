@@ -422,7 +422,7 @@ type TransactionRow = {
 }
 
 const { logout, authStore } = useAuth()
-const { exchangeRate, formatUSD, setExchangeRate, isAdmin } = useCurrency()
+const { exchangeRate, formatUSD, formatVESInline, setExchangeRate, isAdmin } = useCurrency()
 const { success: notifySuccess, error: notifyError } = useNotification()
 const isSidebarOpen = ref(false)
 const editRateValue = ref(0)
@@ -453,7 +453,7 @@ watch(exchangeRate, (val) => {
   editRateValue.value = val
 }, { immediate: true })
 
-const periods = [
+const periods: { label: string; value: 'month' | 'quarter' | 'year' }[] = [
   { label: 'Mes', value: 'month' },
   { label: 'Trimestre', value: 'quarter' },
   { label: 'Año', value: 'year' },

@@ -36,7 +36,7 @@ export const mapProductoFormToProductInsert = (
   unit_cost: Number(data.unitCost),
   unit_price: Number(data.unitPrice),
   reorder_point: Number(data.reorderPoint),
-  active: data.active,
+  active: data.active === 'Activo',
 })
 
 export const mapCategoryToOption = (cat: ProductCategory) => ({
