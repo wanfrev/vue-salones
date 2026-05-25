@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import type { Business } from '../types/database'
 
-const writableSupabase = supabase as any
+const serviceSupabase = supabase as any
 
 export type CreateBusinessInput = {
   businessName: string
@@ -31,8 +31,9 @@ export const listBusinesses = async (): Promise<Business[]> => {
 }
 
 export const createBusinessWithOwner = async (input: CreateBusinessInput): Promise<CreateBusinessResult> => {
-  const { data, error } = await writableSupabase.functions.invoke('superadmin-invite', {
+  const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
     body: {
+      action: 'create',
       businessName: input.businessName.trim(),
       ownerEmail: input.ownerEmail.trim(),
       ownerPassword: input.ownerPassword,
@@ -46,4 +47,18 @@ export const createBusinessWithOwner = async (input: CreateBusinessInput): Promi
   }
 
   return data as CreateBusinessResult
+}
+
+export const deleteBusiness = async (businessId: string): Promise<void> => {
+  const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
+    body: {
+      action: 'delete_business',
+      business_id: businessId,
+    },
+  })
+
+  if (error) throw error
+  if (!data?.success) {
+    throw new Error('No fue posible eliminar el negocio.')
+  }
 }

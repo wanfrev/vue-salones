@@ -120,7 +120,7 @@
               </div>
               <div>
                 <p class="text-xs text-text-muted">Ingresos</p>
-                <p class="text-lg font-bold text-text">{{ formatCurrency(incomeTotal) }}</p>
+                <p class="text-lg font-bold text-text">{{ formatUSD(incomeTotal) }}</p>
               </div>
             </div>
             <div class="mt-2 flex items-center gap-1 text-xs">
@@ -138,7 +138,7 @@
               </div>
               <div>
                 <p class="text-xs text-text-muted">Gastos</p>
-                <p class="text-lg font-bold text-text">{{ formatCurrency(expenseTotal) }}</p>
+                <p class="text-lg font-bold text-text">{{ formatUSD(expenseTotal) }}</p>
               </div>
             </div>
             <div class="mt-2 flex items-center gap-1 text-xs">
@@ -156,7 +156,7 @@
               </div>
               <div>
                 <p class="text-xs text-text-muted">Ganancia Neta</p>
-                <p class="text-lg font-bold text-text">{{ formatCurrency(netTotal) }}</p>
+                <p class="text-lg font-bold text-text">{{ formatUSD(netTotal) }}</p>
               </div>
             </div>
             <div class="mt-2 flex items-center gap-1 text-xs">
@@ -225,7 +225,7 @@
               <div v-for="service in servicesRevenue" :key="service.name">
                 <div class="mb-1 flex items-center justify-between">
                   <span class="text-sm text-text-secondary">{{ service.name }}</span>
-                  <span class="text-sm font-medium text-text">{{ formatCurrency(service.amount) }}</span>
+                  <span class="text-sm font-medium text-text">{{ formatUSD(service.amount) }}</span>
                 </div>
                 <div class="h-2 w-full rounded-full bg-bg-secondary">
                   <div
@@ -239,7 +239,7 @@
             <div class="mt-4 border-t border-border-subtle pt-3">
               <div class="flex items-center justify-between text-sm">
                 <span class="text-text-muted">Total Servicios</span>
-                <span class="font-semibold text-text">{{ formatCurrency(incomeTotal) }}</span>
+                <span class="font-semibold text-text">{{ formatUSD(incomeTotal) }}</span>
               </div>
             </div>
           </div>
@@ -281,7 +281,7 @@
                       'bg-primary/10 text-primary'
                     ]">{{ expense.category }}</span>
                   </td>
-                  <td class="py-3 text-right font-medium text-text">{{ formatCurrency(expense.amount) }}</td>
+                  <td class="py-3 text-right font-medium text-text">{{ formatUSD(expense.amount) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -508,16 +508,6 @@ const chartData = computed(() => {
 })
 
 const employeePayments = computed(() => payments.value)
-
-const formatCurrency = (value: number) => {
-  const currency = authStore.business?.currency ?? 'USD'
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value)
-}
 
 const formatPercentage = (value: number) => `${value.toFixed(1)}%`
 

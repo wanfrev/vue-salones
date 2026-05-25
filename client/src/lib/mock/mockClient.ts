@@ -538,6 +538,13 @@ export function createMockClient() {
         return { data: null, error: { message: 'Function not found' } }
       }
 
+      if (payload.action === 'delete_business') {
+        const bizId = payload.business_id
+        store.businesses = store.businesses.filter((b: any) => b.id !== bizId)
+        store.profiles = store.profiles.filter((p: any) => p.business_id !== bizId)
+        return { data: { success: true }, error: null }
+      }
+
       const baseSlug = String(payload.businessName || '')
         .toLowerCase()
         .trim()

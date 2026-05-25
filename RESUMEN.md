@@ -94,6 +94,31 @@ supabase functions deploy superadmin-invite
 
 ## Comandos útiles
 
+## Eliminar un negocio (superadmin)
+
+Desde el panel Superadmin, cada negocio tiene un botón **Eliminar**. Al hacer clic:
+
+1. Se borra todo en orden de dependencias (inventario → transacciones → citas → clientes → servicios → horarios → perfiles)
+2. Se elimina el negocio
+3. Se borran los `auth.users` de todos los usuarios del negocio
+
+**No hay deshacer.** Confirma solo si estás seguro.
+
+## Edge Functions
+
+| Función | Acciones | Descripción |
+|---------|----------|-------------|
+| `superadmin-invite` | `create`, `delete_business` | Crear negocio + admin, o eliminar negocio completo |
+| `manage-user` | `create`, `update`, `delete` | CRUD de usuarios Auth |
+
+Para desplegar cambios:
+```bash
+supabase functions deploy manage-user
+supabase functions deploy superadmin-invite
+```
+
+## Comandos útiles
+
 - **Mock local:** descomentar `VITE_USE_LOCAL_MOCK=true` en `client/.env` → usar `admin@demo.com` / `demo123`
 - **Regenerar types:** `supabase gen types typescript --linked > client/src/types/database.ts`
 - **Nueva migración:** crear archivo en `supabase/migrations/` con formato `YYYYMMDDHHmmss_descripcion.sql`

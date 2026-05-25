@@ -129,7 +129,7 @@
           <div class="space-y-3">
             <div v-for="biz in filteredBusinesses" :key="biz.id" class="rounded-xl border border-border bg-bg-secondary p-4">
               <div class="flex items-start justify-between gap-3">
-                <div>
+                <div class="min-w-0">
                   <div class="flex items-center gap-2">
                     <h3 class="text-sm font-semibold text-text">{{ biz.name }}</h3>
                     <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
@@ -141,6 +141,14 @@
                   <p class="text-xs text-text-muted">Slug: {{ biz.slug }} · Nicho: {{ biz.niche_type }}</p>
                   <p class="text-xs text-text-muted">Creado: {{ formatDate(biz.created_at) }}</p>
                 </div>
+                <button
+                  type="button"
+                  class="shrink-0 rounded-lg border border-danger/30 px-3 py-1.5 text-xs font-semibold text-danger transition-theme hover:bg-danger/10"
+                  :disabled="deletingId === biz.id"
+                  @click="confirmDelete(biz)"
+                >
+                  {{ deletingId === biz.id ? 'Eliminando...' : 'Eliminar' }}
+                </button>
               </div>
             </div>
 
@@ -159,7 +167,7 @@ import { computed, ref } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from '../composables/useNotification'
 import { useAuth } from '../composables/useAuth'
-import { createBusinessWithOwner, listBusinesses, superadminKeys } from '../services/superadminService'
+import { createBusinessWithOwner, deleteBusiness, listBusinesses, superadminKeys } from '../services/superadminService'
 import type { Business } from '../types/database'
 
 const { logout } = useAuth()
@@ -217,6 +225,31 @@ const { mutateAsync: createBusiness, isPending: isCreating } = useMutation({
     error(message)
   },
 })
+
+const deletingId = ref<string | null>(null)
+
+const { mutateAsync: deleteBiz } = useMutation({
+  mutationFn: deleteBusiness,
+  onSuccess: async () => {
+    success('Negocio eliminado completamente.')
+    await queryClient.invalidateQueries({ queryKey: superadminKeys.businesses() })
+  },
+  onError: (err: unknown) => {
+    const message = err instanceof Error ? err.message : 'No fue posible eliminar el negocio.'
+    error(message)
+  },
+  onSettled: () => {
+    deletingId.value = null
+  },
+})
+
+const confirmDelete = (biz: Business) => {
+  const msg = `¿Eliminar "${biz.name}"?\n\nSe borrará TODO: usuarios, empleados, clientes, citas, servicios, productos, inventario, transacciones, gastos...\n\nEsta acción NO se puede deshacer.`
+  if (window.confirm(msg)) {
+    deletingId.value = biz.id
+    deleteBiz(biz.id)
+  }
+}
 
 const filteredBusinesses = computed(() => {
   const term = search.value.trim().toLowerCase()
