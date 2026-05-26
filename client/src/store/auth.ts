@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Session, User, AuthChangeEvent } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { queryClient } from '../queryClient'
 import type { Role } from '../constants/roles'
 import { isRole } from '../constants/roles'
 import type { AuthProfile } from '../types/auth'
@@ -171,9 +172,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const signOut = async () => {
+    if (loading.value) return
     loading.value = true
     try {
       await supabase.auth.signOut()
+      queryClient.clear()
       clearAuthState()
     } finally {
       loading.value = false
