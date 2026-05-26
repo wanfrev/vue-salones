@@ -42,6 +42,11 @@ function applyFilters(rows: any[], filters: any[]): any[] {
     for (const f of filters) {
       const val = row[f.field]
       switch (f.op) {
+        case 'is':
+          if (f.value === null && val !== null) return false
+          if (f.value !== null && val === null) return false
+          if (f.value !== null && val !== f.value) return false
+          break
         case 'eq':
           if (val !== f.value) return false
           break
@@ -126,6 +131,11 @@ class MockQueryBuilder {
 
   neq(field: string, value: any): this {
     this.filters.push({ field, op: 'neq', value })
+    return this
+  }
+
+  is(field: string, value: any): this {
+    this.filters.push({ field, op: 'is', value })
     return this
   }
 
@@ -540,8 +550,11 @@ export function createMockClient() {
 
       if (payload.action === 'delete_business') {
         const bizId = payload.business_id
-        store.businesses = store.businesses.filter((b: any) => b.id !== bizId)
-        store.profiles = store.profiles.filter((p: any) => p.business_id !== bizId)
+        const biz = store.businesses.find((b: any) => b.id === bizId)
+        if (biz) biz.deleted_at = new Date().toISOString()
+        for (const p of store.profiles) {
+          if (p.business_id === bizId) p.active = false
+        }
         return { data: { success: true }, error: null }
       }
 
@@ -581,6 +594,8 @@ export function createMockClient() {
           vaccines: 'Vacunas',
         },
         active: true,
+        ves_exchange_rate: 36.50,
+        deleted_at: null,
         created_at: now,
         updated_at: now,
       }

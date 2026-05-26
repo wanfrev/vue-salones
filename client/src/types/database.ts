@@ -39,6 +39,7 @@ export interface Business {
   theme_config: ThemeConfig
   terminology: Terminology
   active: boolean
+  deleted_at: string | null
   created_at: string
   updated_at: string
 }

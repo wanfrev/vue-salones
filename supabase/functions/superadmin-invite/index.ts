@@ -138,7 +138,10 @@ serve(async (req) => {
       })
     }
 
-    // ─── DELETE BUSINESS ──────────────────────────────────────
+    // ─── DELETE BUSINESS (soft delete) ────────────────────────
+    // En lugar de borrar físicamente todas las tablas hijas (propenso a errores
+    // cuando se agregan nuevas tablas), marcamos el negocio como eliminado y
+    // desactivamos sus perfiles. Los datos financieros/históricos se conservan.
     if (action === 'delete_business') {
       const businessId = String(body.business_id || '').trim()
 
@@ -149,54 +152,12 @@ serve(async (req) => {
         })
       }
 
-      // Delete in dependency order (respects FK RESTRICT constraints)
-      const tables = [
-        'inventory_movements',
-        'inventory_stock',
-        'products',
-        'product_categories',
-        'inventory_locations',
-        'transactions',
-        'appointments',
-        'employee_absences',
-        'expenses',
-        'clients',
-        'service_variants',
-        'services',
-        'service_categories',
-      ]
-
-      for (const table of tables) {
-        const { error } = await supabaseAdmin
-          .from(table)
-          .delete()
-          .eq('business_id', businessId)
-
-        if (error) {
-          return new Response(JSON.stringify({ error: `Error deleting ${table}: ${error.message}` }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          })
-        }
-      }
-
-      // Get profile IDs (needed to clean up auth.users)
-      const { data: profilesToDelete } = await supabaseAdmin
-        .from('profiles')
-        .select('id')
-        .eq('business_id', businessId)
-
-      // Delete profiles
-      await supabaseAdmin
-        .from('profiles')
-        .delete()
-        .eq('business_id', businessId)
-
-      // Delete the business (cascades to remaining profiles)
+      // 1. Soft-delete the business
       const { error: bizError } = await supabaseAdmin
         .from('businesses')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', businessId)
+        .is('deleted_at', null)
 
       if (bizError) {
         return new Response(JSON.stringify({ error: bizError.message }), {
@@ -205,7 +166,19 @@ serve(async (req) => {
         })
       }
 
-      // Clean up orphaned auth.users
+      // 2. Deactivate profiles so users can't log in
+      await supabaseAdmin
+        .from('profiles')
+        .update({ active: false })
+        .eq('business_id', businessId)
+
+      // 3. Get profile IDs to clean up auth.users
+      const { data: profilesToDelete } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('business_id', businessId)
+
+      // 4. Hard-delete auth.users (no data loss, just login credentials)
       if (profilesToDelete) {
         for (const p of profilesToDelete) {
           await supabaseAdmin.auth.admin.deleteUser(p.id)

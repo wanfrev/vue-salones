@@ -90,6 +90,11 @@ export const useAuthStore = defineStore('auth', () => {
       throw error
     }
 
+    if (data.deleted_at) {
+      business.value = null
+      throw new Error('El negocio ha sido dado de baja.')
+    }
+
     business.value = data as Business
   }
 

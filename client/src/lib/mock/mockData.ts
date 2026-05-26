@@ -80,6 +80,7 @@ export function createMockDataStore(): MockDataStore {
       vaccines: 'Vacunas',
     },
     active: true,
+    deleted_at: null,
     created_at: now, updated_at: now,
   }, {
     id: BIZ2, name: 'Barbería El Clásico', slug: 'barberia-clasico',
@@ -100,6 +101,7 @@ export function createMockDataStore(): MockDataStore {
       vaccines: 'Vacunas',
     },
     active: true,
+    deleted_at: null,
     created_at: now, updated_at: now,
   }]
 
