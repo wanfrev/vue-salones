@@ -9,14 +9,13 @@
         @update:model-value="$emit('update:fields', { ...fields, pet_name: $event })"
         :label="terminologyLabel('pet', 'Mascota')"
         placeholder="Ej: Firulais"
-        prefix-icon="M20 12a8 8 0 11-16 0 8 8 0 0116 0z"
+        required
       />
       <FormInput
         :model-value="fields.pet_breed"
         @update:model-value="$emit('update:fields', { ...fields, pet_breed: $event })"
         :label="terminologyLabel('breed', 'Raza')"
         placeholder="Ej: Golden Retriever"
-        prefix-icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
       />
     </div>
     <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -26,14 +25,13 @@
         :label="terminologyLabel('weight', 'Peso')"
         type="text"
         placeholder="Ej: 12 kg"
-        prefix-icon="M3 6l3 1m0 0-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2 3-1m-3 1-1 4m1-4 4 9m-5-2 3 1"
       />
       <FormInput
         :model-value="fields.pet_owner"
         @update:model-value="$emit('update:fields', { ...fields, pet_owner: $event })"
         :label="terminologyLabel('owner', 'Dueño')"
         placeholder="Ej: Juan Pérez"
-        prefix-icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+        required
       />
     </div>
     <div v-if="isVet" class="mt-4">

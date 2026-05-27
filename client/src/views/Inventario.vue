@@ -117,12 +117,20 @@
                     </td>
                     <td class="px-4 py-3 text-right text-text">${{ (item.quantity * item.unitCost).toFixed(2) }}</td>
                     <td class="px-4 py-3 text-center">
-                      <button
-                        @click="openAdjustModal(item)"
-                        class="rounded-lg px-2 py-1 text-xs font-medium text-primary transition-theme hover:bg-primary/10"
-                      >
-                        Ajustar
-                      </button>
+                      <div class="flex items-center justify-center gap-1">
+                        <button
+                          @click="openAdjustModal(item)"
+                          class="rounded-lg px-2 py-1 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+                        >
+                          Ajustar
+                        </button>
+                        <button
+                          @click="openSaleModal(item)"
+                          class="rounded-lg px-2 py-1 text-xs font-medium text-success transition-theme hover:bg-success/10"
+                        >
+                          Vender
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -243,6 +251,55 @@
         />
       </div>
     </ModalBase>
+
+    <!-- Sale Modal -->
+    <ModalBase
+      :is-open="saleModalOpen"
+      title="Registrar venta"
+      subtitle="Descuenta del inventario por venta al cliente"
+      icon="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"
+      size="sm"
+      confirm-text="Registrar venta"
+      :is-confirm-disabled="saleQuantity <= 0"
+      @close="closeSaleModal"
+      @confirm="confirmSale"
+    >
+      <div class="space-y-4">
+        <div class="rounded-lg bg-bg-secondary p-3">
+          <p class="text-sm font-medium text-text">{{ saleItem?.productName }}</p>
+          <p v-if="saleItem?.variantName" class="text-xs text-text-muted">{{ saleItem.variantName }}</p>
+          <p class="text-xs text-text-muted">{{ saleItem?.locationName }} · Disponible: {{ saleItem?.availableQty }}</p>
+        </div>
+        <FormInput
+          v-model.number="saleQuantity"
+          label="Cantidad vendida"
+          type="number"
+          min="1"
+          :max="saleItem?.availableQty ?? 1"
+          placeholder="1"
+          prefix-icon="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
+        <FormInput
+          v-model.number="saleUnitPrice"
+          label="Precio unitario ($)"
+          type="number"
+          min="0"
+          step="0.01"
+          :placeholder="String(saleItem?.unitPrice ?? '0.00')"
+          prefix-icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+        <FormInput
+          v-model="saleNotes"
+          label="Notas"
+          placeholder="Opcional"
+          prefix-icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+        />
+        <div v-if="saleQuantity > 0 && saleUnitPrice > 0" class="rounded-lg bg-bg-secondary p-3 text-center">
+          <p class="text-sm text-text-muted">Total de la venta</p>
+          <p class="text-xl font-bold text-text">${{ (saleQuantity * saleUnitPrice).toFixed(2) }}</p>
+        </div>
+      </div>
+    </ModalBase>
   </div>
 </template>
 
@@ -251,7 +308,7 @@ import { ref, computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
-import { adjustInventory, inventarioKeys, listInventario, listInventoryLocations, listInventoryMovements } from '../services/inventarioService'
+import { adjustInventory, sellProduct, inventarioKeys, listInventario, listInventoryLocations, listInventoryMovements } from '../services/inventarioService'
 import Sidebar from '../components/layout/Sidebar.vue'
 import { ModalBase } from '../components/common'
 import { FormInput } from '../components/forms'
@@ -359,6 +416,59 @@ const confirmAdjust = async () => {
     quantity: adjustQuantity.value,
     notes: adjustNotes.value,
     variantId: adjustItem.value.variantId,
+  })
+}
+
+// Sale modal
+const saleModalOpen = ref(false)
+const saleItem = ref<InventarioItem | null>(null)
+const saleQuantity = ref(0)
+const saleUnitPrice = ref(0)
+const saleNotes = ref('')
+
+const saleMutation = useMutation({
+  mutationFn: (params: { productId: string; locationId: string; quantity: number; notes: string; unitPrice: number; variantId?: string | null }) =>
+    sellProduct(businessId.value!, params.productId, params.locationId, params.quantity, params.notes, params.variantId, params.unitPrice),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(businessId.value) })
+    closeSaleModal()
+    success('Venta registrada correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al registrar la venta')
+  },
+})
+
+const openSaleModal = (item: InventarioItem) => {
+  saleItem.value = item
+  saleQuantity.value = 1
+  saleUnitPrice.value = item.unitPrice
+  saleNotes.value = ''
+  saleModalOpen.value = true
+}
+
+const closeSaleModal = () => {
+  saleModalOpen.value = false
+  saleItem.value = null
+  saleQuantity.value = 0
+  saleUnitPrice.value = 0
+  saleNotes.value = ''
+}
+
+const confirmSale = async () => {
+  if (!saleItem.value || saleQuantity.value <= 0) return
+  if (saleQuantity.value > (saleItem.value.availableQty)) {
+    showError('Stock insuficiente para esta venta')
+    return
+  }
+  await saleMutation.mutateAsync({
+    productId: saleItem.value.productId,
+    locationId: saleItem.value.locationId,
+    quantity: saleQuantity.value,
+    notes: saleNotes.value,
+    unitPrice: saleUnitPrice.value,
+    variantId: saleItem.value.variantId,
   })
 }
 

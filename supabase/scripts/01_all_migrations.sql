@@ -893,7 +893,7 @@ drop index if exists clients_business_active_idx;
 alter table public.businesses
   add column if not exists niche_type text not null default 'salon',
   add column if not exists theme_config jsonb not null default '{"primary":"#2F4156","secondary":"#567CB0"}'::jsonb,
-  add column if not exists terminology jsonb not null default '{"client":"Cliente","employee":"Empleado","service":"Servicio","appointment":"Cita","staff":"Personal","pet":"Mascota","owner":"Dueno","breed":"Raza","weight":"Peso","vaccines":"Vacunas"}'::jsonb;
+  add column if not exists terminology jsonb not null default '{"client":"Cliente","employee":"Empleado","service":"Servicio","appointment":"Cita","staff":"Personal","pet":"Mascota","owner":"Dueño","breed":"Raza","weight":"Peso","vaccines":"Vacunas"}'::jsonb;
 alter table public.clients add column if not exists metadata jsonb not null default '{}'::jsonb;
 update public.businesses set theme_config = jsonb_set(theme_config, '{primary}', to_jsonb(primary_color), true) where primary_color is not null;
 alter table public.businesses drop column if exists primary_color;
@@ -1164,6 +1164,12 @@ begin
 end;
 $$;
 grant execute on function public.record_payment(uuid, numeric, payment_method, text, numeric, jsonb) to authenticated;
+
+-- 13. 20260526100000_add_job_titles_to_business.sql
+alter table public.businesses add column if not exists job_titles jsonb not null default '[]'::jsonb;
+
+-- 14. 20260526200000_add_service_categories_to_business.sql
+alter table public.businesses add column if not exists service_categories jsonb not null default '[]'::jsonb;
 
 create or replace function public.record_sale(
   p_appointment_id uuid, p_amount numeric, p_method payment_method default 'cash',

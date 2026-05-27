@@ -165,6 +165,16 @@ const spaFields = reactive<SpaHumanoFields>({
   allergies: '',
 })
 
+// Auto-link pet_owner from name when it's a pet niche
+watch(
+  () => formData.value.name,
+  (name) => {
+    if (isPetNiche.value && !petFields.pet_owner && !isEditing.value) {
+      petFields.pet_owner = name
+    }
+  }
+)
+
 const onUpdateSalon = (fields: SalonFields) => { Object.assign(salonFields, fields) }
 const onUpdateBarber = (fields: BarberFields) => { Object.assign(barberFields, fields) }
 const onUpdateSpa = (fields: SpaHumanoFields) => { Object.assign(spaFields, fields) }
@@ -250,6 +260,15 @@ const validateForm = (): boolean => {
 
   if (formData.value.email && !isValidEmail(formData.value.email)) {
     errors.value.email = 'El email no es válido'
+  }
+
+  if (isPetNiche.value) {
+    if (!petFields.pet_name.trim()) {
+      errors.value.name = `El nombre ${terminology.value.pet?.toLowerCase() || 'de la mascota'} es obligatorio`
+    }
+    if (!petFields.pet_owner.trim()) {
+      errors.value.name = 'El nombre del dueño es obligatorio'
+    }
   }
 
   return Object.keys(errors.value).length === 0

@@ -27,12 +27,30 @@
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormSelect
+            v-if="!showingCustomRole"
             v-model="formData.role"
             label="Rol / Puesto"
             :options="roleOptions"
             required
             :error="errors.role"
           />
+          <div v-else class="flex gap-2">
+            <FormInput
+              v-model="formData.role"
+              label="Rol / Puesto"
+              placeholder="Escribe el rol..."
+              required
+              :error="errors.role"
+              class="flex-1"
+            />
+            <button
+              type="button"
+              class="mt-6 shrink-0 rounded-lg border border-border px-3 py-2 text-sm text-text-muted transition-theme hover:bg-bg-secondary"
+              @click="cancelCustomRole"
+            >
+              Volver
+            </button>
+          </div>
         </div>
       </div>
 
@@ -87,10 +105,12 @@
           />
 
           <FormInput
+            v-if="!isEditing"
             v-model="formData.email"
             label="Email"
             type="email"
             placeholder="carlos@email.com"
+            required
             prefix-icon="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
             :error="errors.email"
           />
@@ -150,6 +170,7 @@ import { ref, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
 import { useAuthStore } from '../../store/auth'
+import { addBusinessJobTitle } from '../../services/equipoService'
 import type { Empleado, EmpleadoFormData } from '../../types/empleado'
 import ModalBase from '../common/ModalBase.vue'
 import { FormInput, FormSelect } from '../forms'
@@ -169,17 +190,19 @@ const t = computed(() => authStore.terminology)
 const isLoading = ref(false)
 const isEditing = computed(() => !!modalData.value?.empleado)
 
-const roleOptions = [
-  { value: 'Estilista', label: 'Estilista' },
-  { value: 'Estilista Senior', label: 'Estilista Senior' },
-  { value: 'Colorista', label: 'Colorista' },
-  { value: 'Manicurista', label: 'Manicurista' },
-  { value: 'Pedicurista', label: 'Pedicurista' },
-  { value: 'Barbero', label: 'Barbero' },
-  { value: 'Asistente', label: 'Asistente' },
-  { value: 'Recepcionista', label: 'Recepcionista' },
-  { value: 'Gerente', label: 'Gerente' },
-]
+const showingCustomRole = ref(false)
+
+const roleOptions = computed(() => {
+  const titles = authStore.jobTitles || []
+  const options = titles.map((t: string) => ({ value: t, label: t }))
+  options.push({ value: '__new__', label: '+ Agregar nuevo' })
+  return options
+})
+
+const cancelCustomRole = () => {
+  showingCustomRole.value = false
+  formData.value.role = ''
+}
 
 const payTypeOptions = [
   { value: 'salary', label: 'Sueldo base' },
@@ -189,7 +212,7 @@ const payTypeOptions = [
 
 const defaultFormData: EmpleadoFormData = {
   name: '',
-  role: 'Estilista',
+  role: '',
   phone: '',
   email: '',
   password: '',
@@ -208,8 +231,9 @@ const errors = ref<Partial<Record<keyof EmpleadoFormData, string>>>({})
 const isFormValid = computed(() => {
   const nameValid = formData.value.name.trim().length >= 2
   const roleValid = formData.value.role !== ''
+  const emailValid = isEditing.value || formData.value.email.trim().length >= 5
   const passwordValid = isEditing.value || formData.value.password.length >= 4
-  return nameValid && roleValid && passwordValid
+  return nameValid && roleValid && emailValid && passwordValid
 })
 
 watch(
@@ -218,7 +242,7 @@ watch(
     if (empleado) {
       formData.value = {
         name: empleado.name || '',
-        role: empleado.role || 'Estilista',
+        role: empleado.role || '',
         phone: empleado.phone || '',
         email: empleado.email || '',
         password: '',
@@ -238,11 +262,25 @@ watch(
   { immediate: true }
 )
 
+watch(
+  () => formData.value.role,
+  (role) => {
+    if (role === '__new__') {
+      showingCustomRole.value = true
+      formData.value.role = ''
+    }
+  }
+)
+
 const validateForm = (): boolean => {
   errors.value = {}
 
   if (!formData.value.name.trim() || formData.value.name.length < 2) {
     errors.value.name = 'El nombre debe tener al menos 2 caracteres'
+  }
+
+  if (!formData.value.role.trim()) {
+    errors.value.role = 'El rol / puesto es obligatorio'
   }
 
   if (formData.value.payType !== 'salary' && (formData.value.payPercentage < 0 || formData.value.payPercentage > 100)) {
@@ -253,12 +291,15 @@ const validateForm = (): boolean => {
     errors.value.baseSalary = 'El sueldo base no puede ser negativo'
   }
 
-  if (formData.value.email && !isValidEmail(formData.value.email)) {
-    errors.value.email = 'El email no es válido'
-  }
-
-  if (!isEditing.value && formData.value.password.length < 4) {
-    errors.value.password = 'La contraseña debe tener al menos 4 caracteres'
+  if (!isEditing.value) {
+    if (!formData.value.email.trim()) {
+      errors.value.email = 'El email es obligatorio'
+    } else if (!isValidEmail(formData.value.email)) {
+      errors.value.email = 'El email no es válido'
+    }
+    if (formData.value.password.length < 4) {
+      errors.value.password = 'La contraseña debe tener al menos 4 caracteres'
+    }
   }
 
   return Object.keys(errors.value).length === 0
@@ -278,8 +319,20 @@ const handleSubmit = async () => {
   isLoading.value = true
 
   try {
+    const role = formData.value.role.trim()
+
+    // Persist new role to business config
+    const businessId = authStore.businessId
+    if (businessId && role && !authStore.jobTitles.includes(role)) {
+      const updated = await addBusinessJobTitle(businessId, role)
+      if (authStore.business) {
+        authStore.business = { ...authStore.business, job_titles: updated }
+      }
+    }
+
     const empleadoData: EmpleadoFormData & { id?: string } = {
       ...formData.value,
+      role,
     }
 
     if (modalData.value?.empleado?.id) {

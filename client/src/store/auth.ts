@@ -15,7 +15,7 @@ const DEFAULT_TERMINOLOGY: Terminology = {
   appointment: 'Cita',
   staff: 'Personal',
   pet: 'Mascota',
-  owner: 'Dueno',
+  owner: 'Dueño',
   breed: 'Raza',
   weight: 'Peso',
   vaccines: 'Vacunas',
@@ -34,6 +34,8 @@ export const useAuthStore = defineStore('auth', () => {
   const businessId = computed(() => profile.value?.business_id ?? null)
   const nicheType = computed(() => business.value?.niche_type ?? 'salon')
   const terminology = computed(() => business.value?.terminology ?? DEFAULT_TERMINOLOGY)
+  const jobTitles = computed(() => business.value?.job_titles ?? [])
+  const serviceCategories = computed(() => business.value?.service_categories ?? [])
 
   const loadProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -82,7 +84,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     const { data, error } = await supabase
       .from('businesses')
-      .select('id, name, slug, phone, address, timezone, currency, ves_exchange_rate, niche_type, theme_config, terminology, active')
+      .select('id, name, slug, phone, address, timezone, currency, ves_exchange_rate, niche_type, theme_config, terminology, job_titles, service_categories, active')
       .eq('id', nextBusinessId)
       .single()
 
@@ -195,6 +197,8 @@ export const useAuthStore = defineStore('auth', () => {
     businessId,
     nicheType,
     terminology,
+    jobTitles,
+    serviceCategories,
     initialize,
     signIn,
     signOut,

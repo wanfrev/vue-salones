@@ -7,7 +7,7 @@ alter table public.businesses
   add column if not exists theme_config jsonb not null
     default '{"primary":"#2F4156","secondary":"#567CB0"}'::jsonb,
   add column if not exists terminology jsonb not null
-    default '{"client":"Cliente","employee":"Empleado","service":"Servicio","appointment":"Cita","staff":"Personal","pet":"Mascota","owner":"Dueno","breed":"Raza","weight":"Peso","vaccines":"Vacunas"}'::jsonb;
+    default '{"client":"Cliente","employee":"Empleado","service":"Servicio","appointment":"Cita","staff":"Personal","pet":"Mascota","owner":"Dueño","breed":"Raza","weight":"Peso","vaccines":"Vacunas"}'::jsonb;
 
 alter table public.clients
   add column if not exists metadata jsonb not null default '{}'::jsonb;

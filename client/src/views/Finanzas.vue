@@ -252,7 +252,7 @@
               <h3 class="text-base font-semibold text-text">Gastos del Mes</h3>
               <p class="text-sm text-text-muted">Egresos fijos y variables</p>
             </div>
-            <button class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover">
+            <button @click="showExpenseModal = true" class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
@@ -374,6 +374,102 @@
           </div>
         </div>
       </div>
+      <!-- Expense Modal -->
+      <div
+        v-if="showExpenseModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        @click.self="showExpenseModal = false"
+      >
+        <div class="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
+          <div class="mb-4">
+            <h2 class="text-lg font-semibold text-text">Registrar gasto</h2>
+            <p class="text-sm text-text-muted">Agrega un egreso al negocio</p>
+          </div>
+
+          <form class="space-y-4" @submit.prevent="handleSaveExpense">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text" for="exp-name">Concepto</label>
+              <input
+                id="exp-name"
+                v-model="expenseForm.name"
+                type="text"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                placeholder="Ej: Renta del local"
+                required
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-text" for="exp-category">Categoría</label>
+                <select
+                  id="exp-category"
+                  v-model="expenseForm.category"
+                  class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                >
+                  <option value="Fijos">Fijos</option>
+                  <option value="Insumos">Insumos</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-text" for="exp-amount">Monto ($)</label>
+                <input
+                  id="exp-amount"
+                  v-model.number="expenseForm.amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text" for="exp-date">Fecha</label>
+              <input
+                id="exp-date"
+                v-model="expenseForm.date"
+                type="date"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text" for="exp-notes">Notas</label>
+              <textarea
+                id="exp-notes"
+                v-model="expenseForm.notes"
+                rows="2"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                placeholder="Opcional"
+              />
+            </div>
+
+            <p v-if="expenseError" class="text-sm text-danger">{{ expenseError }}</p>
+
+            <div class="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
+                @click="showExpenseModal = false"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                :disabled="savingExpense"
+                class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {{ savingExpense ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </main>
   </div>
 </template>
@@ -427,6 +523,17 @@ const { success: notifySuccess, error: notifyError } = useNotification()
 const isSidebarOpen = ref(false)
 const editRateValue = ref(0)
 const updatingRate = ref(false)
+
+const showExpenseModal = ref(false)
+const savingExpense = ref(false)
+const expenseError = ref('')
+const expenseForm = ref({
+  name: '',
+  category: 'General',
+  amount: 0,
+  date: new Date().toISOString().slice(0, 10),
+  notes: '',
+})
 
 const isTasaAdmin = computed(() => isAdmin.value)
 const exchangeRateDisplay = computed(() =>
@@ -594,6 +701,42 @@ const buildExpenseBuckets = (rows: ExpenseRow[], bucket: 'day' | 'week' | 'month
     map.set(key, (map.get(key) ?? 0) + row.amount)
   }
   return map
+}
+
+const handleSaveExpense = async () => {
+  const businessId = authStore.businessId
+  if (!businessId) return
+
+  savingExpense.value = true
+  expenseError.value = ''
+
+  try {
+    const { error } = await supabase.from('expenses').insert({
+      business_id: businessId,
+      name: expenseForm.value.name,
+      category: expenseForm.value.category,
+      amount: expenseForm.value.amount,
+      expense_date: expenseForm.value.date,
+      notes: expenseForm.value.notes || null,
+    })
+
+    if (error) throw error
+
+    notifySuccess('Gasto registrado correctamente')
+    showExpenseModal.value = false
+    expenseForm.value = {
+      name: '',
+      category: 'General',
+      amount: 0,
+      date: new Date().toISOString().slice(0, 10),
+      notes: '',
+    }
+    await loadFinancialData()
+  } catch (err) {
+    expenseError.value = err instanceof Error ? err.message : 'Error al registrar el gasto'
+  } finally {
+    savingExpense.value = false
+  }
 }
 
 const loadFinancialData = async () => {

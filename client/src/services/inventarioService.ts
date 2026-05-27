@@ -179,3 +179,55 @@ export const adjustInventory = async (
 
   if (movError) throw movError
 }
+
+export const sellProduct = async (
+  businessId: string,
+  productId: string,
+  locationId: string,
+  quantity: number,
+  notes: string,
+  variantId?: string | null,
+  unitPrice?: number,
+): Promise<void> => {
+  if (quantity <= 0) throw new Error('La cantidad debe ser mayor a 0')
+
+  const writable = supabase as any
+
+  const { data: existing } = await supabase
+    .from('inventory_stock')
+    .select('id, quantity')
+    .eq('business_id', businessId)
+    .eq('product_id', productId)
+    .eq('location_id', locationId)
+    .eq('variant_id', variantId ?? '')
+    .maybeSingle()
+
+  if (!existing) throw new Error('No hay stock de este producto')
+
+  const newQty = Number(existing.quantity) - quantity
+  if (newQty < 0) throw new Error('Stock insuficiente')
+
+  const { error } = await writable
+    .from('inventory_stock')
+    .update({ quantity: newQty })
+    .eq('id', existing.id)
+
+  if (error) throw error
+
+  const supabaseUser = (supabase as any).auth?.currentUser
+  const { error: movError } = await writable
+    .from('inventory_movements')
+    .insert({
+      business_id: businessId,
+      location_id: locationId,
+      product_id: productId,
+      variant_id: variantId ?? null,
+      movement_type: 'sale',
+      quantity: -quantity,
+      unit_cost: unitPrice ?? 0,
+      notes: notes || 'Venta directa',
+      created_by: supabaseUser?.id ?? null,
+    })
+
+  if (movError) throw movError
+}

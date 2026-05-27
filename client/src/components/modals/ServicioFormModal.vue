@@ -16,7 +16,7 @@
       <FormInput
         v-model="formData.name"
         label="Nombre del servicio"
-        placeholder="Ej: Corte Mujer"
+        :placeholder="serviceNamePlaceholder"
         required
         prefix-icon="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
         :error="errors.name"
@@ -25,12 +25,30 @@
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <!-- Categoría -->
         <FormSelect
+          v-if="!showingCustomCategory"
           v-model="formData.category"
           label="Categoría"
           :options="categoryOptions"
           required
           :error="errors.category"
         />
+        <div v-else class="flex gap-2">
+          <FormInput
+            v-model="formData.category"
+            label="Categoría"
+            placeholder="Escribe la categoría..."
+            required
+            :error="errors.category"
+            class="flex-1"
+          />
+          <button
+            type="button"
+            class="mt-6 shrink-0 rounded-lg border border-border px-3 py-2 text-sm text-text-muted transition-theme hover:bg-bg-secondary"
+            @click="cancelCustomCategory"
+          >
+            Volver
+          </button>
+        </div>
 
         <!-- Estado -->
         <FormSelect
@@ -70,7 +88,7 @@
       <FormTextarea
         v-model="formData.description"
         label="Descripción"
-        placeholder="Describe el servicio, incluye detalles importantes..."
+        :placeholder="descriptionPlaceholder"
         :rows="3"
         :error="errors.description"
       />
@@ -83,6 +101,7 @@ import { ref, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
 import { useAuthStore } from '../../store/auth'
+import { addBusinessCategory } from '../../services/equipoService'
 import type { Servicio, ServicioFormData } from '../../types/servicio'
 import ModalBase from '../common/ModalBase.vue'
 import { FormInput, FormSelect, FormTextarea } from '../forms'
@@ -98,24 +117,128 @@ const { error: showError } = useNotification()
 const authStore = useAuthStore()
 
 const t = computed(() => authStore.terminology)
+const nicheType = computed(() => authStore.nicheType)
 
 const isLoading = ref(false)
 const isEditing = computed(() => !!modalData.value?.servicio)
 
-const categoryOptions = [
-  { value: 'corte', label: 'Corte de Cabello' },
-  { value: 'color', label: 'Coloración' },
-  { value: 'manos', label: 'Manos & Pies' },
-  { value: 'tratamientos', label: 'Tratamientos' },
-  { value: 'barberia', label: 'Barbería' },
-  { value: 'maquillaje', label: 'Maquillaje' },
-  { value: 'otros', label: 'Otros' },
-]
+const serviceNamePlaceholder = computed(() => {
+  const map: Record<string, string> = {
+    salon: 'Ej: Corte de mujer',
+    barberia: 'Ej: Corte de hombre',
+    spa: 'Ej: Masaje corporal',
+    dog_spa: 'Ej: Baño para perro',
+    spa_perros: 'Ej: Baño para perro',
+    vet: 'Ej: Consulta general',
+    nail_bar: 'Ej: Manicure',
+    centro_estetico: 'Ej: Limpieza facial',
+  }
+  return map[nicheType.value] || 'Ej: Corte Mujer'
+})
+
+const descriptionPlaceholder = computed(() => {
+  const map: Record<string, string> = {
+    salon: 'Técnicas, productos y duración del servicio...',
+    barberia: 'Técnicas, productos y detalles del corte...',
+    spa: 'Beneficios, productos y duración del tratamiento...',
+    dog_spa: 'Productos, cuidados y raza recomendada...',
+    spa_perros: 'Productos, cuidados y raza recomendada...',
+    vet: 'Procedimiento, medicación y recomendaciones...',
+    nail_bar: 'Diseños, productos y técnicas utilizadas...',
+    centro_estetico: 'Productos, cuidados y beneficios del tratamiento...',
+  }
+  return map[nicheType.value] || 'Describe el servicio, incluye detalles importantes...'
+})
+
+const NICHE_CATEGORIES: Record<string, { value: string; label: string }[]> = {
+  salon: [
+    { value: 'corte', label: 'Corte de Cabello' },
+    { value: 'color', label: 'Coloración' },
+    { value: 'manos', label: 'Manos & Pies' },
+    { value: 'tratamientos', label: 'Tratamientos' },
+    { value: 'barberia', label: 'Barbería' },
+    { value: 'maquillaje', label: 'Maquillaje' },
+    { value: 'otros', label: 'Otros' },
+  ],
+  barberia: [
+    { value: 'corte', label: 'Corte de Cabello' },
+    { value: 'barba', label: 'Barba & Bigote' },
+    { value: 'arreglo', label: 'Arreglo de Cabello' },
+    { value: 'tratamientos', label: 'Tratamientos' },
+    { value: 'otros', label: 'Otros' },
+  ],
+  spa: [
+    { value: 'masajes', label: 'Masajes' },
+    { value: 'faciales', label: 'Faciales' },
+    { value: 'corporales', label: 'Tratamientos Corporales' },
+    { value: 'depilacion', label: 'Depilación' },
+    { value: 'otros', label: 'Otros' },
+  ],
+  dog_spa: [
+    { value: 'baño', label: 'Baño & Peluquería' },
+    { value: 'corte', label: 'Corte & Estilo' },
+    { value: 'veterinario', label: 'Servicios Veterinarios' },
+    { value: 'spa', label: 'Spa & Relax' },
+    { value: 'accesorios', label: 'Accesorios' },
+    { value: 'otros', label: 'Otros' },
+  ],
+  spa_perros: [
+    { value: 'baño', label: 'Baño & Peluquería' },
+    { value: 'corte', label: 'Corte & Estilo' },
+    { value: 'veterinario', label: 'Servicios Veterinarios' },
+    { value: 'spa', label: 'Spa & Relax' },
+    { value: 'accesorios', label: 'Accesorios' },
+    { value: 'otros', label: 'Otros' },
+  ],
+  vet: [
+    { value: 'baño', label: 'Baño & Peluquería' },
+    { value: 'corte', label: 'Corte & Estilo' },
+    { value: 'veterinario', label: 'Servicios Veterinarios' },
+    { value: 'spa', label: 'Spa & Relax' },
+    { value: 'accesorios', label: 'Accesorios' },
+    { value: 'otros', label: 'Otros' },
+  ],
+  nail_bar: [
+    { value: 'manos', label: 'Manos' },
+    { value: 'pies', label: 'Pies' },
+    { value: 'disenos', label: 'Diseños' },
+    { value: 'tratamientos', label: 'Tratamientos' },
+    { value: 'otros', label: 'Otros' },
+  ],
+  centro_estetico: [
+    { value: 'faciales', label: 'Faciales' },
+    { value: 'corporales', label: 'Tratamientos Corporales' },
+    { value: 'depilacion', label: 'Depilación' },
+    { value: 'maquillaje', label: 'Maquillaje' },
+    { value: 'otros', label: 'Otros' },
+  ],
+}
+
+const showingCustomCategory = ref(false)
+
+const categoryOptions = computed(() => {
+  const bizCats = authStore.serviceCategories
+  const items = bizCats.length > 0
+    ? bizCats.map((c: string) => ({ value: c, label: c }))
+    : (NICHE_CATEGORIES[nicheType.value] || NICHE_CATEGORIES.salon)
+  items.push({ value: '__new__', label: '+ Agregar nuevo' })
+  return items
+})
+
+const cancelCustomCategory = () => {
+  showingCustomCategory.value = false
+  formData.value.category = ''
+}
 
 const statusOptions = [
   { value: 'Activo', label: 'Activo' },
   { value: 'Inactivo', label: 'Inactivo' },
 ]
+
+const defaultCategory = computed(() => {
+  const cats = categoryOptions.value
+  return cats.length > 0 ? cats[0].value : 'corte'
+})
 
 const defaultFormData: ServicioFormData = {
   name: '',
@@ -148,11 +271,21 @@ watch(
         category: servicio.category || 'corte',
       }
     } else {
-      formData.value = { ...defaultFormData }
+      formData.value = { ...defaultFormData, category: defaultCategory.value }
     }
     errors.value = {}
   },
   { immediate: true }
+)
+
+watch(
+  () => formData.value.category,
+  (cat) => {
+    if (cat === '__new__') {
+      showingCustomCategory.value = true
+      formData.value.category = ''
+    }
+  }
 )
 
 const validateForm = (): boolean => {
@@ -182,8 +315,21 @@ const handleSubmit = async () => {
   isLoading.value = true
 
   try {
+    const category = formData.value.category.trim()
+
+    // Persist new category to business config
+    const businessId = authStore.businessId
+    const bizCats = authStore.serviceCategories
+    if (businessId && category && !bizCats.includes(category)) {
+      const updated = await addBusinessCategory(businessId, category)
+      if (authStore.business) {
+        authStore.business = { ...authStore.business, service_categories: updated }
+      }
+    }
+
     const servicioData: ServicioFormData & { id?: string } = {
       ...formData.value,
+      category,
     }
 
     if (modalData.value?.servicio?.id) {

@@ -38,6 +38,8 @@ export interface Business {
   niche_type: string
   theme_config: ThemeConfig
   terminology: Terminology
+  job_titles: string[]
+  service_categories: string[]
   active: boolean
   deleted_at: string | null
   created_at: string

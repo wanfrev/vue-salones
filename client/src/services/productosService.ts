@@ -61,14 +61,45 @@ export const saveProducto = async (
 ): Promise<Producto> => {
   const payload = mapProductoFormToProductInsert(businessId, data)
 
-  const query = data.id
-    ? writableSupabase.from('products').update(payload).eq('id', data.id).select('*').single()
-    : writableSupabase.from('products').insert(payload).select('*').single()
+  const isNew = !data.id
+  const query = isNew
+    ? writableSupabase.from('products').insert(payload).select('*').single()
+    : writableSupabase.from('products').update(payload).eq('id', data.id).select('*').single()
 
   const { data: saved, error } = await query
   if (error) throw error
 
+  // Auto-create inventory stock record at default location for new products
+  if (isNew) {
+    const { data: defaultLoc } = await supabase
+      .from('inventory_locations')
+      .select('id')
+      .eq('business_id', businessId)
+      .eq('is_default', true)
+      .maybeSingle()
+
+    if (defaultLoc) {
+      await writableSupabase.from('inventory_stock').insert({
+        business_id: businessId,
+        location_id: defaultLoc.id,
+        product_id: saved.id,
+        quantity: 0,
+      })
+    }
+  }
+
   return mapProductToProducto(saved as Product)
+}
+
+export const createProductCategory = async (businessId: string, name: string): Promise<ProductCategory> => {
+  const { data, error } = await writableSupabase
+    .from('product_categories')
+    .insert({ business_id: businessId, name: name.trim() })
+    .select('*')
+    .single()
+
+  if (error) throw error
+  return data as ProductCategory
 }
 
 export const deleteProducto = async (id: string): Promise<void> => {

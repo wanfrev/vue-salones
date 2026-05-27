@@ -50,6 +50,34 @@ export const createBusinessWithOwner = async (input: CreateBusinessInput): Promi
   return data as CreateBusinessResult
 }
 
+export type UpdateBusinessInput = {
+  business_id: string
+  name?: string
+  phone?: string | null
+  address?: string | null
+  timezone?: string
+  currency?: string
+  niche_type?: string
+  active?: boolean
+  ves_exchange_rate?: number
+}
+
+export const updateBusiness = async (input: UpdateBusinessInput): Promise<Business> => {
+  const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
+    body: {
+      action: 'update_business',
+      ...input,
+    },
+  })
+
+  if (error) throw error
+  if (!data?.business) {
+    throw new Error('No fue posible actualizar el negocio.')
+  }
+
+  return data.business as Business
+}
+
 export const deleteBusiness = async (businessId: string): Promise<void> => {
   const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
     body: {

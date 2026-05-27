@@ -21,12 +21,28 @@
           :error="errors.name"
         />
         <FormSelect
+          v-if="!showingCustomCategory"
           v-model="formData.categoryId"
           label="Categoría"
           :options="categoryOptions"
-          required
           :error="errors.categoryId"
         />
+        <div v-else class="flex gap-2">
+          <FormInput
+            v-model="newCategoryName"
+            label="Categoría"
+            placeholder="Escribe la categoría..."
+            required
+            class="flex-1"
+          />
+          <button
+            type="button"
+            class="mt-6 shrink-0 rounded-lg border border-border px-3 py-2 text-sm text-text-muted transition-theme hover:bg-bg-secondary"
+            @click="cancelCustomCategory"
+          >
+            Volver
+          </button>
+        </div>
       </div>
 
       <FormTextarea
@@ -100,10 +116,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
-import { listProductCategories, productosKeys } from '../../services/productosService'
+import { listProductCategories, createProductCategory, productosKeys } from '../../services/productosService'
 import { useAuthStore } from '../../store/auth'
 import { mapCategoryToOption } from '../../mappers/productosMapper'
 import type { Producto, ProductoFormData } from '../../types/producto'
@@ -124,6 +140,11 @@ const isLoading = ref(false)
 const isEditing = computed(() => !!modalData.value?.producto)
 const businessId = computed(() => authStore.businessId)
 
+const queryClient = useQueryClient?.() || null
+
+const showingCustomCategory = ref(false)
+const newCategoryName = ref('')
+
 const { data: categoriesData } = useQuery({
   queryKey: computed(() => productosKeys.categories(businessId.value)),
   queryFn: () => listProductCategories(businessId.value!),
@@ -135,8 +156,14 @@ const categoryOptions = computed(() => {
   return [
     { value: '', label: 'Sin categoría' },
     ...cats.map(mapCategoryToOption),
+    { value: '__new__', label: '+ Agregar nuevo' },
   ]
 })
+
+const cancelCustomCategory = () => {
+  showingCustomCategory.value = false
+  newCategoryName.value = ''
+}
 
 const statusOptions = [
   { value: 'Activo', label: 'Activo' },
@@ -189,6 +216,16 @@ watch(
   { immediate: true }
 )
 
+watch(
+  () => formData.value.categoryId,
+  (cat) => {
+    if (cat === '__new__') {
+      showingCustomCategory.value = true
+      formData.value.categoryId = ''
+    }
+  }
+)
+
 const validateForm = (): boolean => {
   errors.value = {}
 
@@ -217,8 +254,19 @@ const handleSubmit = async () => {
   isLoading.value = true
 
   try {
+    // Create new category if one was typed
+    let categoryId = formData.value.categoryId
+    if (showingCustomCategory.value && newCategoryName.value.trim()) {
+      const newCat = await createProductCategory(businessId.value!, newCategoryName.value.trim())
+      categoryId = newCat.id
+      if (queryClient) {
+        await queryClient.invalidateQueries({ queryKey: productosKeys.categories(businessId.value) })
+      }
+    }
+
     const productoData: ProductoFormData & { id?: string } = {
       ...formData.value,
+      categoryId,
     }
 
     if (modalData.value?.producto?.id) {

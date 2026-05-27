@@ -548,6 +548,20 @@ export function createMockClient() {
         return { data: null, error: { message: 'Function not found' } }
       }
 
+      if (payload.action === 'update_business') {
+        const bizId = payload.business_id
+        const biz = store.businesses.find((b: any) => b.id === bizId)
+        if (!biz) {
+          return { data: null, error: { message: 'Business not found' } }
+        }
+        const allowed = ['name', 'phone', 'address', 'timezone', 'currency', 'niche_type', 'active', 'ves_exchange_rate', 'theme_config', 'terminology']
+        for (const f of allowed) {
+          if (payload[f] !== undefined) biz[f] = payload[f]
+        }
+        biz.updated_at = new Date().toISOString()
+        return { data: { business: biz }, error: null }
+      }
+
       if (payload.action === 'delete_business') {
         const bizId = payload.business_id
         const biz = store.businesses.find((b: any) => b.id === bizId)
@@ -588,12 +602,14 @@ export function createMockClient() {
           appointment: 'Cita',
           staff: 'Personal',
           pet: 'Mascota',
-          owner: 'Dueno',
+          owner: 'Dueño',
           breed: 'Raza',
           weight: 'Peso',
           vaccines: 'Vacunas',
         },
         active: true,
+        job_titles: [],
+        service_categories: [],
         ves_exchange_rate: 36.50,
         deleted_at: null,
         created_at: now,

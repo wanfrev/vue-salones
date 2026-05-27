@@ -138,6 +138,50 @@ serve(async (req) => {
       })
     }
 
+    // ─── UPDATE BUSINESS ─────────────────────────────────────
+    if (action === 'update_business') {
+      const businessId = String(body.business_id || '').trim()
+      if (!businessId) {
+        return new Response(JSON.stringify({ error: 'business_id is required.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const allowed: Record<string, unknown> = {}
+      const fields = ['name', 'phone', 'address', 'timezone', 'currency', 'niche_type', 'active', 'ves_exchange_rate', 'theme_config', 'terminology']
+      for (const f of fields) {
+        if (body[f] !== undefined) allowed[f] = body[f]
+      }
+
+      if (Object.keys(allowed).length === 0) {
+        return new Response(JSON.stringify({ error: 'No valid fields to update.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const { data, error: updateError } = await supabaseAdmin
+        .from('businesses')
+        .update({ ...allowed, updated_at: new Date().toISOString() })
+        .eq('id', businessId)
+        .is('deleted_at', null)
+        .select('*')
+        .single()
+
+      if (updateError || !data) {
+        return new Response(JSON.stringify({ error: updateError?.message || 'Unable to update business.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      return new Response(JSON.stringify({ business: data }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     // ─── DELETE BUSINESS (soft delete) ────────────────────────
     // En lugar de borrar físicamente todas las tablas hijas (propenso a errores
     // cuando se agregan nuevas tablas), marcamos el negocio como eliminado y
