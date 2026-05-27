@@ -182,6 +182,60 @@ serve(async (req) => {
       })
     }
 
+    // ─── SUSPEND BUSINESS ─────────────────────────────────────
+    if (action === 'suspend_business') {
+      const businessId = String(body.business_id || '').trim()
+      if (!businessId) {
+        return new Response(JSON.stringify({ error: 'business_id is required.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      await supabaseAdmin
+        .from('businesses')
+        .update({ active: false, updated_at: new Date().toISOString() })
+        .eq('id', businessId)
+        .is('deleted_at', null)
+
+      await supabaseAdmin
+        .from('profiles')
+        .update({ active: false })
+        .eq('business_id', businessId)
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // ─── RESUME BUSINESS ──────────────────────────────────────
+    if (action === 'resume_business') {
+      const businessId = String(body.business_id || '').trim()
+      if (!businessId) {
+        return new Response(JSON.stringify({ error: 'business_id is required.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      await supabaseAdmin
+        .from('businesses')
+        .update({ active: true, updated_at: new Date().toISOString() })
+        .eq('id', businessId)
+        .is('deleted_at', null)
+
+      await supabaseAdmin
+        .from('profiles')
+        .update({ active: true })
+        .eq('business_id', businessId)
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     // ─── DELETE BUSINESS (soft delete) ────────────────────────
     // En lugar de borrar físicamente todas las tablas hijas (propenso a errores
     // cuando se agregan nuevas tablas), marcamos el negocio como eliminado y

@@ -560,6 +560,26 @@ export function createMockClient() {
         return { data: null, error: { message: 'Function not found' } }
       }
 
+      if (payload.action === 'suspend_business') {
+        const bizId = payload.business_id
+        const biz = store.businesses.find((b: any) => b.id === bizId)
+        if (biz) biz.active = false
+        for (const p of store.profiles) {
+          if (p.business_id === bizId) p.active = false
+        }
+        return { data: { success: true }, error: null }
+      }
+
+      if (payload.action === 'resume_business') {
+        const bizId = payload.business_id
+        const biz = store.businesses.find((b: any) => b.id === bizId)
+        if (biz) biz.active = true
+        for (const p of store.profiles) {
+          if (p.business_id === bizId) p.active = true
+        }
+        return { data: { success: true }, error: null }
+      }
+
       if (payload.action === 'update_business') {
         const bizId = payload.business_id
         const biz = store.businesses.find((b: any) => b.id === bizId)

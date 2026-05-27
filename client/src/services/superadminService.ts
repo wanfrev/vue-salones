@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import type { Business } from '../types/database'
+import type { AuthProfile } from '../types/auth'
 
 const serviceSupabase = supabase as any
 
@@ -17,6 +18,7 @@ export type CreateBusinessResult = {
 
 export const superadminKeys = {
   businesses: () => ['superadmin', 'businesses'] as const,
+  businessAdmins: (businessId: string) => ['superadmin', 'business-admins', businessId] as const,
 }
 
 export const listBusinesses = async (): Promise<Business[]> => {
@@ -90,4 +92,44 @@ export const deleteBusiness = async (businessId: string): Promise<void> => {
   if (!data?.success) {
     throw new Error('No fue posible eliminar el negocio.')
   }
+}
+
+export const suspendBusiness = async (businessId: string): Promise<void> => {
+  const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
+    body: {
+      action: 'suspend_business',
+      business_id: businessId,
+    },
+  })
+
+  if (error) throw error
+  if (!data?.success) {
+    throw new Error('No fue posible suspender el servicio.')
+  }
+}
+
+export const resumeBusiness = async (businessId: string): Promise<void> => {
+  const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
+    body: {
+      action: 'resume_business',
+      business_id: businessId,
+    },
+  })
+
+  if (error) throw error
+  if (!data?.success) {
+    throw new Error('No fue posible reactivar el servicio.')
+  }
+}
+
+export const listBusinessAdmins = async (businessId: string): Promise<AuthProfile[]> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, business_id, full_name, role, phone, avatar_url')
+    .eq('business_id', businessId)
+    .eq('role', 'admin')
+    .order('full_name')
+
+  if (error) throw error
+  return (data as AuthProfile[]) || []
 }

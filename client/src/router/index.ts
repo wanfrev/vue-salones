@@ -3,6 +3,8 @@ import LoginView from '../views/Login.vue'
 import DashboardView from '../views/Dashboard.vue'
 import AdminView from '../views/Admin.vue'
 import SuperadminView from '../views/Superadmin.vue'
+import SuperadminBusinessAdminsView from '../views/SuperadminBusinessAdmins.vue'
+import SuperadminBusinessDetailView from '../views/SuperadminBusinessDetail.vue'
 import ClientesView from '../views/Clientes.vue'
 import ClienteHistorialView from '../views/ClienteHistorial.vue'
 import FinanzasView from '../views/Finanzas.vue'
@@ -39,6 +41,18 @@ const router = createRouter({
       path: '/superadmin',
       name: 'superadmin',
       component: SuperadminView,
+      meta: { requiresAuth: true, superadminOnly: true },
+    },
+    {
+      path: '/superadmin/business/:id',
+      name: 'superadmin-business-detail',
+      component: SuperadminBusinessDetailView,
+      meta: { requiresAuth: true, superadminOnly: true },
+    },
+    {
+      path: '/superadmin/business/:id/admins',
+      name: 'superadmin-business-admins',
+      component: SuperadminBusinessAdminsView,
       meta: { requiresAuth: true, superadminOnly: true },
     },
     {
