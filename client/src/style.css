@@ -26,10 +26,10 @@
   --color-border-strong: #cbd5e1;
 
   /* Colores Primarios */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-light: #eff6ff;
-  --color-primary-dark: #1d4ed8;
+  --color-primary: #90A58A;
+  --color-primary-hover: #7B8F76;
+  --color-primary-light: #EDF3EB;
+  --color-primary-dark: #6B7D66;
 
   /* Colores de Estado */
   --color-success: #10b981;
@@ -38,8 +38,8 @@
   --color-warning-light: #fef3c7;
   --color-danger: #ef4444;
   --color-danger-light: #fee2e2;
-  --color-info: #3b82f6;
-  --color-info-light: #dbeafe;
+  --color-info: #90A58A;
+  --color-info-light: #EDF3EB;
 
   /* Sombras */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -69,10 +69,10 @@
   --color-border-strong: #475569;
 
   /* Colores Primarios (mantener vibrancia en dark) */
-  --color-primary: #60a5fa;
-  --color-primary-hover: #3b82f6;
-  --color-primary-light: #1e3a8a;
-  --color-primary-dark: #93c5fd;
+  --color-primary: #A8BF9E;
+  --color-primary-hover: #90A58A;
+  --color-primary-light: #2D3A29;
+  --color-primary-dark: #C4D8B8;
 
   /* Colores de Estado ajustados para dark */
   --color-success: #34d399;
@@ -81,8 +81,8 @@
   --color-warning-light: #78350f;
   --color-danger: #f87171;
   --color-danger-light: #7f1d1d;
-  --color-info: #60a5fa;
-  --color-info-light: #1e3a8a;
+  --color-info: #A8BF9E;
+  --color-info-light: #2D3A29;
 
   /* Sombras más sutiles en dark */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);

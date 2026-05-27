@@ -53,6 +53,9 @@ function applyFilters(rows: any[], filters: any[]): any[] {
         case 'neq':
           if (val === f.value) return false
           break
+        case 'gt':
+          if (val <= f.value) return false
+          break
         case 'gte':
           if (val < f.value) return false
           break
@@ -151,6 +154,15 @@ class MockQueryBuilder {
 
   in(field: string, values: any[]): this {
     this.filters.push({ field, op: 'in', value: values })
+    return this
+  }
+
+  limit(count: number): this {
+    return this
+  }
+
+  gt(field: string, value: any): this {
+    this.filters.push({ field, op: 'gt', value })
     return this
   }
 

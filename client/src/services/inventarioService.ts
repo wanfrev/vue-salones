@@ -39,10 +39,12 @@ export const listInventario = async (businessId: string): Promise<InventarioItem
     }
   >
 
+  const productIds = [...new Set(raw.map(r => r.product_id))]
   const { data: variants } = await supabase
     .from('product_variants')
     .select('id, product_id, name')
     .eq('active', true)
+    .in('product_id', productIds.length ? productIds : [null])
 
   const variantMap = new Map<string, { product_id: string; name: string }>()
   for (const v of (variants ?? []) as Array<{ id: string; product_id: string; name: string }>) {
@@ -93,9 +95,11 @@ export const listInventoryMovements = async (
     }
   >
 
+  const productIds = [...new Set(raw.map(r => r.product_id))]
   const { data: variants } = await supabase
     .from('product_variants')
     .select('id, name')
+    .in('product_id', productIds.length ? productIds : [null])
 
   const variantMap = new Map<string, string>()
   for (const v of (variants ?? []) as Array<{ id: string; name: string }>) {
@@ -131,14 +135,20 @@ export const adjustInventory = async (
 ): Promise<void> => {
   const writable = supabase as any
 
-  const { data: existing } = await supabase
+  let stockQuery = supabase
     .from('inventory_stock')
     .select('id, quantity')
     .eq('business_id', businessId)
     .eq('product_id', productId)
     .eq('location_id', locationId)
-    .eq('variant_id', variantId ?? '')
-    .maybeSingle()
+
+  if (variantId) {
+    stockQuery = stockQuery.eq('variant_id', variantId)
+  } else {
+    stockQuery = stockQuery.is('variant_id', null)
+  }
+
+  const { data: existing } = await stockQuery.maybeSingle()
 
   if (existing) {
     const { error } = await writable
@@ -193,14 +203,20 @@ export const sellProduct = async (
 
   const writable = supabase as any
 
-  const { data: existing } = await supabase
+  let stockQuery = supabase
     .from('inventory_stock')
     .select('id, quantity')
     .eq('business_id', businessId)
     .eq('product_id', productId)
     .eq('location_id', locationId)
-    .eq('variant_id', variantId ?? '')
-    .maybeSingle()
+
+  if (variantId) {
+    stockQuery = stockQuery.eq('variant_id', variantId)
+  } else {
+    stockQuery = stockQuery.is('variant_id', null)
+  }
+
+  const { data: existing } = await stockQuery.maybeSingle()
 
   if (!existing) throw new Error('No hay stock de este producto')
 

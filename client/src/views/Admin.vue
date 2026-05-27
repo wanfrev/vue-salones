@@ -211,7 +211,7 @@ const saveCitaMutation = useMutation({
     authStore.profile?.id
   ),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: agendaKeys.appointments(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: ['appointments'] })
     citaModalRef.value?.close()
     success('Cita guardada correctamente')
   },
@@ -223,7 +223,6 @@ const saveCitaMutation = useMutation({
 const updateStatusMutation = useMutation({
   mutationFn: ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }) => updateCitaStatus(id, status),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: agendaKeys.appointments(businessId.value) })
     queryClient.invalidateQueries({ queryKey: ['appointments'] })
   },
   onError: (err) => {
@@ -234,7 +233,6 @@ const updateStatusMutation = useMutation({
 const updateTimeMutation = useMutation({
   mutationFn: ({ id, start, end }: { id: string; start: string; end: string }) => updateAppointmentTime(id, start, end),
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: agendaKeys.appointments(businessId.value) })
     queryClient.invalidateQueries({ queryKey: ['appointments'] })
   },
   onError: (err) => {

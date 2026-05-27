@@ -252,7 +252,7 @@
               <h3 class="text-base font-semibold text-text">Gastos del Mes</h3>
               <p class="text-sm text-text-muted">Egresos fijos y variables</p>
             </div>
-            <button @click="showExpenseModal = true" class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover">
+            <button @click="resetExpenseForm(); showExpenseModal = true" class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
@@ -267,6 +267,7 @@
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Concepto</th>
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Categoría</th>
                   <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
+                  <th class="pb-3 text-center text-xs font-semibold uppercase text-text-muted">Acción</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border-subtle">
@@ -282,6 +283,17 @@
                     ]">{{ expense.category }}</span>
                   </td>
                   <td class="py-3 text-right font-medium text-text">{{ formatUSD(expense.amount) }}</td>
+                  <td class="py-3 text-center">
+                    <button
+                      @click="openEditExpense(expense)"
+                      class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
+                      title="Editar gasto"
+                    >
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -378,12 +390,12 @@
       <div
         v-if="showExpenseModal"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-        @click.self="showExpenseModal = false"
+        @click.self="showExpenseModal = false; resetExpenseForm()"
       >
         <div class="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
           <div class="mb-4">
-            <h2 class="text-lg font-semibold text-text">Registrar gasto</h2>
-            <p class="text-sm text-text-muted">Agrega un egreso al negocio</p>
+            <h2 class="text-lg font-semibold text-text">{{ editingExpenseId ? 'Editar gasto' : 'Registrar gasto' }}</h2>
+            <p class="text-sm text-text-muted">{{ editingExpenseId ? 'Modifica los datos del egreso' : 'Agrega un egreso al negocio' }}</p>
           </div>
 
           <form class="space-y-4" @submit.prevent="handleSaveExpense">
@@ -455,7 +467,7 @@
               <button
                 type="button"
                 class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
-                @click="showExpenseModal = false"
+                @click="showExpenseModal = false; resetExpenseForm()"
               >
                 Cancelar
               </button>
@@ -525,6 +537,7 @@ const editRateValue = ref(0)
 const updatingRate = ref(false)
 
 const showExpenseModal = ref(false)
+const editingExpenseId = ref<string | null>(null)
 const savingExpense = ref(false)
 const expenseError = ref('')
 const expenseForm = ref({
@@ -703,6 +716,30 @@ const buildExpenseBuckets = (rows: ExpenseRow[], bucket: 'day' | 'week' | 'month
   return map
 }
 
+const resetExpenseForm = () => {
+  expenseForm.value = {
+    name: '',
+    category: 'General',
+    amount: 0,
+    date: new Date().toISOString().slice(0, 10),
+    notes: '',
+  }
+  editingExpenseId.value = null
+  expenseError.value = ''
+}
+
+const openEditExpense = (expense: ExpenseRow) => {
+  editingExpenseId.value = expense.id
+  expenseForm.value = {
+    name: expense.name,
+    category: expense.category,
+    amount: expense.amount,
+    date: expense.date,
+    notes: '',
+  }
+  showExpenseModal.value = true
+}
+
 const handleSaveExpense = async () => {
   const businessId = authStore.businessId
   if (!businessId) return
@@ -711,29 +748,39 @@ const handleSaveExpense = async () => {
   expenseError.value = ''
 
   try {
-    const { error } = await supabase.from('expenses').insert({
-      business_id: businessId,
-      name: expenseForm.value.name,
-      category: expenseForm.value.category,
-      amount: expenseForm.value.amount,
-      expense_date: expenseForm.value.date,
-      notes: expenseForm.value.notes || null,
-    })
+    if (editingExpenseId.value) {
+      const { error } = await supabase
+        .from('expenses')
+        .update({
+          name: expenseForm.value.name,
+          category: expenseForm.value.category,
+          amount: expenseForm.value.amount,
+          expense_date: expenseForm.value.date,
+          notes: expenseForm.value.notes || null,
+        })
+        .eq('id', editingExpenseId.value)
 
-    if (error) throw error
+      if (error) throw error
+      notifySuccess('Gasto actualizado correctamente')
+    } else {
+      const { error } = await supabase.from('expenses').insert({
+        business_id: businessId,
+        name: expenseForm.value.name,
+        category: expenseForm.value.category,
+        amount: expenseForm.value.amount,
+        expense_date: expenseForm.value.date,
+        notes: expenseForm.value.notes || null,
+      })
 
-    notifySuccess('Gasto registrado correctamente')
-    showExpenseModal.value = false
-    expenseForm.value = {
-      name: '',
-      category: 'General',
-      amount: 0,
-      date: new Date().toISOString().slice(0, 10),
-      notes: '',
+      if (error) throw error
+      notifySuccess('Gasto registrado correctamente')
     }
+
+    showExpenseModal.value = false
+    resetExpenseForm()
     await loadFinancialData()
   } catch (err) {
-    expenseError.value = err instanceof Error ? err.message : 'Error al registrar el gasto'
+    expenseError.value = err instanceof Error ? err.message : 'Error al guardar el gasto'
   } finally {
     savingExpense.value = false
   }

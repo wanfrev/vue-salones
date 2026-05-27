@@ -26,6 +26,7 @@ export interface ProductoFormData {
   unitPrice: number
   reorderPoint: number
   active: 'Activo' | 'Inactivo'
+  initialStock?: number
 }
 
 export interface ProductVariantFormData {

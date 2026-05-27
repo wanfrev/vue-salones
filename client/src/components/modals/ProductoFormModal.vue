@@ -85,7 +85,7 @@
         />
       </div>
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <FormInput
           v-model.number="formData.unitCost"
           label="Costo unitario ($)"
@@ -108,6 +108,14 @@
           type="number"
           placeholder="0"
           :error="errors.reorderPoint"
+        />
+        <FormInput
+          v-if="!isEditing"
+          v-model.number="formData.initialStock"
+          label="Stock inicial"
+          type="number"
+          min="0"
+          placeholder="0"
         />
       </div>
     </form>
@@ -181,6 +189,7 @@ const defaultFormData: ProductoFormData = {
   unitPrice: 0,
   reorderPoint: 0,
   active: 'Activo',
+  initialStock: 0,
 }
 
 const formData = ref<ProductoFormData>({ ...defaultFormData })
@@ -207,6 +216,7 @@ watch(
         unitPrice: producto.unitPrice || 0,
         reorderPoint: producto.reorderPoint || 0,
         active: producto.status,
+        initialStock: 0,
       }
     } else {
       formData.value = { ...defaultFormData }

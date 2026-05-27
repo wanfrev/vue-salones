@@ -6,7 +6,7 @@
     :icon="isEditing ? 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' : 'M12 6v6m0 0v6m0-6h6m-6 0H6'"
     size="lg"
     :is-loading="isLoading"
-    :is-confirm-disabled="!isFormValid"
+    :is-confirm-disabled="!isFormValid || saveInProgress"
     :confirm-text="isEditing ? `Actualizar ${t.appointment}` : `Agendar ${t.appointment}`"
     @close="close"
     @confirm="handleSubmit"
@@ -255,6 +255,8 @@ const validateForm = (): boolean => {
 }
 
 const handleSubmit = async () => {
+  if (saveInProgress.value) return
+
   if (!validateForm()) {
     showError('Por favor corrige los errores en el formulario')
     return
