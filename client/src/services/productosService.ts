@@ -59,7 +59,8 @@ export const saveProducto = async (
   businessId: string,
   data: ProductoFormData & { id?: string }
 ): Promise<Producto> => {
-  const payload = mapProductoFormToProductInsert(businessId, data)
+  const { initialStock, ...formData } = data
+  const payload = mapProductoFormToProductInsert(businessId, formData)
 
   const isNew = !data.id
   const query = isNew
@@ -83,7 +84,7 @@ export const saveProducto = async (
         business_id: businessId,
         location_id: defaultLoc.id,
         product_id: saved.id,
-        quantity: 0,
+        quantity: Math.max(0, Number(initialStock ?? 0)),
       })
     }
   }

@@ -53,6 +53,9 @@ function applyFilters(rows: any[], filters: any[]): any[] {
         case 'neq':
           if (val === f.value) return false
           break
+        case 'gt':
+          if (val <= f.value) return false
+          break
         case 'gte':
           if (val < f.value) return false
           break
@@ -151,6 +154,15 @@ class MockQueryBuilder {
 
   in(field: string, values: any[]): this {
     this.filters.push({ field, op: 'in', value: values })
+    return this
+  }
+
+  limit(count: number): this {
+    return this
+  }
+
+  gt(field: string, value: any): this {
+    this.filters.push({ field, op: 'gt', value })
     return this
   }
 
@@ -546,6 +558,26 @@ export function createMockClient() {
 
       if (fnName !== 'superadmin-invite') {
         return { data: null, error: { message: 'Function not found' } }
+      }
+
+      if (payload.action === 'suspend_business') {
+        const bizId = payload.business_id
+        const biz = store.businesses.find((b: any) => b.id === bizId)
+        if (biz) biz.active = false
+        for (const p of store.profiles) {
+          if (p.business_id === bizId) p.active = false
+        }
+        return { data: { success: true }, error: null }
+      }
+
+      if (payload.action === 'resume_business') {
+        const bizId = payload.business_id
+        const biz = store.businesses.find((b: any) => b.id === bizId)
+        if (biz) biz.active = true
+        for (const p of store.profiles) {
+          if (p.business_id === bizId) p.active = true
+        }
+        return { data: { success: true }, error: null }
       }
 
       if (payload.action === 'update_business') {

@@ -116,7 +116,7 @@
           <div class="mb-4 flex items-center justify-between">
             <div>
               <h2 class="text-lg font-semibold text-text">Negocios registrados</h2>
-              <p class="text-sm text-text-muted">Vista general de todos los locales.</p>
+              <p class="text-sm text-text-muted">Selecciona un negocio para administrarlo.</p>
             </div>
             <input
               v-model="search"
@@ -127,7 +127,12 @@
           </div>
 
           <div class="space-y-3">
-            <div v-for="biz in filteredBusinesses" :key="biz.id" class="rounded-xl border border-border bg-bg-secondary p-4">
+            <router-link
+              v-for="biz in filteredBusinesses"
+              :key="biz.id"
+              :to="`/superadmin/business/${biz.id}`"
+              class="block rounded-xl border border-border bg-bg-secondary p-4 transition-theme hover:border-primary/50 hover:shadow-sm"
+            >
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <div class="flex items-center gap-2">
@@ -141,25 +146,11 @@
                   <p class="text-xs text-text-muted">Slug: {{ biz.slug }} · Nicho: {{ biz.niche_type }}</p>
                   <p class="text-xs text-text-muted">Creado: {{ formatDate(biz.created_at) }}</p>
                 </div>
-                <div class="flex items-center gap-2">
-                  <button
-                    type="button"
-                    class="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
-                    @click="openEdit(biz)"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    class="shrink-0 rounded-lg border border-danger/30 px-3 py-1.5 text-xs font-semibold text-danger transition-theme hover:bg-danger/10"
-                    :disabled="deletingId === biz.id"
-                    @click="confirmDelete(biz)"
-                  >
-                    {{ deletingId === biz.id ? 'Eliminando...' : 'Eliminar' }}
-                  </button>
-                </div>
+                <svg class="mt-0.5 h-4 w-4 shrink-0 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-            </div>
+            </router-link>
 
             <div v-if="!filteredBusinesses.length" class="rounded-xl border border-dashed border-border bg-bg-secondary p-6 text-center text-sm text-text-muted">
               No hay negocios para mostrar.
@@ -167,122 +158,6 @@
           </div>
         </div>
       </section>
-      <!-- Edit modal -->
-      <div
-        v-if="editingBiz"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-        @click.self="closeEdit"
-      >
-        <div class="w-full max-w-lg rounded-2xl border border-border bg-surface p-6 shadow-xl">
-          <div class="mb-4">
-            <h2 class="text-lg font-semibold text-text">Editar negocio</h2>
-            <p class="text-sm text-text-muted">{{ editingBiz.name }}</p>
-          </div>
-
-          <form class="grid gap-3" @submit.prevent="handleEditSubmit">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-text" for="edit-name">Nombre</label>
-              <input
-                id="edit-name"
-                v-model="editForm.name"
-                type="text"
-                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-text" for="edit-phone">Teléfono</label>
-                <input
-                  id="edit-phone"
-                  v-model="editForm.phone"
-                  type="text"
-                  class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-                />
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium text-text" for="edit-timezone">Zona horaria</label>
-                <input
-                  id="edit-timezone"
-                  v-model="editForm.timezone"
-                  type="text"
-                  class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="mb-1 block text-sm font-medium text-text" for="edit-address">Dirección</label>
-              <input
-                id="edit-address"
-                v-model="editForm.address"
-                type="text"
-                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-text" for="edit-currency">Moneda</label>
-                <select
-                  id="edit-currency"
-                  v-model="editForm.currency"
-                  class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-                >
-                  <option value="USD">USD</option>
-                  <option value="DOP">DOP</option>
-                  <option value="EUR">EUR</option>
-                  <option value="MXN">MXN</option>
-                </select>
-              </div>
-              <div>
-                <label class="mb-1 block text-sm font-medium text-text" for="edit-niche">Nicho</label>
-                <select
-                  id="edit-niche"
-                  v-model="editForm.niche_type"
-                  class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-                >
-                  <option value="salon">Salón de belleza</option>
-                  <option value="barberia">Barbería</option>
-                  <option value="spa">Spa (humano)</option>
-                  <option value="dog_spa">Spa canino / Veterinaria</option>
-                  <option value="nail_bar">Barra de uñas</option>
-                  <option value="centro_estetico">Centro estético</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <input
-                id="edit-active"
-                v-model="editForm.active"
-                type="checkbox"
-                class="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-              />
-              <label class="text-sm font-medium text-text" for="edit-active">Activo</label>
-            </div>
-
-            <p v-if="editFormError" class="text-sm text-danger">{{ editFormError }}</p>
-
-            <div class="mt-2 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
-                @click="closeEdit"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                :disabled="isUpdating"
-                class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {{ isUpdating ? 'Guardando...' : 'Guardar cambios' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
     </main>
   </div>
 </template>
@@ -292,7 +167,7 @@ import { computed, ref } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from '../composables/useNotification'
 import { useAuth } from '../composables/useAuth'
-import { createBusinessWithOwner, deleteBusiness, listBusinesses, updateBusiness, superadminKeys } from '../services/superadminService'
+import { createBusinessWithOwner, listBusinesses, superadminKeys } from '../services/superadminService'
 import type { Business } from '../types/database'
 
 const { logout } = useAuth()
@@ -351,31 +226,6 @@ const { mutateAsync: createBusiness, isPending: isCreating } = useMutation({
   },
 })
 
-const deletingId = ref<string | null>(null)
-
-const { mutateAsync: deleteBiz } = useMutation({
-  mutationFn: deleteBusiness,
-  onSuccess: async () => {
-    success('Negocio eliminado completamente.')
-    await queryClient.invalidateQueries({ queryKey: superadminKeys.businesses() })
-  },
-  onError: (err: unknown) => {
-    const message = err instanceof Error ? err.message : 'No fue posible eliminar el negocio.'
-    error(message)
-  },
-  onSettled: () => {
-    deletingId.value = null
-  },
-})
-
-const confirmDelete = (biz: Business) => {
-  const msg = `¿Eliminar "${biz.name}"?\n\nSe borrará TODO: usuarios, empleados, clientes, citas, servicios, productos, inventario, transacciones, gastos...\n\nEsta acción NO se puede deshacer.`
-  if (window.confirm(msg)) {
-    deletingId.value = biz.id
-    deleteBiz(biz.id)
-  }
-}
-
 const filteredBusinesses = computed(() => {
   const term = search.value.trim().toLowerCase()
   if (!term) return businesses.value
@@ -399,71 +249,6 @@ const handleSubmit = async () => {
     ownerEmail: form.value.ownerEmail,
     ownerPassword: form.value.ownerPassword,
     nicheType: form.value.nicheType.trim() || undefined,
-  })
-}
-
-// ─── Edit business ──────────────────────────────────────────
-const editingBiz = ref<Business | null>(null)
-const editFormError = ref('')
-const editForm = ref({
-  name: '',
-  phone: '',
-  address: '',
-  timezone: '',
-  currency: 'USD',
-  niche_type: 'salon',
-  active: true,
-})
-
-const openEdit = (biz: Business) => {
-  editFormError.value = ''
-  editingBiz.value = biz
-  editForm.value = {
-    name: biz.name,
-    phone: biz.phone ?? '',
-    address: biz.address ?? '',
-    timezone: biz.timezone,
-    currency: biz.currency,
-    niche_type: biz.niche_type,
-    active: biz.active,
-  }
-}
-
-const closeEdit = () => {
-  editFormError.value = ''
-  editingBiz.value = null
-}
-
-const { mutateAsync: updateBiz, isPending: isUpdating } = useMutation({
-  mutationFn: (input: { business_id: string; name: string; phone: string | null; address: string | null; timezone: string; currency: string; niche_type: string; active: boolean }) =>
-    updateBusiness(input),
-  onSuccess: async () => {
-    success('Negocio actualizado correctamente.')
-    closeEdit()
-    await queryClient.invalidateQueries({ queryKey: superadminKeys.businesses() })
-  },
-  onError: (err: unknown) => {
-    const message = err instanceof Error ? err.message : 'No fue posible actualizar el negocio.'
-    error(message)
-  },
-})
-
-const handleEditSubmit = () => {
-  if (!editingBiz.value) return
-  const f = editForm.value
-  if (!f.name.trim()) {
-    editFormError.value = 'El nombre es requerido.'
-    return
-  }
-  updateBiz({
-    business_id: editingBiz.value.id,
-    name: f.name.trim(),
-    phone: f.phone.trim() || null,
-    address: f.address.trim() || null,
-    timezone: f.timezone.trim(),
-    currency: f.currency,
-    niche_type: f.niche_type,
-    active: f.active,
   })
 }
 

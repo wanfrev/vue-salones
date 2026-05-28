@@ -66,7 +66,7 @@ export function createMockDataStore(): MockDataStore {
     phone: '+525551234567', address: 'Av. Principal #123',
     timezone: 'America/New_York', currency: 'USD', ves_exchange_rate: 36.50,
     niche_type: 'salon',
-    theme_config: { primary: '#8B5CF6', secondary: '#60A5FA' },
+    theme_config: { primary: '#90A58A', secondary: '#A8BF9E' },
     terminology: {
       client: 'Cliente',
       employee: 'Empleado',
@@ -89,7 +89,7 @@ export function createMockDataStore(): MockDataStore {
     phone: '+525551234000', address: 'Calle Real #456',
     timezone: 'America/New_York', currency: 'USD', ves_exchange_rate: 36.50,
     niche_type: 'barberia',
-    theme_config: { primary: '#1E3A5F', secondary: '#4A6FA5' },
+    theme_config: { primary: '#90A58A', secondary: '#A8BF9E' },
     terminology: {
       client: 'Cliente',
       employee: 'Barbero',

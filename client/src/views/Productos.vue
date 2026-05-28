@@ -302,6 +302,8 @@ const saveProductoMutation = useMutation({
   mutationFn: (data: ProductoFormData & { id?: string }) => saveProducto(businessId.value!, data),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: ['inventario', businessId.value] })
+    queryClient.invalidateQueries({ queryKey: ['inventario-locations', businessId.value] })
     productoModalRef.value?.close()
     success('Producto guardado correctamente')
   },
