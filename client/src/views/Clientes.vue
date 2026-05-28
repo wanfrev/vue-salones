@@ -272,6 +272,7 @@
   <ClienteFormModal 
     ref="clienteModalRef" 
     @save="handleSaveCliente" 
+    @delete="handleDeleteCliente"
   />
   
   <FilterDrawer 
@@ -290,7 +291,7 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { usePagination } from '../composables/usePagination'
-import { clientesKeys, listClientes, saveCliente } from '../services/clientesService'
+import { clientesKeys, deleteCliente, listClientes, saveCliente } from '../services/clientesService'
 import Sidebar from '../components/layout/Sidebar.vue'
 import { ClienteFormModal } from '../components/modals'
 import { FilterDrawer } from '../components/filters'
@@ -411,6 +412,22 @@ const handleEditCliente = (cliente: Cliente) => {
 
 const handleSaveCliente = async (data: ClienteFormData & { id?: string }) => {
   await saveClienteMutation.mutateAsync(data)
+}
+
+const deleteClienteMutation = useMutation({
+  mutationFn: (clientId: string) => deleteCliente(clientId),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: clientesKeys.all(businessId.value) })
+    clienteModalRef.value?.close()
+    success('Cliente eliminado correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al eliminar el cliente')
+  },
+})
+
+const handleDeleteCliente = (clientId: string) => {
+  deleteClienteMutation.mutate(clientId)
 }
 
 const handleViewAgenda = (cliente: Cliente) => {

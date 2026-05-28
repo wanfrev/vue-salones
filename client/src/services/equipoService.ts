@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { createAuthUser } from './adminService'
+import { createAuthUser, deleteAuthUser } from './adminService'
 import { mapEmpleadoFormToProfileUpdate, mapEmpleadoFormToScheduleBlocks, mapProfileToEmpleado } from '../mappers/equipoMapper'
 import type { EmployeeProfile } from '../mappers/equipoMapper'
 import type { Empleado, EmpleadoFormData } from '../types/empleado'
@@ -121,4 +121,8 @@ export const addBusinessJobTitle = async (businessId: string, title: string): Pr
 
   if (error) throw error
   return updated
+}
+
+export const deleteEmpleado = async (profileId: string): Promise<void> => {
+  await deleteAuthUser(profileId)
 }

@@ -162,20 +162,28 @@ const statusOptions = [
   { value: 'cancelled', label: 'Cancelada' },
 ]
 
-const defaultFormData: CitaFormData = {
-  clientName: '',
-  clientPhone: '',
-  service: '',
-  employee: '',
-  date: new Date().toISOString().split('T')[0],
-  time: '09:00',
-  duration: 30,
-  price: 0,
-  status: 'confirmed',
-  notes: '',
+const defaultFormData = (): CitaFormData => {
+  const today = new Date().toISOString().split('T')[0]
+  const now = new Date()
+  const minutes = now.getHours() * 60 + now.getMinutes()
+  const nextSlot = Math.ceil(minutes / 30) * 30
+  const hh = String(Math.floor(nextSlot / 60)).padStart(2, '0')
+  const mm = String(nextSlot % 60).padStart(2, '0')
+  return {
+    clientName: '',
+    clientPhone: '',
+    service: '',
+    employee: '',
+    date: today,
+    time: `${hh}:${mm}`,
+    duration: 30,
+    price: 0,
+    status: 'confirmed',
+    notes: '',
+  }
 }
 
-const formData = ref<CitaFormData>({ ...defaultFormData })
+const formData = ref<CitaFormData>(defaultFormData())
 const errors = ref<Partial<Record<keyof CitaFormData, string>>>({})
 
 const servicesLoaded = computed(() => (props.servicios?.length ?? 0) > 0)
@@ -210,12 +218,29 @@ watch(
         notes: cita.notes || '',
       }
     } else {
-      formData.value = { ...defaultFormData }
+      formData.value = defaultFormData()
     }
     errors.value = {}
   },
   { immediate: true }
 )
+
+const normalizePhone = (phone: string): string => {
+  let digits = phone.replace(/\D/g, '')
+  if (!digits) return ''
+  if (digits.startsWith('0')) digits = digits.slice(1)
+  if (!digits.startsWith('58')) digits = '58' + digits
+  return '+' + digits
+}
+
+const isTimeInPast = (date: string, time: string): boolean => {
+  const today = new Date().toISOString().split('T')[0]
+  if (date !== today) return false
+  const now = new Date()
+  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m < currentMinutes
+}
 
 const validateForm = (): boolean => {
   errors.value = {}
@@ -225,10 +250,16 @@ const validateForm = (): boolean => {
   }
 
   const phoneRaw = formData.value.clientPhone.trim()
-  if (!phoneRaw || phoneRaw.length < 7) {
+  if (!phoneRaw) {
     errors.value.clientPhone = 'El teléfono del cliente es requerido'
-  } else if (!/^[\d\s\-\+\(\)]+$/.test(phoneRaw)) {
-    errors.value.clientPhone = 'El teléfono solo puede contener números, espacios, +, -, (, )'
+  } else {
+    formData.value.clientPhone = normalizePhone(phoneRaw)
+    const normalized = formData.value.clientPhone
+    if (normalized.length < 10) {
+      errors.value.clientPhone = 'El teléfono debe tener al menos 10 dígitos'
+    } else if (!/^\+58\d{9,}$/.test(normalized)) {
+      errors.value.clientPhone = 'Formato inválido. Debe ser +584121234567'
+    }
   }
 
   if (!formData.value.service) {
@@ -245,6 +276,8 @@ const validateForm = (): boolean => {
 
   if (!formData.value.time) {
     errors.value.time = 'Selecciona una hora'
+  } else if (isTimeInPast(formData.value.date, formData.value.time)) {
+    errors.value.time = 'La hora no puede ser en el pasado'
   }
 
   if (formData.value.price < 0) {
@@ -254,7 +287,7 @@ const validateForm = (): boolean => {
   return Object.keys(errors.value).length === 0
 }
 
-const handleSubmit = async () => {
+const handleSubmit = () => {
   if (saveInProgress.value) return
 
   if (!validateForm()) {
@@ -262,26 +295,21 @@ const handleSubmit = async () => {
     return
   }
 
-  isLoading.value = true
   saveInProgress.value = true
 
-  try {
-    const citaData: CitaFormData & { id?: string } = {
-      ...formData.value,
-    }
-
-    if (modalData.value?.cita?.id) {
-      citaData.id = modalData.value.cita.id
-    }
-
-    emit('save', citaData)
-  } catch (err) {
-    showError(`Error al guardar la ${t.value.appointment.toLowerCase()}`)
-    console.error(err)
-  } finally {
-    isLoading.value = false
-    saveInProgress.value = false
+  const citaData: CitaFormData & { id?: string } = {
+    ...formData.value,
   }
+
+  if (modalData.value?.cita?.id) {
+    citaData.id = modalData.value.cita.id
+  }
+
+  emit('save', citaData)
+}
+
+const onSaveComplete = () => {
+  saveInProgress.value = false
 }
 
 const open = (cita?: Cita) => {
@@ -292,5 +320,6 @@ defineExpose({
   open,
   close,
   isOpen,
+  onSaveComplete,
 })
 </script>

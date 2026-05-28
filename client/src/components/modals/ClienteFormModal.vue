@@ -84,6 +84,16 @@
         :is-vet="isVetNiche"
         @update:fields="onUpdatePet"
       />
+
+      <div v-if="isEditing" class="border-t border-border pt-4">
+        <button
+          type="button"
+          class="rounded-lg border border-danger/30 px-4 py-2 text-sm font-semibold text-danger transition-theme hover:bg-danger/10"
+          @click="confirmDelete"
+        >
+          Eliminar {{ terminology.client.toLowerCase() }}
+        </button>
+      </div>
     </form>
   </ModalBase>
 </template>
@@ -107,6 +117,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   save: [cliente: ClienteFormData & { id?: string }]
+  delete: [clienteId: string]
 }>()
 
 const { isOpen, modalData, close } = useModal(MODAL_ID)
@@ -277,6 +288,16 @@ const validateForm = (): boolean => {
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
+}
+
+const confirmDelete = () => {
+  const id = modalData.value?.cliente?.id
+  if (!id) return
+  const name = formData.value.name
+  const msg = `¿Eliminar a "${name}"?\n\nSe eliminarán todos sus datos. Esta acción no se puede deshacer.`
+  if (window.confirm(msg)) {
+    emit('delete', id)
+  }
 }
 
 const handleSubmit = async () => {

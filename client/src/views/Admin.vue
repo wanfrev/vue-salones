@@ -209,9 +209,11 @@ const saveCitaMutation = useMutation({
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: ['appointments'] })
     citaModalRef.value?.close()
+    citaModalRef.value?.onSaveComplete()
     success('Cita guardada correctamente')
   },
   onError: (err) => {
+    citaModalRef.value?.onSaveComplete()
     showError(err instanceof Error ? err.message : 'Error al guardar la cita')
   },
 })

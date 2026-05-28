@@ -89,6 +89,15 @@ export const getClienteById = async (id: string): Promise<Cliente> => {
   return mapClientToCliente(data as Client)
 }
 
+export const deleteCliente = async (clientId: string): Promise<void> => {
+  const { error } = await supabase
+    .from('clients')
+    .delete()
+    .eq('id', clientId)
+
+  if (error) throw error
+}
+
 export const findOrCreateClientByPhone = async (
   businessId: string,
   input: { fullName: string; phone: string; email?: string | null; notes?: string | null }

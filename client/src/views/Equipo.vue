@@ -204,6 +204,7 @@
   <EmpleadoFormModal
     ref="empleadoModalRef"
     @save="handleSaveEmpleado"
+    @delete="handleDeleteEmpleado"
   />
 </template>
 
@@ -213,7 +214,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
-import { equipoKeys, listEquipo, saveEmpleado } from '../services/equipoService'
+import { deleteEmpleado, equipoKeys, listEquipo, saveEmpleado } from '../services/equipoService'
 import Sidebar from '../components/layout/Sidebar.vue'
 import { EmpleadoFormModal } from '../components/modals'
 import type { Empleado, EmpleadoFormData } from '../types/empleado'
@@ -282,6 +283,22 @@ const handleSaveEmpleado = async (data: EmpleadoFormData & { id?: string }) => {
   } catch (err) {
     showError(err instanceof Error ? err.message : 'No fue posible guardar el empleado')
   }
+}
+
+const deleteEmpleadoMutation = useMutation({
+  mutationFn: (profileId: string) => deleteEmpleado(profileId),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: equipoKeys.all(businessId.value) })
+    empleadoModalRef.value?.close()
+    success('Empleado eliminado correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al eliminar el empleado')
+  },
+})
+
+const handleDeleteEmpleado = (empleadoId: string) => {
+  deleteEmpleadoMutation.mutate(empleadoId)
 }
 
 const handleViewAgenda = (empleado: Empleado) => {
