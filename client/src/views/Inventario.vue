@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-bg">
-    <header class="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4 lg:hidden">
+    <header class="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
       <div class="flex items-center gap-3">
         <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
           <svg v-if="!isSidebarOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -10,12 +10,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-          <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-          </svg>
+        <div class="flex flex-col">
+          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-6 w-auto object-contain" />
+          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
         </div>
-        <span class="font-bold text-text">SalónApp</span>
       </div>
       <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -309,16 +307,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { adjustInventory, sellProduct, inventarioKeys, listInventario, listInventoryLocations, listInventoryMovements } from '../services/inventarioService'
+import { useThemeStore } from '../store/theme'
 import Sidebar from '../components/layout/Sidebar.vue'
 import { ModalBase } from '../components/common'
 import { FormInput } from '../components/forms'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { InventarioItem, InventarioLocation, InventarioMovimiento } from '../types/inventario'
 
 const { logout, authStore } = useAuth()
 const { success, error: showError } = useNotification()
+const themeStore = useThemeStore()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 const showMovements = ref(false)
 const searchQuery = ref('')
 const movementSearch = ref('')

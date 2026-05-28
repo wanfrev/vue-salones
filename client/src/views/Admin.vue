@@ -155,19 +155,23 @@ import { useNotification } from '../composables/useNotification'
 import { agendaKeys, exportCitasToCsv, listCitas, saveCita, updateCitaStatus, updateAppointmentTime } from '../services/agendaService'
 import { equipoKeys, listEquipo } from '../services/equipoService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
+import { useThemeStore } from '../store/theme'
 import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
 import Sidebar from '../components/layout/Sidebar.vue'
 import { CitaFormModal } from '../components/modals'
-import lumaLogo from '../assets/Luma.svg'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Cita, CitaFormData } from '../types/cita'
 
 const { logout, authStore } = useAuth()
 const { success, error: showError } = useNotification()
+const themeStore = useThemeStore()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
 const businessId = computed(() => authStore.businessId)
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 const todayRange = computed(() => {
   const start = new Date()

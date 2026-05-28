@@ -63,19 +63,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { resolveHomeByRole } from '../constants/roles'
-import lumaLogo from '../assets/Luma.svg'
+import { useThemeStore } from '../store/theme'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
 
 const router = useRouter()
 const { loading, errorMessage, login, authStore } = useAuth()
+const themeStore = useThemeStore()
 
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const validationError = ref('')
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 const submitLogin = async () => {
   if (!email.value.trim() || !password.value.trim()) {

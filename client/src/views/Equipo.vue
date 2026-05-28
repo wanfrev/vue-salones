@@ -210,17 +210,22 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { deleteEmpleado, equipoKeys, listEquipo, saveEmpleado } from '../services/equipoService'
+import { useThemeStore } from '../store/theme'
 import Sidebar from '../components/layout/Sidebar.vue'
 import { EmpleadoFormModal } from '../components/modals'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Empleado, EmpleadoFormData } from '../types/empleado'
 
 const router = useRouter()
 const { logout, authStore } = useAuth()
 const { success, info, error: showError } = useNotification()
+const themeStore = useThemeStore()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
 const empleadoModalRef = ref<InstanceType<typeof EmpleadoFormModal> | null>(null)
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 const businessId = computed(() => authStore.businessId)
 

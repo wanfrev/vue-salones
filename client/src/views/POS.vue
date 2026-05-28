@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-bg">
-    <header class="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4 lg:hidden">
+    <header class="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
       <div class="flex items-center gap-3">
         <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
           <svg v-if="!isSidebarOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -10,12 +10,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-          <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
-          </svg>
+        <div class="flex flex-col">
+          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-6 w-auto object-contain" />
+          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
         </div>
-        <span class="font-bold text-text">SalónApp</span>
       </div>
       <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -310,16 +308,21 @@ import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
 import { listPendingAppointments, listSaleableProducts, recordSale } from '../services/posService'
+import { useThemeStore } from '../store/theme'
 import Sidebar from '../components/layout/Sidebar.vue'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { PaymentMethod } from '../types/database'
 import type { POSProductItem, PaymentBreakdownItem } from '../types/pos'
 
 const { logout, authStore } = useAuth()
 const { exchangeRate, formatDual } = useCurrency()
 const { success, error: showError } = useNotification()
+const themeStore = useThemeStore()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 const apptSearch = ref('')
 const productSearch = ref('')
 const selectedAppointment = ref<any>(null)

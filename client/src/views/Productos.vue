@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-bg">
-    <header class="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4 lg:hidden">
+    <header class="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
       <div class="flex items-center gap-3">
         <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
           <svg v-if="!isSidebarOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -10,12 +10,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-          <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
+        <div class="flex flex-col">
+          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-6 w-auto object-contain" />
+          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
         </div>
-        <span class="font-bold text-text">SalónApp</span>
       </div>
       <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -266,17 +264,22 @@ import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
 import { deleteProducto, listProductos, productosKeys, saveProducto } from '../services/productosService'
+import { useThemeStore } from '../store/theme'
 import Sidebar from '../components/layout/Sidebar.vue'
 import { ProductoFormModal } from '../components/modals'
 import { ModalBase } from '../components/common'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Producto, ProductoFormData } from '../types/producto'
 
 const { logout, authStore } = useAuth()
 const { formatUSD, formatVESInline } = useCurrency()
 const { success, error: showError, warning } = useNotification()
+const themeStore = useThemeStore()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 const activeTab = ref('todos')
 const searchQuery = ref('')
 const productoModalRef = ref<InstanceType<typeof ProductoFormModal> | null>(null)

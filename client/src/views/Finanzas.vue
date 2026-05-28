@@ -487,7 +487,10 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
+import { useThemeStore } from '../store/theme'
 import Sidebar from '../components/layout/Sidebar.vue'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Expense, Transaction } from '../types/database'
 
 type SummaryBucket = {
@@ -527,7 +530,9 @@ type TransactionRow = {
 const { logout, authStore } = useAuth()
 const { exchangeRate, formatUSD, formatVESInline, setExchangeRate, isAdmin } = useCurrency()
 const { success: notifySuccess, error: notifyError } = useNotification()
+const themeStore = useThemeStore()
 const isSidebarOpen = ref(false)
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 const editRateValue = ref(0)
 const updatingRate = ref(false)
 

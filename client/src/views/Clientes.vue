@@ -284,22 +284,26 @@ import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { usePagination } from '../composables/usePagination'
 import { clientesKeys, deleteCliente, listClientes, saveCliente } from '../services/clientesService'
+import { useThemeStore } from '../store/theme'
 import Sidebar from '../components/layout/Sidebar.vue'
 import { ClienteFormModal } from '../components/modals'
 import { FilterDrawer } from '../components/filters'
-import lumaLogo from '../assets/Luma.svg'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Cliente, ClienteFormData } from '../types/cliente'
 import type { FilterState } from '../components/filters'
 
 const router = useRouter()
 const { logout, authStore } = useAuth()
 const { success, info, error: showError } = useNotification()
+const themeStore = useThemeStore()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
 const searchQuery = ref('')
 const clienteModalRef = ref<InstanceType<typeof ClienteFormModal> | null>(null)
 const filterDrawerRef = ref<InstanceType<typeof FilterDrawer> | null>(null)
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 const businessId = computed(() => authStore.businessId)
 

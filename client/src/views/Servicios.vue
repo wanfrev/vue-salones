@@ -235,19 +235,24 @@ import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
 import { deleteServicio, listServicios, saveServicio, serviciosKeys } from '../services/serviciosService'
+import { useThemeStore } from '../store/theme'
 import Sidebar from '../components/layout/Sidebar.vue'
 import { ServicioFormModal } from '../components/modals'
 import { ModalBase } from '../components/common'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Servicio, ServicioFormData } from '../types/servicio'
 
 const { logout, authStore } = useAuth()
 const { formatVESInline, formatUSD } = useCurrency()
 const { success, error: showError, warning } = useNotification()
+const themeStore = useThemeStore()
 const queryClient = useQueryClient()
 
 const isSidebarOpen = ref(false)
 const activeCategory = ref('all')
 const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null)
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 // Delete modal state
 const isDeleteModalOpen = ref(false)
