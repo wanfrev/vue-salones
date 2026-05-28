@@ -5,8 +5,8 @@
     :subtitle="isEditing ? `Editando ${formData.name}` : `Agrega un nuevo ${t.service.toLowerCase()} al catálogo`"
     :icon="isEditing ? 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' : 'M12 6v6m0 0v6m0-6h6m-6 0H6'"
     size="md"
-    :is-loading="isLoading"
-    :is-confirm-disabled="!isFormValid"
+    :is-loading="isSaving"
+    :is-confirm-disabled="!isFormValid || isSaving"
     :confirm-text="`Guardar ${t.service}`"
     @close="close"
     @confirm="handleSubmit"
@@ -112,6 +112,14 @@ const emit = defineEmits<{
   save: [servicio: ServicioFormData & { id?: string }]
 }>()
 
+interface Props {
+  isSaving?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isSaving: false,
+})
+
 const { isOpen, modalData, close } = useModal(MODAL_ID)
 const { error: showError } = useNotification()
 const authStore = useAuthStore()
@@ -119,7 +127,6 @@ const authStore = useAuthStore()
 const t = computed(() => authStore.terminology)
 const nicheType = computed(() => authStore.nicheType)
 
-const isLoading = ref(false)
 const isEditing = computed(() => !!modalData.value?.servicio)
 
 const serviceNamePlaceholder = computed(() => {
@@ -312,8 +319,6 @@ const handleSubmit = async () => {
     return
   }
 
-  isLoading.value = true
-
   try {
     const category = formData.value.category.trim()
 
@@ -340,8 +345,6 @@ const handleSubmit = async () => {
   } catch (err) {
     showError(`Error al guardar el ${t.value.service.toLowerCase()}`)
     console.error(err)
-  } finally {
-    isLoading.value = false
   }
 }
 

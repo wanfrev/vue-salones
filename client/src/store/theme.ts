@@ -1,4 +1,4 @@
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -111,9 +111,7 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   // Inicializar automaticamente cuando se usa el store
-  onMounted(() => {
-    initialize()
-  })
+  initialize()
 
   // Watch para cambios en modo o preferencia del sistema
   watch([mode, systemPrefersDark], () => {
