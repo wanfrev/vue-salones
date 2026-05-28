@@ -17,7 +17,7 @@
           </svg>
         </div>
         <div class="flex flex-col">
-          <span class="font-bold text-text leading-tight">Andrus</span>
+          <img :src="lumaLogo" alt="Luma" class="h-6 w-auto object-contain" />
           <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
         </div>
       </div>
@@ -294,6 +294,7 @@ import { clientesKeys, listClientes, saveCliente } from '../services/clientesSer
 import Sidebar from '../components/layout/Sidebar.vue'
 import { ClienteFormModal } from '../components/modals'
 import { FilterDrawer } from '../components/filters'
+import lumaLogo from '../assets/Luma.svg'
 import type { Cliente, ClienteFormData } from '../types/cliente'
 import type { FilterState } from '../components/filters'
 

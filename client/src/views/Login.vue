@@ -8,10 +8,7 @@
 
     <div class="relative z-10 w-full max-w-md rounded-2xl border border-border bg-surface p-10 shadow-xl transition-theme">
       <div class="mb-6 text-center">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
-          <span class="text-2xl font-bold text-text-inverse">S</span>
-        </div>
-        <h1 class="text-2xl font-bold tracking-tight text-text">Salón</h1>
+        <img :src="lumaLogo" alt="Luma" class="mx-auto mb-4 h-14 w-auto object-contain sm:h-16" />
         <p class="mt-1 text-sm text-primary">Inicia sesión para acceder al panel</p>
       </div>
 
@@ -70,6 +67,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { resolveHomeByRole } from '../constants/roles'
+import lumaLogo from '../assets/Luma.svg'
 
 const router = useRouter()
 const { loading, errorMessage, login, authStore } = useAuth()

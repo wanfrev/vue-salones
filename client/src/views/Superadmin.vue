@@ -38,7 +38,7 @@
                 v-model="form.businessName"
                 type="text"
                 class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-                placeholder="Salon Andrus"
+                placeholder="Salon Luma"
               />
             </div>
 
