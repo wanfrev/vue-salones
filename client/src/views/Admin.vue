@@ -1,14 +1,7 @@
 <template>
   <div class="min-h-screen bg-bg">
-<<<<<<< Updated upstream
     <!-- Top Header -->
     <header class="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
-=======
-    <header :class="[
-      'fixed right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4 transition-all duration-300',
-      isSidebarOpen ? 'left-0 lg:left-64' : 'left-0'
-    ]">
->>>>>>> Stashed changes
       <div class="flex items-center gap-2">
         <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -27,18 +20,11 @@
       </button>
     </header>
 
-    <Sidebar v-if="isSidebarOpen" :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
+    <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
 
     <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 top-16 z-30 bg-black/50 lg:hidden"></div>
 
-<<<<<<< Updated upstream
     <main class="ml-0 min-h-screen pt-16 lg:ml-64">
-=======
-    <main :class="[
-      'min-h-screen pt-16 transition-all duration-300',
-      isSidebarOpen ? 'ml-0 lg:ml-64' : 'ml-0'
-    ]">
->>>>>>> Stashed changes
       <div class="p-4 lg:p-6">
         <!-- Header -->
         <header class="mb-4">
@@ -179,7 +165,7 @@ const { logout, authStore } = useAuth()
 const { success, error: showError } = useNotification()
 const queryClient = useQueryClient()
 
-const isSidebarOpen = ref(typeof window !== 'undefined' ? window.innerWidth >= 1024 : false)
+const isSidebarOpen = ref(false)
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
 const businessId = computed(() => authStore.businessId)
 
