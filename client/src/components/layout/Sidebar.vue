@@ -1,9 +1,10 @@
 <template>
   <aside
     :class="[
-      'fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-surface border-r border-border shadow-xl transition-theme transition-transform duration-300 lg:translate-x-0 flex flex-col',
-      // z-40 para que quede debajo del top header (z-50) pero arriba del overlay (z-30)
-      isOpen ? 'z-40 translate-x-0' : 'z-40 -translate-x-full lg:z-40'
+      'fixed left-0 top-0 h-full w-64 bg-surface border-r border-border shadow-xl transition-theme transition-transform duration-300 lg:translate-x-0 flex flex-col',
+      // En móvil: z-50 cuando está abierto para estar por encima del header (z-40)
+      // En desktop: z-30 está bien porque el header móvil está oculto
+      isOpen ? 'z-50 translate-x-0' : 'z-30 -translate-x-full lg:z-30'
     ]"
   >
 
