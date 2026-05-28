@@ -1,22 +1,17 @@
 <template>
   <div class="min-h-screen bg-bg">
-    <!-- Mobile Header -->
-    <header class="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4 lg:hidden">
-      <div class="flex items-center gap-3">
-        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary">
-          <svg v-if="!isSidebarOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <!-- Top Header -->
+    <header class="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
+      <div class="flex items-center gap-2">
+        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-          <svg v-else class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
         </button>
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-          <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+        <div class="flex flex-col">
+          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-6 w-auto object-contain" />
+          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
         </div>
-        <span class="font-bold text-text">SalónApp</span>
       </div>
       <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -26,9 +21,9 @@
     </header>
 
     <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
-    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 z-20 bg-black/50 lg:hidden"></div>
+    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 top-16 z-30 bg-black/50 lg:hidden"></div>
 
-    <main class="ml-0 min-h-screen pt-16 lg:ml-64 lg:pt-0">
+    <main class="ml-0 min-h-screen pt-16 lg:ml-64">
       <div class="p-4 lg:p-6">
         <!-- Header -->
         <header class="mb-4 lg:mb-6">

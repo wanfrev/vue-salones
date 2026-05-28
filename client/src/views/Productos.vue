@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-bg">
     <header class="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4 lg:hidden">
       <div class="flex items-center gap-3">
-        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary">
+        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
           <svg v-if="!isSidebarOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
@@ -25,9 +25,9 @@
     </header>
 
     <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
-    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 z-20 bg-black/50 lg:hidden"></div>
+    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 top-16 z-30 bg-black/50 lg:hidden"></div>
 
-    <main class="ml-0 min-h-screen pt-16 lg:ml-64 lg:pt-0">
+    <main class="ml-0 min-h-screen pt-16 lg:ml-64">
       <div class="p-4 lg:p-6">
         <header class="mb-4 lg:mb-6">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
