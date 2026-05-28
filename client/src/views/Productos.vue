@@ -235,6 +235,7 @@
 
     <ProductoFormModal
       ref="productoModalRef"
+      :is-saving="saveProductoMutation.isPending.value"
       @save="handleSaveProducto"
     />
 
@@ -349,7 +350,11 @@ const handleEditProducto = (producto: Producto) => {
 }
 
 const handleSaveProducto = async (data: ProductoFormData & { id?: string }) => {
-  await saveProductoMutation.mutateAsync(data)
+  try {
+    await saveProductoMutation.mutateAsync(data)
+  } catch {
+    // Error is handled by mutation's onError
+  }
 }
 
 const handleDeleteProducto = (producto: Producto) => {

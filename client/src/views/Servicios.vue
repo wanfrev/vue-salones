@@ -204,6 +204,7 @@
   <!-- Modals -->
   <ServicioFormModal
     ref="servicioModalRef"
+    :is-saving="saveServicioMutation.isPending.value"
     @save="handleSaveServicio"
   />
 
@@ -312,7 +313,11 @@ const handleEditServicio = (servicio: Servicio) => {
 }
 
 const handleSaveServicio = async (data: ServicioFormData & { id?: string }) => {
-  await saveServicioMutation.mutateAsync(data)
+  try {
+    await saveServicioMutation.mutateAsync(data)
+  } catch {
+    // Error is handled by mutation's onError
+  }
 }
 
 const handleDeleteServicio = (servicio: Servicio) => {

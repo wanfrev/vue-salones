@@ -17,7 +17,7 @@ export const listCitas = async (
 ): Promise<Cita[]> => {
   let query = supabase
     .from('appointments')
-    .select('*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles(id, full_name, avatar_url)')
+    .select('*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url)')
     .eq('business_id', businessId)
     .order('start_time')
 
@@ -66,8 +66,8 @@ export const saveCita = async (
   )
 
   const query = data.id
-    ? writableSupabase.from('appointments').update(payload).eq('id', data.id).select('*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles(id, full_name, avatar_url)').single()
-    : writableSupabase.from('appointments').insert(payload).select('*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles(id, full_name, avatar_url)').single()
+    ? writableSupabase.from('appointments').update(payload).eq('id', data.id).select('*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url)').single()
+    : writableSupabase.from('appointments').insert(payload).select('*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url)').single()
 
   const { data: saved, error } = await query
   if (error) throw error
