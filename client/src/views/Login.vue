@@ -1,6 +1,12 @@
 <template>
   <div class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 bg-bg-secondary">
     <div
+      class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+      :style="{ backgroundImage: `url('${loginBackground}')` }"
+      aria-hidden="true"
+    ></div>
+    <div class="absolute inset-0 bg-black/30" aria-hidden="true"></div>
+    <div
       class="absolute inset-0 opacity-30"
       aria-hidden="true"
       style="background-image: radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15), transparent 40%), radial-gradient(circle at 80% 70%, rgba(15, 23, 42, 0.1), transparent 35%);"
@@ -70,6 +76,7 @@ import { resolveHomeByRole } from '../constants/roles'
 import { useThemeStore } from '../store/theme'
 import lumaLogoLight from '../assets/Luma.svg'
 import lumaLogoDark from '../assets/Luma blanco.svg'
+import loginBackground from '../assets/Fondo.jpg'
 
 const router = useRouter()
 const { loading, errorMessage, login, authStore } = useAuth()
