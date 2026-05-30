@@ -8,14 +8,22 @@ export const mapAppointmentToCita = (appointment: AppointmentWithRelations): Cit
   const service = appointment.services
   const employee = appointment.profiles
   const client = appointment.clients
-  const normalizedStatus = appointment.status === 'no_show' ? 'cancelled' : appointment.status
+  const normalizedStatus = appointment.payment_status === 'paid'
+    ? 'paid'
+    : appointment.status === 'no_show'
+      ? 'cancelled'
+      : appointment.status === 'completed'
+        ? 'confirmed'
+      : appointment.status
   const statusLabel = normalizedStatus === 'confirmed'
     ? 'Confirmada'
     : normalizedStatus === 'pending'
       ? 'Pendiente'
       : normalizedStatus === 'cancelled'
         ? 'Cancelada'
-        : 'Completada'
+        : normalizedStatus === 'paid'
+          ? 'Pagada'
+        : 'Confirmada'
 
   const statusColor = normalizedStatus === 'confirmed'
     ? 'var(--color-primary)'
@@ -23,7 +31,9 @@ export const mapAppointmentToCita = (appointment: AppointmentWithRelations): Cit
       ? 'var(--color-warning)'
       : normalizedStatus === 'cancelled'
         ? 'var(--color-danger)'
-        : 'var(--color-text-secondary)'
+      : normalizedStatus === 'paid'
+        ? 'var(--color-success)'
+        : 'var(--color-primary)'
 
   return {
     id: appointment.id,
@@ -38,6 +48,7 @@ export const mapAppointmentToCita = (appointment: AppointmentWithRelations): Cit
     duration: service?.duration_minutes ?? Math.round((new Date(appointment.end_time).getTime() - new Date(appointment.start_time).getTime()) / 60000),
     price: Number(service?.price ?? 0),
     status: normalizedStatus,
+    paymentStatus: appointment.payment_status,
     statusLabel,
     statusColor,
     notes: appointment.internal_notes ?? '',
@@ -54,6 +65,9 @@ export const mapCitaFormToAppointmentInsert = (
   const startTime = new Date(`${data.date}T${data.time}:00`)
   const endTime = new Date(startTime.getTime() + service.duration_minutes * 60 * 1000)
 
+  const isPaidStatus = data.status === 'paid'
+  const appointmentStatus = isPaidStatus ? 'completed' : data.status
+
   return {
     business_id: businessId,
     client_id: clientId,
@@ -61,8 +75,8 @@ export const mapCitaFormToAppointmentInsert = (
     service_id: data.service,
     start_time: startTime.toISOString(),
     end_time: endTime.toISOString(),
-    status: data.status,
-    payment_status: 'unpaid' as const,
+    status: appointmentStatus,
+    payment_status: isPaidStatus ? 'paid' as const : 'unpaid' as const,
     internal_notes: data.notes.trim() || null,
     source: 'internal' as const,
     created_by: createdBy ?? null,

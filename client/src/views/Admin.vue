@@ -220,7 +220,7 @@ const saveCitaMutation = useMutation({
 })
 
 const updateStatusMutation = useMutation({
-  mutationFn: ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }) => updateCitaStatus(id, status),
+  mutationFn: ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }) => updateCitaStatus(id, status),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: ['appointments'] })
   },
@@ -286,7 +286,7 @@ const handleSaveCita = async (data: CitaFormData & { id?: string; clientPhone?: 
   await saveCitaMutation.mutateAsync(data)
 }
 
-const handleStatusChange = async ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }) => {
+const handleStatusChange = async ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }) => {
   await updateStatusMutation.mutateAsync({ id, status })
   success(`Estado actualizado a ${status}`)
 }

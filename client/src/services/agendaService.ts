@@ -5,6 +5,33 @@ import type { AppointmentWithRelations, Service } from '../types/database'
 import type { Cita, CitaFormData } from '../types/cita'
 
 const writableSupabase = supabase as any
+const EMPLOYEE_OVERLAP_CONSTRAINT = 'appointments_no_employee_overlap'
+
+type SupabaseErrorLike = {
+  code?: string
+  message?: string
+  details?: string
+  hint?: string
+}
+
+const isEmployeeOverlapError = (error: unknown): error is SupabaseErrorLike => {
+  if (!error || typeof error !== 'object') return false
+  const candidate = error as SupabaseErrorLike
+  const message = candidate.message ?? ''
+  const details = candidate.details ?? ''
+  return candidate.code === '23P01' ||
+    message.includes(EMPLOYEE_OVERLAP_CONSTRAINT) ||
+    details.includes(EMPLOYEE_OVERLAP_CONSTRAINT)
+}
+
+const mapAgendaWriteError = (error: unknown, action: 'guardar' | 'reagendar') => {
+  if (isEmployeeOverlapError(error)) {
+    return new Error(`No se puede ${action} la cita: el empleado ya tiene otra cita en ese horario.`)
+  }
+
+  if (error instanceof Error) return error
+  return new Error(`Error al ${action} la cita`)
+}
 
 export const agendaKeys = {
   appointments: (businessId?: string | null) => ['appointments', businessId] as const,
@@ -70,18 +97,22 @@ export const saveCita = async (
     : writableSupabase.from('appointments').insert(payload).select('*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url)').single()
 
   const { data: saved, error } = await query
-  if (error) throw error
+  if (error) throw mapAgendaWriteError(error, 'guardar')
 
   return mapAppointmentToCita(saved as AppointmentWithRelations)
 }
 
 export const updateCitaStatus = async (
   id: string,
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
+  status: 'pending' | 'confirmed' | 'cancelled' | 'paid'
 ): Promise<void> => {
+  const statusPayload = status === 'paid'
+    ? { status: 'completed' as const, payment_status: 'paid' as const }
+    : { status, payment_status: 'unpaid' as const }
+
   const { error } = await writableSupabase
     .from('appointments')
-    .update({ status })
+    .update(statusPayload)
     .eq('id', id)
 
   if (error) throw error
@@ -97,7 +128,7 @@ export const updateAppointmentTime = async (
     .update({ start_time: startTime, end_time: endTime })
     .eq('id', id)
 
-  if (error) throw error
+  if (error) throw mapAgendaWriteError(error, 'reagendar')
 }
 
 export const exportCitasToCsv = (citas: Cita[]) => {

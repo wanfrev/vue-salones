@@ -53,7 +53,7 @@ export const useThemeStore = defineStore('theme', () => {
     // Meta tag para color de barra en moviles
     const metaThemeColor = document.querySelector('meta[name="theme-color"]')
     if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', isDarkMode ? '#0f172a' : '#ffffff')
+      metaThemeColor.setAttribute('content', isDarkMode ? '#121212' : '#ffffff')
     }
   }
 

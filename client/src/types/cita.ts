@@ -10,7 +10,8 @@ export interface Cita {
   time: string
   duration: number
   price: number
-  status: 'confirmed' | 'pending' | 'cancelled' | 'completed'
+  status: 'confirmed' | 'pending' | 'cancelled' | 'paid'
+  paymentStatus?: 'unpaid' | 'partial' | 'paid'
   statusLabel?: string
   statusColor?: string
   notes?: string
@@ -25,6 +26,6 @@ export interface CitaFormData {
   time: string
   duration: number
   price: number
-  status: 'confirmed' | 'pending' | 'cancelled'
+  status: 'confirmed' | 'pending' | 'cancelled' | 'paid'
   notes: string
 }

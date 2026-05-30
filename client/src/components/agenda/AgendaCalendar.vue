@@ -54,9 +54,9 @@
           <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
           <span class="text-[11px] font-medium text-text-secondary">Confirmada</span>
         </div>
-        <div class="flex items-center gap-1.5 rounded-md bg-text-secondary/5 px-2 py-1">
-          <span class="h-1.5 w-1.5 rounded-full bg-text-secondary"></span>
-          <span class="text-[11px] font-medium text-text-secondary">Completada</span>
+        <div class="flex items-center gap-1.5 rounded-md bg-success/5 px-2 py-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+          <span class="text-[11px] font-medium text-text-secondary">Pagada</span>
         </div>
         <div class="flex items-center gap-1.5 rounded-md bg-warning/5 px-2 py-1">
           <span class="h-1.5 w-1.5 rounded-full bg-warning"></span>
@@ -91,7 +91,7 @@ const authStore = useAuthStore()
 const isAdmin = computed(() => isAdminPanelRole(authStore.role ?? undefined))
 const emit = defineEmits<{
   eventClick: [event: { id: string; title: string; start: Date; end: Date; status?: string }]
-  statusChange: [payload: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'completed' }]
+  statusChange: [payload: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }]
   eventChange: [payload: { id: string; start: string; end: string }]
 }>()
 
@@ -114,7 +114,7 @@ onMounted(() => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'confirmed': return 'var(--color-primary)'
-    case 'completed': return 'var(--color-text-secondary)'
+    case 'paid': return 'var(--color-success)'
     case 'pending': return 'var(--color-warning)'
     case 'cancelled':
     case 'no_show': return 'var(--color-danger)'
@@ -125,7 +125,7 @@ const getStatusColor = (status: string) => {
 const getStatusLabel = (status: string) => {
   switch (status) {
     case 'confirmed': return 'Confirmada'
-    case 'completed': return 'Completada'
+    case 'paid': return 'Pagada'
     case 'pending': return 'Pendiente'
     case 'cancelled':
     case 'no_show': return 'Cancelada'
@@ -136,7 +136,7 @@ const getStatusLabel = (status: string) => {
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'confirmed': return 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-    case 'completed': return 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+    case 'paid': return 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1m0-1a3.5 3.5 0 01-2.5-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
     case 'pending': return 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
     case 'cancelled':
     case 'no_show': return 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
@@ -147,9 +147,16 @@ const getStatusIcon = (status: string) => {
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'pending', label: 'Pendiente' },
   { value: 'confirmed', label: 'Confirmada' },
-  { value: 'completed', label: 'Completada' },
+  { value: 'paid', label: 'Pagada' },
   { value: 'cancelled', label: 'Cancelada' },
 ]
+
+const getVisualStatus = (appt: any) => {
+  if (appt.payment_status === 'paid') return 'paid'
+  if (appt.status === 'no_show') return 'cancelled'
+  if (appt.status === 'completed') return 'confirmed'
+  return appt.status
+}
 
 const calendarEvents = computed<EventInput[]>(() => {
   const events: EventInput[] = []
@@ -169,28 +176,28 @@ const calendarEvents = computed<EventInput[]>(() => {
 
   if (appointments.value) {
     appointments.value.forEach(appt => {
+      const visualStatus = getVisualStatus(appt)
       const service = services.value?.find(s => s.id === appt.service_id)
       const employee = employees.value?.find(e => e.id === appt.employee_id)
       const clientName = appt.clients?.full_name || ''
-
-      const title = clientName ? `${clientName}` : (service ? service.name : 'Cita')
-      const empName = employee ? ` · ${employee.full_name}` : ''
+      const title = clientName || 'Cliente'
 
       events.push({
         id: appt.id,
-        title: `${title}${empName}`,
+        title,
         start: appt.start_time,
         end: appt.end_time,
-        color: getStatusColor(appt.status),
-        classNames: ['agenda-event', `agenda-status-${appt.status}`],
+        color: getStatusColor(visualStatus),
+        classNames: ['agenda-event', `agenda-status-${visualStatus}`],
         extendedProps: {
           ...appt,
+          status: visualStatus,
           serviceName: service?.name,
           employeeName: employee?.full_name,
           clientName,
-          statusLabel: getStatusLabel(appt.status),
-          statusColor: getStatusColor(appt.status),
-          statusIcon: getStatusIcon(appt.status),
+          statusLabel: getStatusLabel(visualStatus),
+          statusColor: getStatusColor(visualStatus),
+          statusIcon: getStatusIcon(visualStatus),
         }
       })
     })
@@ -221,6 +228,8 @@ const calendarOptions = computed<CalendarOptions>(() => ({
     const statusLabel = extProps?.statusLabel || ''
     const statusColor = extProps?.statusColor || 'var(--color-primary)'
     const statusIcon = extProps?.statusIcon || ''
+    const serviceName = extProps?.serviceName || 'Servicio'
+    const employeeName = extProps?.employeeName || ''
     const timeText = arg.timeText
     const titleText = arg.event.title
     const isMonthView = arg.view.type === 'dayGridMonth'
@@ -260,12 +269,17 @@ const calendarOptions = computed<CalendarOptions>(() => ({
     title.className = 'agenda-event-title'
     title.textContent = titleText
 
+    const service = document.createElement('div')
+    service.className = 'agenda-event-service'
+    service.textContent = employeeName ? `${serviceName} · ${employeeName}` : serviceName
+
     const time = document.createElement('div')
     time.className = 'agenda-event-time'
     time.textContent = timeText
 
     container.appendChild(topRow)
     container.appendChild(title)
+    container.appendChild(service)
     if (!isMonthView) {
       container.appendChild(time)
     }
@@ -837,6 +851,13 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   .agenda-event-title {
     font-size: 0.8125rem;
   }
+}
+
+.agenda-event-service {
+  font-size: 0.66rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.86);
+  line-height: 1.2;
 }
 
 .agenda-event-time {

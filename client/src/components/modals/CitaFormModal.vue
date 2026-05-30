@@ -159,6 +159,7 @@ const employeeOptions = computed(() =>
 const statusOptions = [
   { value: 'confirmed', label: 'Confirmada' },
   { value: 'pending', label: 'Pendiente' },
+  { value: 'paid', label: 'Pagada' },
   { value: 'cancelled', label: 'Cancelada' },
 ]
 
