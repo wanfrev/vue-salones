@@ -1,6 +1,6 @@
 import type {
   Business, Profile, EmployeeSchedule, Service,
-  Client, Appointment, Transaction,
+  Client, Appointment, Transaction, EmployeePayment,
   ProductCategory, Product, ProductVariant,
   InventoryLocation, InventoryStock, InventoryMovement
 } from '../../types/database'
@@ -41,6 +41,7 @@ export interface MockDataStore {
   inventory_locations: InventoryLocation[]
   inventory_stock: InventoryStock[]
   inventory_movements: InventoryMovement[]
+  employee_payments: EmployeePayment[]
   [key: string]: any[]
 }
 
@@ -261,6 +262,11 @@ export function createMockDataStore(): MockDataStore {
     { id: 'mov-03', business_id: BIZ, location_id: LOC2, product_id: PROD2, variant_id: null, movement_type: 'purchase', quantity: 50, unit_cost: 250, reference_type: null, reference_id: null, notes: 'Compra inicial', created_by: ADMIN, created_at: now },
   ]
 
+  const employee_payments: EmployeePayment[] = [
+    { id: 'ep-01', business_id: BIZ, employee_id: EMP1, amount: 125, payment_method: 'cash', notes: 'Pago comisión servicios', payment_date: dateOffset(-1).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
+    { id: 'ep-02', business_id: BIZ, employee_id: EMP2, amount: 80, payment_method: 'transfer', notes: 'Anticipo semanal', payment_date: dateOffset(-3).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
+  ]
+
   return {
     businesses, profiles, employee_schedules,
     services, service_categories: [], service_variants: [],
@@ -270,5 +276,6 @@ export function createMockDataStore(): MockDataStore {
     employee_absences: [],
     product_categories, products, product_variants,
     inventory_locations, inventory_stock, inventory_movements,
+    employee_payments,
   }
 }

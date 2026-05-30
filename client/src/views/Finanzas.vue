@@ -295,14 +295,19 @@
           </div>
         </div>
 
-        <!-- Employee Payments Table -->
+        <!-- Employee Payments Section -->
         <div class="mb-4 rounded-xl border border-border bg-surface p-4">
           <div class="mb-4 flex items-center justify-between">
             <div>
               <h3 class="text-base font-semibold text-text">Pagos a Empleados</h3>
               <p class="text-sm text-text-muted">Servicios realizados y comisión aplicada</p>
             </div>
-            <button class="text-sm text-primary hover:text-primary-hover transition-theme">Ver detalles</button>
+            <button @click="openPaymentModal" class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span class="hidden sm:inline">Registrar pago</span>
+            </button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full">
@@ -331,6 +336,35 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div v-if="employeePaymentsMade.length > 0" class="mt-4 border-t border-border-subtle pt-4">
+            <div class="mb-3 flex items-center justify-between">
+              <h4 class="text-sm font-semibold text-text">Pagos realizados</h4>
+              <span class="text-xs text-text-muted">{{ employeePaymentsMade.length }} pago(s)</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="border-b border-border-subtle">
+                    <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
+                    <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.employee || 'Empleado' }}</th>
+                    <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
+                    <th class="pb-2 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border-subtle">
+                  <tr v-for="ep in employeePaymentsMade" :key="ep.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+                    <td class="py-2 text-text-secondary whitespace-nowrap">{{ ep.paymentDate }}</td>
+                    <td class="py-2 font-medium text-text">{{ ep.employeeName }}</td>
+                    <td class="py-2 text-text-secondary">{{ formatMethod(ep.paymentMethod) }}</td>
+                    <td class="py-2 text-right">
+                      <div class="font-medium text-danger">{{ formatUSD(ep.amount) }}</div>
+                      <div class="text-xs text-text-muted">Bs {{ formatVESInline(ep.amount) }}</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -477,6 +511,105 @@
           </form>
         </div>
       </div>
+
+      <!-- Employee Payment Modal -->
+      <div
+        v-if="showPaymentModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        @click.self="closePaymentModal"
+      >
+        <div class="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
+          <div class="mb-4">
+            <h2 class="text-lg font-semibold text-text">Registrar pago a {{ authStore.terminology.employee || 'empleado' }}</h2>
+            <p class="text-sm text-text-muted">Registra un adelanto, sueldo o comisión pagada</p>
+          </div>
+
+          <form class="space-y-4" @submit.prevent="handleSavePayment">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text">{{ authStore.terminology.employee || 'Empleado' }}</label>
+              <select
+                v-model="paymentForm.employeeId"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                required
+              >
+                <option value="" disabled>Seleccionar {{ (authStore.terminology.employee || 'empleado').toLowerCase() }}</option>
+                <option v-for="emp in employeeList" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-text" for="pay-amount">Monto ($)</label>
+                <input
+                  id="pay-amount"
+                  v-model.number="paymentForm.amount"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-text" for="pay-method">Método</label>
+                <select
+                  id="pay-method"
+                  v-model="paymentForm.method"
+                  class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                >
+                  <option value="cash">Efectivo</option>
+                  <option value="card">Tarjeta</option>
+                  <option value="transfer">Transferencia</option>
+                  <option value="zelle">Zelle</option>
+                  <option value="pago_movil">Pago Móvil</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text" for="pay-date">Fecha</label>
+              <input
+                id="pay-date"
+                v-model="paymentForm.date"
+                type="date"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text" for="pay-notes">Notas</label>
+              <input
+                id="pay-notes"
+                v-model="paymentForm.notes"
+                type="text"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                placeholder="Ej: Comisión servicios, adelanto..."
+              />
+            </div>
+
+            <p v-if="paymentError" class="text-sm text-danger">{{ paymentError }}</p>
+
+            <div class="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
+                @click="closePaymentModal"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                :disabled="savingPayment"
+                class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {{ savingPayment ? 'Guardando...' : 'Guardar pago' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </main>
   </div>
 </template>
@@ -492,6 +625,11 @@ import Sidebar from '../components/layout/Sidebar.vue'
 import lumaLogoLight from '../assets/Luma.svg'
 import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Expense, Transaction } from '../types/database'
+interface EmployeeOption {
+  id: string
+  name: string
+}
+import { listEmployeePayments, createEmployeePayment, employeePaymentKeys, type EmployeePaymentRecord } from '../services/employeePaymentsService'
 
 type SummaryBucket = {
   bucket: string
@@ -547,6 +685,97 @@ const expenseForm = ref({
   date: new Date().toISOString().slice(0, 10),
   notes: '',
 })
+
+const showPaymentModal = ref(false)
+const savingPayment = ref(false)
+const paymentError = ref('')
+const paymentForm = ref({
+  employeeId: '',
+  amount: 0,
+  method: 'cash',
+  date: new Date().toISOString().slice(0, 10),
+  notes: '',
+})
+
+const employeeList = ref<EmployeeOption[]>([])
+const employeePaymentsMade = ref<EmployeePaymentRecord[]>([])
+
+const openPaymentModal = async () => {
+  paymentForm.value = {
+    employeeId: '',
+    amount: 0,
+    method: 'cash',
+    date: new Date().toISOString().slice(0, 10),
+    notes: '',
+  }
+  paymentError.value = ''
+  showPaymentModal.value = true
+  if (employeeList.value.length === 0 && authStore.businessId) {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('business_id', authStore.businessId)
+        .eq('role', 'empleado')
+        .eq('active', true)
+        .order('full_name')
+      if (!error) {
+        employeeList.value = (data ?? []).map((p: any) => ({
+          id: p.id, name: p.full_name,
+        }))
+      }
+    } catch { /* ignore */ }
+  }
+}
+
+const closePaymentModal = () => {
+  showPaymentModal.value = false
+  paymentError.value = ''
+}
+
+const handleSavePayment = async () => {
+  const businessId = authStore.businessId
+  if (!businessId) return
+  if (!paymentForm.value.employeeId) {
+    paymentError.value = 'Selecciona un empleado'
+    return
+  }
+  if (paymentForm.value.amount <= 0) {
+    paymentError.value = 'El monto debe ser mayor a 0'
+    return
+  }
+
+  savingPayment.value = true
+  paymentError.value = ''
+
+  try {
+    await createEmployeePayment(
+      businessId,
+      paymentForm.value.employeeId,
+      paymentForm.value.amount,
+      paymentForm.value.method,
+      paymentForm.value.notes,
+      paymentForm.value.date,
+    )
+    notifySuccess('Pago registrado correctamente')
+    closePaymentModal()
+    await loadEmployeePaymentsData()
+  } catch (err) {
+    paymentError.value = err instanceof Error ? err.message : 'Error al registrar el pago'
+  } finally {
+    savingPayment.value = false
+  }
+}
+
+const loadEmployeePaymentsData = async () => {
+  const businessId = authStore.businessId
+  if (!businessId) return
+  try {
+    employeePaymentsMade.value = await listEmployeePayments(businessId)
+  } catch {
+    employeePaymentsMade.value = []
+  }
+}
 
 const isTasaAdmin = computed(() => isAdmin.value)
 const exchangeRateDisplay = computed(() =>
@@ -872,6 +1101,8 @@ const loadFinancialData = async () => {
     percentage: row.employee_percentage ?? 0,
     earnings: row.total_amount * ((row.employee_percentage ?? 0) / 100),
   }))
+
+  await loadEmployeePaymentsData()
 }
 
 watch([() => authStore.businessId, selectedPeriod], () => {

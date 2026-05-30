@@ -288,6 +288,19 @@ export interface InventoryMovement {
   created_at: string
 }
 
+export interface EmployeePayment {
+  id: string
+  business_id: string
+  employee_id: string
+  amount: number
+  payment_method: string
+  notes: string | null
+  payment_date: string
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
 type TableShape<Row> = {
   Row: Row
   Insert: Partial<Row>
@@ -317,6 +330,7 @@ export interface Database {
       inventory_locations: TableShape<InventoryLocation>
       inventory_stock: TableShape<InventoryStock>
       inventory_movements: TableShape<InventoryMovement>
+      employee_payments: TableShape<EmployeePayment>
     }
     Views: Record<string, never>
     Functions: {

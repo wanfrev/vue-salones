@@ -25,6 +25,9 @@ const RELATION_CONFIG: Record<string, Record<string, { table: string; localKey: 
     products: { table: 'products', localKey: 'product_id', foreignKey: 'id', isArray: false },
     inventory_locations: { table: 'inventory_locations', localKey: 'location_id', foreignKey: 'id', isArray: false },
   },
+  employee_payments: {
+    profiles: { table: 'profiles', localKey: 'employee_id', foreignKey: 'id', isArray: false },
+  },
 }
 
 function parseRelations(selectStr: string): { name: string; inner: boolean }[] {
