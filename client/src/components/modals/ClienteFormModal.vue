@@ -60,29 +60,12 @@
         :error="errors.notes"
       />
 
-      <FormSalon
-        v-if="isSalonNiche"
-        :fields="salonFields"
-        @update:fields="onUpdateSalon"
-      />
-
-      <FormBarber
-        v-if="isBarberNiche"
-        :fields="barberFields"
-        @update:fields="onUpdateBarber"
-      />
-
-      <FormSpaHumano
-        v-if="isSpaNiche"
-        :fields="spaFields"
-        @update:fields="onUpdateSpa"
-      />
-
-      <FormMascota
-        v-if="isPetNiche"
-        :fields="petFields"
-        :is-vet="isVetNiche"
-        @update:fields="onUpdatePet"
+      <NicheFields
+        v-if="nicheConfig"
+        :config="nicheConfig"
+        :values="nicheValues"
+        :terminology="terminology"
+        @update="onNicheFieldUpdate"
       />
 
       <div v-if="isEditing" class="border-t border-border pt-4">
@@ -106,8 +89,8 @@ import { useAuthStore } from '../../store/auth'
 import type { Cliente, ClienteFormData } from '../../types/cliente'
 import ModalBase from '../common/ModalBase.vue'
 import { FormInput, FormTextarea } from '../forms'
-import { FormSalon, FormBarber, FormSpaHumano, FormMascota } from '../clients'
-import type { SalonFields, BarberFields, SpaHumanoFields, MascotaFields } from '../clients'
+import NicheFields from '../clients/NicheFields.vue'
+import { getNicheConfig, isPetNiche } from '../../config/nicheFields'
 
 const MODAL_ID = 'cliente-form-modal'
 
@@ -127,13 +110,6 @@ const authStore = useAuthStore()
 const terminology = computed(() => authStore.terminology)
 const nicheType = computed(() => authStore.nicheType)
 
-const PET_NICHES = ['spa_perros', 'dog_spa', 'vet']
-const isSalonNiche = computed(() => nicheType.value === 'salon')
-const isBarberNiche = computed(() => nicheType.value === 'barberia')
-const isSpaNiche = computed(() => nicheType.value === 'spa')
-const isPetNiche = computed(() => PET_NICHES.includes(nicheType.value))
-const isVetNiche = computed(() => nicheType.value === 'vet')
-
 const isLoading = ref(false)
 
 const isEditing = computed(() => !!modalData.value?.cliente)
@@ -149,47 +125,25 @@ const defaultFormData: ClienteFormData = {
 }
 
 const formData = ref<ClienteFormData>({ ...defaultFormData })
-const petFields = reactive<MascotaFields>({
-  pet_name: '',
-  pet_breed: '',
-  pet_weight: '',
-  pet_owner: '',
-  last_vaccine: '',
-  last_checkup: '',
-  medical_notes: '',
-})
-const salonFields = reactive<SalonFields>({
-  hair_type: '',
-  hair_length: '',
-  chemical_history: '',
-})
-const barberFields = reactive<BarberFields>({
-  beard_style: '',
-  hair_type: '',
-  fade_preference: '',
-  products_used: '',
-  notes: '',
-})
-const spaFields = reactive<SpaHumanoFields>({
-  skin_type: '',
-  massage_preference: '',
-  allergies: '',
-})
+const nicheValues = reactive<Record<string, string>>({})
+
+const nicheConfig = computed(() => getNicheConfig(nicheType.value))
+
+const isPet = computed(() => isPetNiche(nicheType.value))
 
 // Auto-link pet_owner from name when it's a pet niche
 watch(
   () => formData.value.name,
   (name) => {
-    if (isPetNiche.value && !petFields.pet_owner && !isEditing.value) {
-      petFields.pet_owner = name
+    if (isPet.value && !nicheValues.pet_owner && !isEditing.value) {
+      nicheValues.pet_owner = name
     }
   }
 )
 
-const onUpdateSalon = (fields: SalonFields) => { Object.assign(salonFields, fields) }
-const onUpdateBarber = (fields: BarberFields) => { Object.assign(barberFields, fields) }
-const onUpdateSpa = (fields: SpaHumanoFields) => { Object.assign(spaFields, fields) }
-const onUpdatePet = (fields: MascotaFields) => { Object.assign(petFields, fields) }
+const onNicheFieldUpdate = (key: string, value: string) => {
+  nicheValues[key] = value
+}
 
 const errors = ref<Partial<Record<keyof ClienteFormData, string>>>({})
 
@@ -201,7 +155,7 @@ watch(
   () => modalData.value?.cliente,
   (cliente) => {
     if (cliente) {
-      const meta = cliente.metadata ?? {}
+      const meta = cliente.metadata ?? {} as Record<string, string>
       formData.value = {
         name: cliente.name || '',
         phone: cliente.phone || '',
@@ -211,45 +165,12 @@ watch(
         preferredServices: cliente.preferredServices || [],
         metadata: { ...meta },
       }
-      const m = meta as Record<string, string>
-      petFields.pet_name = m.pet_name ?? ''
-      petFields.pet_breed = m.pet_breed ?? ''
-      petFields.pet_weight = m.pet_weight ?? ''
-      petFields.pet_owner = m.pet_owner ?? ''
-      petFields.last_vaccine = m.last_vaccine ?? ''
-      petFields.last_checkup = m.last_checkup ?? ''
-      petFields.medical_notes = m.medical_notes ?? ''
-      salonFields.hair_type = m.hair_type ?? ''
-      salonFields.hair_length = m.hair_length ?? ''
-      salonFields.chemical_history = m.chemical_history ?? ''
-      barberFields.beard_style = m.beard_style ?? ''
-      barberFields.hair_type = m.hair_type ?? ''
-      barberFields.fade_preference = m.fade_preference ?? ''
-      barberFields.products_used = m.products_used ?? ''
-      barberFields.notes = m.notes ?? ''
-      spaFields.skin_type = m.skin_type ?? ''
-      spaFields.massage_preference = m.massage_preference ?? ''
-      spaFields.allergies = m.allergies ?? ''
+      Object.assign(nicheValues, meta)
     } else {
       formData.value = { ...defaultFormData, metadata: {} }
-      petFields.pet_name = ''
-      petFields.pet_breed = ''
-      petFields.pet_weight = ''
-      petFields.pet_owner = ''
-      petFields.last_vaccine = ''
-      petFields.last_checkup = ''
-      petFields.medical_notes = ''
-      salonFields.hair_type = ''
-      salonFields.hair_length = ''
-      salonFields.chemical_history = ''
-      barberFields.beard_style = ''
-      barberFields.hair_type = ''
-      barberFields.fade_preference = ''
-      barberFields.products_used = ''
-      barberFields.notes = ''
-      spaFields.skin_type = ''
-      spaFields.massage_preference = ''
-      spaFields.allergies = ''
+      for (const key of Object.keys(nicheValues)) {
+        delete nicheValues[key]
+      }
     }
     errors.value = {}
   },
@@ -273,11 +194,11 @@ const validateForm = (): boolean => {
     errors.value.email = 'El email no es válido'
   }
 
-  if (isPetNiche.value) {
-    if (!petFields.pet_name.trim()) {
+  if (isPet.value) {
+    if (!nicheValues.pet_name?.trim()) {
       errors.value.name = `El nombre ${terminology.value.pet?.toLowerCase() || 'de la mascota'} es obligatorio`
     }
-    if (!petFields.pet_owner.trim()) {
+    if (!nicheValues.pet_owner?.trim()) {
       errors.value.name = 'El nombre del dueño es obligatorio'
     }
   }
@@ -309,18 +230,11 @@ const handleSubmit = async () => {
   isLoading.value = true
 
   try {
-    let nicheMeta: Record<string, unknown> = {}
-    if (isPetNiche.value) {
-      nicheMeta = { ...petFields }
+    const nicheMeta: Record<string, unknown> = { ...nicheValues }
+    if (isPet.value) {
       for (const key of Object.keys(nicheMeta)) {
         if (!nicheMeta[key]) delete nicheMeta[key]
       }
-    } else if (isSalonNiche.value) {
-      nicheMeta = { ...salonFields }
-    } else if (isBarberNiche.value) {
-      nicheMeta = { ...barberFields }
-    } else if (isSpaNiche.value) {
-      nicheMeta = { ...spaFields }
     }
 
     const clienteData: ClienteFormData & { id?: string } = {
