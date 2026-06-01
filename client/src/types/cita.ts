@@ -6,6 +6,7 @@ export interface Cita {
   serviceId?: string
   employee: string
   employeeId?: string
+  groupId?: string
   date: string
   time: string
   duration: number
@@ -17,15 +18,24 @@ export interface Cita {
   notes?: string
 }
 
+export interface CitaFormServiceItem {
+  serviceId: string
+  employeeId: string
+  duration: number
+  price: number
+}
+
 export interface CitaFormData {
+  clientId?: string
   clientName: string
   clientPhone: string
   service: string
   employee: string
-  date: string
-  time: string
   duration: number
   price: number
+  extraServices: CitaFormServiceItem[]
+  date: string
+  time: string
   status: 'confirmed' | 'pending' | 'cancelled' | 'paid'
   notes: string
 }

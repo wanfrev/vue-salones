@@ -1,11 +1,15 @@
 import { supabase } from '../lib/supabase'
-import { mapAppointmentToCita, mapCitaFormToAppointmentInsert } from '../mappers/agendaMapper'
+import { mapAppointmentToCita, mapCitaFormToAppointmentInsert, mapServiceItemToAppointmentInsert } from '../mappers/agendaMapper'
 import { findOrCreateClientByPhone } from './clientesService'
 import type { AppointmentWithRelations, Service } from '../types/database'
 import type { Cita, CitaFormData } from '../types/cita'
 
 const writableSupabase = supabase as any
 const EMPLOYEE_OVERLAP_CONSTRAINT = 'appointments_no_employee_overlap'
+
+function generateId(): string {
+  return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
 
 type SupabaseErrorLike = {
   code?: string
@@ -37,6 +41,8 @@ export const agendaKeys = {
   appointments: (businessId?: string | null) => ['appointments', businessId] as const,
 }
 
+const APPOINTMENT_SELECT = '*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url)'
+
 export const listCitas = async (
   businessId: string,
   dateRange?: { start: Date; end: Date },
@@ -44,7 +50,7 @@ export const listCitas = async (
 ): Promise<Cita[]> => {
   let query = supabase
     .from('appointments')
-    .select('*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url)')
+    .select(APPOINTMENT_SELECT)
     .eq('business_id', businessId)
     .order('start_time')
 
@@ -78,28 +84,96 @@ export const saveCita = async (
 
   if (serviceError) throw serviceError
 
-  const client = await findOrCreateClientByPhone(businessId, {
-    fullName: data.clientName,
-    phone: data.clientPhone || data.clientName,
-    notes: data.notes,
-  })
+  let clientId: string
+  if (data.clientId) {
+    clientId = data.clientId
+  } else {
+    const client = await findOrCreateClientByPhone(businessId, {
+      fullName: data.clientName,
+      phone: data.clientPhone || data.clientName,
+      notes: data.notes,
+    })
+    clientId = client.id
+  }
 
-  const payload = mapCitaFormToAppointmentInsert(
+  // Single service (no extras) — backward compatible path
+  if (!data.extraServices || data.extraServices.length === 0) {
+    const payload = mapCitaFormToAppointmentInsert(
+      businessId,
+      data,
+      service as Service,
+      clientId,
+      createdBy
+    )
+
+    const query = data.id
+      ? writableSupabase.from('appointments').update(payload).eq('id', data.id).select(APPOINTMENT_SELECT).single()
+      : writableSupabase.from('appointments').insert(payload).select(APPOINTMENT_SELECT).single()
+
+    const { data: saved, error } = await query
+    if (error) throw mapAgendaWriteError(error, 'guardar')
+
+    return mapAppointmentToCita(saved as AppointmentWithRelations)
+  }
+
+  // Multi-service (grouped) path
+  const groupId = generateId()
+
+  // Fetch all services for extra rows
+  const extraServiceIds = data.extraServices.map(e => e.serviceId)
+  const { data: servicesData, error: servicesError } = await supabase
+    .from('services')
+    .select('*')
+    .in('id', [serviceId, ...extraServiceIds])
+
+  if (servicesError) throw servicesError
+  const servicesMap = new Map((servicesData as Service[]).map(s => [s.id, s]))
+
+  const inserts = []
+
+  // Primary service
+  inserts.push(mapServiceItemToAppointmentInsert(
     businessId,
-    data,
-    service as Service,
-    client.id,
-    createdBy
-  )
+    { serviceId: data.service, employeeId: data.employee, duration: data.duration, price: data.price },
+    clientId,
+    data.date,
+    data.time,
+    data.status,
+    data.notes,
+    groupId,
+    createdBy,
+    servicesMap.get(data.service) as Service
+  ))
 
-  const query = data.id
-    ? writableSupabase.from('appointments').update(payload).eq('id', data.id).select('*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url)').single()
-    : writableSupabase.from('appointments').insert(payload).select('*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url)').single()
+  // Extra services
+  for (const extra of data.extraServices) {
+    inserts.push(mapServiceItemToAppointmentInsert(
+      businessId,
+      extra,
+      clientId,
+      data.date,
+      data.time,
+      data.status,
+      data.notes,
+      groupId,
+      createdBy,
+      servicesMap.get(extra.serviceId) as Service
+    ))
+  }
 
-  const { data: saved, error } = await query
-  if (error) throw mapAgendaWriteError(error, 'guardar')
+  const { data: saved, error: insertError } = await writableSupabase
+    .from('appointments')
+    .insert(inserts)
+    .select(APPOINTMENT_SELECT)
 
-  return mapAppointmentToCita(saved as AppointmentWithRelations)
+  if (insertError) throw mapAgendaWriteError(insertError, 'guardar')
+
+  const results = (saved as AppointmentWithRelations[])
+
+  // Group appointments under the first one for the primary return value
+  // Include group info in the extended props
+  const primary = results.find(r => r.service_id === serviceId && r.employee_id === data.employee) ?? results[0]
+  return mapAppointmentToCita(primary)
 }
 
 export const updateCitaStatus = async (

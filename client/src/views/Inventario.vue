@@ -37,9 +37,17 @@
                 <span class="font-medium uppercase tracking-wider">Stock</span>
               </div>
               <h1 class="text-xl font-bold text-text lg:text-2xl">Inventario</h1>
-              <p class="hidden text-sm text-text-muted sm:block">Control de existencias por ubicación</p>
             </div>
             <div class="flex items-center gap-2">
+              <button
+                @click="handleNewProducto"
+                class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span class="hidden sm:inline">Nuevo producto</span>
+              </button>
               <button
                 @click="showMovements = !showMovements"
                 class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
@@ -298,6 +306,12 @@
         </div>
       </div>
     </ModalBase>
+
+    <ProductoFormModal
+      ref="productoModalRef"
+      :is-saving="saveProductoMutation.isPending.value"
+      @save="handleSaveProducto"
+    />
   </div>
 </template>
 
@@ -307,13 +321,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { adjustInventory, sellProduct, inventarioKeys, listInventario, listInventoryLocations, listInventoryMovements } from '../services/inventarioService'
+import { productosKeys, saveProducto } from '../services/productosService'
 import { useThemeStore } from '../store/theme'
 import Sidebar from '../components/layout/Sidebar.vue'
+import { ProductoFormModal } from '../components/modals'
 import { ModalBase } from '../components/common'
 import { FormInput } from '../components/forms'
 import lumaLogoLight from '../assets/Luma.svg'
 import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { InventarioItem, InventarioLocation, InventarioMovimiento } from '../types/inventario'
+import type { Producto, ProductoFormData } from '../types/producto'
 
 const { logout, authStore } = useAuth()
 const { success, error: showError } = useNotification()
@@ -327,6 +344,7 @@ const searchQuery = ref('')
 const movementSearch = ref('')
 const locationFilter = ref('')
 const businessId = computed(() => authStore.businessId)
+const productoModalRef = ref<InstanceType<typeof ProductoFormModal> | null>(null)
 
 const { data: locationsData } = useQuery({
   queryKey: computed(() => inventarioKeys.locations(businessId.value)),
@@ -473,6 +491,30 @@ const confirmSale = async () => {
     unitPrice: saleUnitPrice.value,
     variantId: saleItem.value.variantId,
   })
+}
+
+const saveProductoMutation = useMutation({
+  mutationFn: (data: ProductoFormData & { id?: string }) => saveProducto(businessId.value!, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: inventarioKeys.locations(businessId.value) })
+    productoModalRef.value?.close()
+    success('Producto guardado correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al guardar el producto')
+  },
+})
+
+const handleNewProducto = () => {
+  productoModalRef.value?.open()
+}
+
+const handleSaveProducto = async (data: ProductoFormData & { id?: string }) => {
+  try {
+    await saveProductoMutation.mutateAsync(data)
+  } catch { /* handled by mutation onError */ }
 }
 
 const formatMovementType = (type: string) => {

@@ -37,7 +37,6 @@
                 <span class="font-medium uppercase tracking-wider">Inventario</span>
               </div>
               <h1 class="text-xl font-bold text-text lg:text-2xl">Productos</h1>
-              <p class="hidden text-sm text-text-muted sm:block">Gestiona los productos y artículos del salón</p>
             </div>
             <button
               @click="handleNewProducto"
@@ -195,6 +194,15 @@
                   <td class="px-4 py-3 text-center">
                     <div class="flex items-center justify-center gap-1">
                       <button
+                        @click="openStockAdjust(producto)"
+                        class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-success"
+                        title="Ajustar stock"
+                      >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                      </button>
+                      <button
                         @click="handleEditProducto(producto)"
                         class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
                         title="Editar producto"
@@ -238,6 +246,39 @@
     />
 
     <ModalBase
+      :is-open="stockAdjustModalOpen"
+      title="Ajustar stock"
+      subtitle="Agrega o reduce la cantidad disponible"
+      icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+      size="sm"
+      confirm-text="Guardar ajuste"
+      :is-confirm-disabled="stockAdjustQty === 0"
+      @close="closeStockAdjust"
+      @confirm="confirmStockAdjust"
+    >
+      <div class="space-y-4">
+        <div class="rounded-lg bg-bg-secondary p-3">
+          <p class="text-sm font-medium text-text">{{ stockAdjustProduct?.name }}</p>
+          <p class="text-xs text-text-muted">Stock actual: {{ stockAdjustProduct?.stockTotal }} {{ stockAdjustProduct?.unit }}</p>
+        </div>
+        <FormInput
+          v-model.number="stockAdjustQty"
+          label="Cantidad a ajustar"
+          type="number"
+          placeholder="Ej: 5 o -3"
+          prefix-icon="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
+        <p class="text-xs text-text-muted">Usa valores positivos para agregar stock, negativos para reducir.</p>
+        <FormInput
+          v-model="stockAdjustNotes"
+          label="Motivo del ajuste"
+          placeholder="Ej: Compra nueva, producto dañado..."
+          prefix-icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+        />
+      </div>
+    </ModalBase>
+
+    <ModalBase
       :is-open="isDeleteModalOpen"
       title="Desactivar producto"
       subtitle="Esta acción no se puede deshacer"
@@ -265,10 +306,12 @@ import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
 import { deleteProducto, listProductos, productosKeys, saveProducto } from '../services/productosService'
+import { adjustInventory, inventarioKeys, listInventoryLocations } from '../services/inventarioService'
 import { useThemeStore } from '../store/theme'
 import Sidebar from '../components/layout/Sidebar.vue'
 import { ProductoFormModal } from '../components/modals'
 import { ModalBase } from '../components/common'
+import { FormInput } from '../components/forms'
 import lumaLogoLight from '../assets/Luma.svg'
 import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Producto, ProductoFormData } from '../types/producto'
@@ -322,6 +365,65 @@ const deleteProductoMutation = useMutation({
     queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
   },
 })
+
+// Stock adjust
+const stockAdjustModalOpen = ref(false)
+const stockAdjustProduct = ref<Producto | null>(null)
+const stockAdjustQty = ref(0)
+const stockAdjustNotes = ref('')
+
+const { data: locationsData } = useQuery({
+  queryKey: computed(() => inventarioKeys.locations(businessId.value)),
+  queryFn: () => listInventoryLocations(businessId.value!),
+  enabled: computed(() => !!businessId.value),
+})
+
+const stockAdjustMutation = useMutation({
+  mutationFn: (params: { productId: string; quantity: number; notes: string }) =>
+    adjustInventory(businessId.value!, params.productId, defaultLocationId.value, params.quantity, params.notes),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(businessId.value) })
+    closeStockAdjust()
+    success('Stock ajustado correctamente')
+  },
+  onError: (err) => {
+    showError(err instanceof Error ? err.message : 'Error al ajustar el stock')
+  },
+})
+
+const defaultLocationId = computed(() => {
+  const locs = locationsData.value ?? []
+  return locs.find(l => l.isDefault)?.id ?? locs[0]?.id ?? ''
+})
+
+const openStockAdjust = (producto: Producto) => {
+  stockAdjustProduct.value = producto
+  stockAdjustQty.value = 0
+  stockAdjustNotes.value = ''
+  stockAdjustModalOpen.value = true
+}
+
+const closeStockAdjust = () => {
+  stockAdjustModalOpen.value = false
+  stockAdjustProduct.value = null
+  stockAdjustQty.value = 0
+  stockAdjustNotes.value = ''
+}
+
+const confirmStockAdjust = async () => {
+  if (!stockAdjustProduct.value || stockAdjustQty.value === 0) return
+  if (!defaultLocationId.value) {
+    showError('No hay ubicaciones de inventario configuradas')
+    return
+  }
+  await stockAdjustMutation.mutateAsync({
+    productId: stockAdjustProduct.value.id,
+    quantity: stockAdjustQty.value,
+    notes: stockAdjustNotes.value,
+  })
+}
 
 const totalProductos = computed(() => productos.value.filter(p => p.status === 'Activo').length)
 const totalCategorias = computed(() => {

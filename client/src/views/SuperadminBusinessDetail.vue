@@ -12,8 +12,8 @@
             </svg>
             Volver
           </router-link>
+          <img :src="lumaLogo" alt="Luma" class="h-7 w-auto object-contain" />
           <div>
-            <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">Superadmin</p>
             <h1 class="text-2xl font-bold tracking-tight text-text">{{ business?.name ?? 'Cargando...' }}</h1>
           </div>
         </div>

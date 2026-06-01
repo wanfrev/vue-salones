@@ -36,7 +36,6 @@
                 <span class="font-medium uppercase tracking-wider">Catálogo</span>
               </div>
               <h1 class="text-xl font-bold text-text lg:text-2xl">{{ authStore.terminology.service || 'Servicio' }}s</h1>
-              <p class="hidden text-sm text-text-muted sm:block">Menú de {{ (authStore.terminology.service || 'servicio').toLowerCase() }}s y precios</p>
             </div>
             <button
               @click="handleNewServicio"

@@ -9,31 +9,113 @@
 
     <!-- Navigation - Flex grow para ocupar espacio disponible -->
     <nav class="flex-1 overflow-y-auto px-3 pt-4 pb-2">
-      <!-- Menú Principal -->
-      <div class="mb-1">
-        <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-text-muted/70">Menú Principal</p>
-        
-        <router-link 
-          to="/admin" 
-          :class="[
-            'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
-            isActive('/admin') 
-              ? 'bg-primary text-text-inverse shadow-sm' 
-              : 'text-text-secondary hover:bg-bg-secondary hover:text-text'
-          ]"
-        >
-          <span :class="[
-            'flex h-7 w-7 items-center justify-center rounded-md transition-theme',
-            isActive('/admin') ? 'bg-white/20' : 'bg-bg-secondary group-hover:bg-border'
-          ]">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </span>
-          <span>Agenda</span>
-        </router-link>
+      <router-link 
+        v-if="isAdmin"
+        to="/admin" 
+        :class="[
+          'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
+          isActive('/admin') 
+            ? 'bg-primary text-text-inverse shadow-sm' 
+            : 'text-text-secondary hover:bg-bg-secondary hover:text-text'
+        ]"
+      >
+        <span :class="[
+          'flex h-7 w-7 items-center justify-center rounded-md transition-theme',
+          isActive('/admin') ? 'bg-white/20' : 'bg-bg-secondary group-hover:bg-border'
+        ]">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </span>
+        <span>Agenda</span>
+      </router-link>
+
+      <router-link
+        v-if="!isAdmin"
+        to="/dashboard/agenda"
+        :class="[
+          'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
+          isActive('/dashboard/agenda') 
+            ? 'bg-primary text-text-inverse shadow-sm' 
+            : 'text-text-secondary hover:bg-bg-secondary hover:text-text'
+        ]"
+      >
+        <span :class="[
+          'flex h-7 w-7 items-center justify-center rounded-md transition-theme',
+          isActive('/dashboard/agenda') ? 'bg-white/20' : 'bg-bg-secondary group-hover:bg-border'
+        ]">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </span>
+        <span>Agenda</span>
+      </router-link>
+
+      <router-link
+        v-if="!isAdmin"
+        to="/dashboard/historial"
+        :class="[
+          'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
+          isActive('/dashboard/historial') 
+            ? 'bg-primary text-text-inverse shadow-sm' 
+            : 'text-text-secondary hover:bg-bg-secondary hover:text-text'
+        ]"
+      >
+        <span :class="[
+          'flex h-7 w-7 items-center justify-center rounded-md transition-theme',
+          isActive('/dashboard/historial') ? 'bg-white/20' : 'bg-bg-secondary group-hover:bg-border'
+        ]">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </span>
+        <span>Historial</span>
+      </router-link>
+
+      <router-link
+        v-if="!isAdmin"
+        to="/dashboard/comisiones"
+        :class="[
+          'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
+          isActive('/dashboard/comisiones') 
+            ? 'bg-primary text-text-inverse shadow-sm' 
+            : 'text-text-secondary hover:bg-bg-secondary hover:text-text'
+        ]"
+      >
+        <span :class="[
+          'flex h-7 w-7 items-center justify-center rounded-md transition-theme',
+          isActive('/dashboard/comisiones') ? 'bg-white/20' : 'bg-bg-secondary group-hover:bg-border'
+        ]">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </span>
+        <span>Comisiones</span>
+      </router-link>
+
+      <router-link
+        v-if="!isAdmin"
+        to="/dashboard/recibo"
+        :class="[
+          'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
+          isActive('/dashboard/recibo') 
+            ? 'bg-primary text-text-inverse shadow-sm' 
+            : 'text-text-secondary hover:bg-bg-secondary hover:text-text'
+        ]"
+      >
+        <span :class="[
+          'flex h-7 w-7 items-center justify-center rounded-md transition-theme',
+          isActive('/dashboard/recibo') ? 'bg-white/20' : 'bg-bg-secondary group-hover:bg-border'
+        ]">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </span>
+        <span>Recibo</span>
+      </router-link>
 
         <router-link 
+          v-if="isAdmin"
           to="/clientes" 
           :class="[
             'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
@@ -54,6 +136,7 @@
         </router-link>
 
         <router-link 
+          v-if="isAdmin"
           to="/finanzas" 
           :class="[
             'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
@@ -75,6 +158,7 @@
         </router-link>
 
         <router-link 
+          v-if="isAdmin"
           to="/equipo" 
           :class="[
             'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
@@ -95,6 +179,7 @@
         </router-link>
 
         <router-link 
+          v-if="isAdmin"
           to="/servicios" 
           :class="[
             'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
@@ -115,6 +200,7 @@
         </router-link>
 
         <router-link 
+          v-if="isAdmin"
           to="/productos" 
           :class="[
             'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
@@ -135,6 +221,7 @@
         </router-link>
 
         <router-link 
+          v-if="isAdmin"
           to="/inventario" 
           :class="[
             'group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-theme',
@@ -153,10 +240,9 @@
           </span>
           <span>Inventario</span>
         </router-link>
-      </div>
 
       <!-- Ventas -->
-      <div class="mb-1">
+      <div v-if="isAdmin" class="mb-1">
         <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-text-muted/70">Ventas</p>
 
         <router-link 
@@ -185,7 +271,7 @@
       <div class="my-4 mx-3 h-px bg-border"></div>
 
       <!-- Configuración -->
-      <div class="mb-1">
+      <div v-if="isAdmin" class="mb-1">
         <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-text-muted/70">Configuración</p>
 
         <router-link 
@@ -237,8 +323,10 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
+import { isAdminPanelRole } from '../../constants/roles'
 import ThemeToggle from '../common/ThemeToggle.vue'
 
 interface Props {
@@ -253,6 +341,8 @@ const emit = defineEmits<{
 
 const route = useRoute()
 const { logout, loading, authStore } = useAuth()
+
+const isAdmin = computed(() => isAdminPanelRole(authStore.role ?? undefined))
 
 const isActive = (path: string): boolean => {
   return route.path === path

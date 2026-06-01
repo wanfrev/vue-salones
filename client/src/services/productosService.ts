@@ -72,12 +72,35 @@ export const saveProducto = async (
 
   // Auto-create inventory stock record at default location for new products
   if (isNew) {
-    const { data: defaultLoc } = await supabase
+    let { data: defaultLoc } = await supabase
       .from('inventory_locations')
       .select('id')
       .eq('business_id', businessId)
       .eq('is_default', true)
       .maybeSingle()
+
+    if (!defaultLoc) {
+      const { data: firstLoc } = await supabase
+        .from('inventory_locations')
+        .select('id')
+        .eq('business_id', businessId)
+        .limit(1)
+        .maybeSingle()
+      defaultLoc = firstLoc
+    }
+
+    if (!defaultLoc) {
+      const { data: newLoc } = await writableSupabase
+        .from('inventory_locations')
+        .insert({
+          business_id: businessId,
+          name: 'Principal',
+          is_default: true,
+        })
+        .select('id')
+        .single()
+      defaultLoc = newLoc
+    }
 
     if (defaultLoc) {
       await writableSupabase.from('inventory_stock').insert({

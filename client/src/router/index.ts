@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/Login.vue'
-import DashboardView from '../views/Dashboard.vue'
+import EmployeeAgenda from '../views/employee/EmployeeAgenda.vue'
+import EmployeeHistorial from '../views/employee/EmployeeHistorial.vue'
+import EmployeeComisiones from '../views/employee/EmployeeComisiones.vue'
+import EmployeeRecibo from '../views/employee/EmployeeRecibo.vue'
 import AdminView from '../views/Admin.vue'
 import SuperadminView from '../views/Superadmin.vue'
 import SuperadminBusinessAdminsView from '../views/SuperadminBusinessAdmins.vue'
@@ -27,8 +30,30 @@ const router = createRouter({
     },
     {
       path: '/dashboard',
-      name: 'dashboard',
-      component: DashboardView,
+      redirect: '/dashboard/agenda',
+    },
+    {
+      path: '/dashboard/agenda',
+      name: 'employee-agenda',
+      component: EmployeeAgenda,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/dashboard/historial',
+      name: 'employee-historial',
+      component: EmployeeHistorial,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/dashboard/comisiones',
+      name: 'employee-comisiones',
+      component: EmployeeComisiones,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/dashboard/recibo',
+      name: 'employee-recibo',
+      component: EmployeeRecibo,
       meta: { requiresAuth: true },
     },
     {

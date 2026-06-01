@@ -2,10 +2,12 @@
   <div class="min-h-screen bg-bg">
     <header class="border-b border-border bg-surface">
       <div class="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-widest text-text-muted">Superadmin</p>
-          <h1 class="text-2xl font-bold tracking-tight text-text">{{ business?.name ?? 'Cargando...' }}</h1>
-          <p class="text-sm text-text-muted">Administradores del negocio</p>
+        <div class="flex items-center gap-4">
+          <img :src="lumaLogo" alt="Luma" class="h-7 w-auto object-contain" />
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight text-text">{{ business?.name ?? 'Cargando...' }}</h1>
+            <p class="text-sm text-text-muted">Administradores del negocio</p>
+          </div>
         </div>
         <div class="flex items-center gap-3">
           <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
@@ -58,9 +60,15 @@
 import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useRoute } from 'vue-router'
+import { useThemeStore } from '../store/theme'
 import { listBusinessAdmins, listBusinesses, superadminKeys } from '../services/superadminService'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { AuthProfile } from '../types/auth'
 import type { Business } from '../types/database'
+
+const themeStore = useThemeStore()
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 const route = useRoute()
 const businessId = route.params.id as string

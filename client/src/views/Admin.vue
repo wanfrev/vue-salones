@@ -8,8 +8,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
+        <img :src="lumaLogo" alt="Luma" class="-ml-1 h-7 w-auto object-contain" />
         <div class="flex flex-col">
-          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-6 w-auto object-contain" />
+          <span class="text-sm font-semibold text-text leading-tight">{{ businessName }}</span>
           <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
         </div>
       </div>
@@ -39,9 +40,6 @@
               <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">
                 {{ todayLabel }}
               </h1>
-              <p class="text-sm text-text-muted">
-                {{ stats.citasHoy }} {{ (authStore.terminology.appointment || 'cita').toLowerCase() }}{{ stats.citasHoy !== 1 ? 's' : '' }} programada{{ stats.citasHoy !== 1 ? 's' : '' }} · ${{ stats.estimadoHoy }} estimado
-              </p>
             </div>
             
             <div class="flex items-center gap-2">
@@ -128,11 +126,12 @@
 
         <!-- Agenda Calendar Component -->
          <section class="h-[calc(100vh-260px)] min-h-[400px] sm:h-[calc(100vh-280px)] lg:h-[calc(100vh-220px)]">
-           <AgendaCalendar
-           @event-click="handleEventClick"
-           @status-change="handleStatusChange"
-           @event-change="handleEventChange"
-         />
+            <AgendaCalendar
+            @event-click="handleEventClick"
+            @status-change="handleStatusChange"
+            @event-change="handleEventChange"
+            @slot-select="handleSlotSelect"
+          />
          </section>
       </div>
     </main>
@@ -171,6 +170,7 @@ const queryClient = useQueryClient()
 const isSidebarOpen = ref(false)
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
 const businessId = computed(() => authStore.businessId)
+const businessName = computed(() => authStore.business?.name ?? '')
 const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 const todayRange = computed(() => {
@@ -264,6 +264,8 @@ const stats = computed(() => {
 const serviciosList = computed(() => (serviciosData.value ?? []).map(service => ({
   id: service.id,
   name: service.name,
+  price: service.price,
+  duration: service.duration,
 })))
 
 const empleadosList = computed(() => (empleadosData.value ?? []).map(employee => ({
@@ -273,6 +275,12 @@ const empleadosList = computed(() => (empleadosData.value ?? []).map(employee =>
 
 const handleNewCita = () => {
   citaModalRef.value?.open()
+}
+
+const handleSlotSelect = ({ start }: { start: Date }) => {
+  const date = start.toISOString().split('T')[0]
+  const time = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`
+  citaModalRef.value?.open({ id: '', clientName: '', service: '', employee: '', date, time, duration: 30, price: 0, status: 'confirmed' })
 }
 
 const handleEventClick = (event: { id: string; title: string; start: Date; end: Date }) => {

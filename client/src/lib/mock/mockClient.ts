@@ -56,6 +56,12 @@ function applyFilters(rows: any[], filters: any[]): any[] {
         case 'neq':
           if (val === f.value) return false
           break
+        case 'ilike': {
+          const pattern = String(f.value ?? '')
+          const regex = new RegExp('^' + pattern.replace(/%/g, '.*').replace(/_/g, '.') + '$', 'i')
+          if (!regex.test(String(val ?? ''))) return false
+          break
+        }
         case 'gt':
           if (val <= f.value) return false
           break
@@ -137,6 +143,11 @@ class MockQueryBuilder {
 
   neq(field: string, value: any): this {
     this.filters.push({ field, op: 'neq', value })
+    return this
+  }
+
+  ilike(field: string, value: any): this {
+    this.filters.push({ field, op: 'ilike', value })
     return this
   }
 

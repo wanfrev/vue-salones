@@ -39,9 +39,6 @@
               <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">
                 {{ totalClientes }} {{ totalClientes === 1 ? (authStore.terminology.client || 'cliente').toLowerCase() : (authStore.terminology.client || 'cliente').toLowerCase() + 's' }}
               </h1>
-              <p class="text-sm text-text-muted">
-                {{ clientesConHistorial }} con historial · {{ clientesSinVisitar }} sin visitar en {{ daysSinceVisitFilter }} días
-              </p>
             </div>
             
             <div class="flex items-center gap-2">

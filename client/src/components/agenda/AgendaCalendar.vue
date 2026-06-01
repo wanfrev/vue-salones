@@ -93,6 +93,7 @@ const emit = defineEmits<{
   eventClick: [event: { id: string; title: string; start: Date; end: Date; status?: string }]
   statusChange: [payload: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }]
   eventChange: [payload: { id: string; start: string; end: string }]
+  slotSelect: [payload: { start: Date; end: Date }]
 }>()
 
 const {
@@ -272,6 +273,13 @@ const calendarOptions = computed<CalendarOptions>(() => ({
     const service = document.createElement('div')
     service.className = 'agenda-event-service'
     service.textContent = employeeName ? `${serviceName} · ${employeeName}` : serviceName
+    if (extProps?.group_id) {
+      const groupBadge = document.createElement('span')
+      groupBadge.className = 'agenda-event-group-badge'
+      groupBadge.textContent = '⤒'
+      service.appendChild(document.createTextNode(' '))
+      service.appendChild(groupBadge)
+    }
 
     const time = document.createElement('div')
     time.className = 'agenda-event-time'
@@ -439,7 +447,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
     })
   },
   select: (arg) => {
-    console.log('Rango seleccionado:', arg.start, arg.end)
+    emit('slotSelect', { start: arg.start, end: arg.end })
   },
   locale: 'es',
   buttonText: {
@@ -858,6 +866,18 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   font-weight: 500;
   color: rgba(255, 255, 255, 0.86);
   line-height: 1.2;
+}
+
+.agenda-event-group-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 0.2rem;
+  padding: 0 0.2rem;
+  line-height: 1.1;
+  vertical-align: middle;
 }
 
 .agenda-event-time {

@@ -9,7 +9,7 @@ export type Role = (typeof ROLES)[keyof typeof ROLES]
 export const DEFAULT_HOME_BY_ROLE: Record<Role, string> = {
   [ROLES.SUPERADMIN]: '/superadmin',
   [ROLES.ADMIN]: '/admin',
-  [ROLES.EMPLEADO]: '/dashboard',
+  [ROLES.EMPLEADO]: '/dashboard/agenda',
 }
 
 export const isRole = (value: unknown): value is Role => {
@@ -25,5 +25,5 @@ export const resolveHomeByRole = (role?: string): string => {
     return DEFAULT_HOME_BY_ROLE[role]
   }
 
-  return '/dashboard'
+  return '/dashboard/agenda'
 }

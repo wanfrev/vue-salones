@@ -36,7 +36,6 @@
                 <span class="font-medium uppercase tracking-wider">{{ authStore.terminology.employee || 'Empleado' }}s</span>
               </div>
               <h1 class="text-xl font-bold text-text lg:text-2xl">Gestión de {{ (authStore.terminology.employee || 'Empleado').toLowerCase() }}s</h1>
-              <p class="hidden text-sm text-text-muted sm:block">{{ authStore.terminology.employee || 'Empleado' }}s, horarios y comisiones</p>
             </div>
             <button
               @click="handleNewEmpleado"

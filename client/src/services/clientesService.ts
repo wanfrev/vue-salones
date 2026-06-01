@@ -98,6 +98,24 @@ export const deleteCliente = async (clientId: string): Promise<void> => {
   if (error) throw error
 }
 
+export const searchClients = async (
+  businessId: string,
+  query: string
+): Promise<Pick<Client, 'id' | 'full_name' | 'phone'>[]> => {
+  if (!query.trim()) return []
+
+  const { data, error } = await supabase
+    .from('clients')
+    .select('id, full_name, phone')
+    .eq('business_id', businessId)
+    .ilike('full_name', `%${query}%`)
+    .order('full_name')
+    .limit(10)
+
+  if (error) throw error
+  return (data ?? []) as Pick<Client, 'id' | 'full_name' | 'phone'>[]
+}
+
 export const findOrCreateClientByPhone = async (
   businessId: string,
   input: { fullName: string; phone: string; email?: string | null; notes?: string | null }

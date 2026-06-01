@@ -118,6 +118,7 @@ export interface Appointment {
   client_id: string
   employee_id: string
   service_id: string
+  group_id: string | null
   start_time: string
   end_time: string
   status: AppointmentStatus

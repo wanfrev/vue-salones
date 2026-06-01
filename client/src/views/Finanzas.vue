@@ -36,7 +36,6 @@
                 <span class="font-medium uppercase tracking-wider">Finanzas</span>
               </div>
               <h1 class="text-xl font-bold text-text lg:text-2xl">Dashboard Financiero</h1>
-              <p class="hidden text-sm text-text-muted sm:block">Ingresos, gastos y rentabilidad del salón</p>
             </div>
             <div class="flex items-center gap-2">
               <div class="flex rounded-xl border border-border bg-surface p-1">
