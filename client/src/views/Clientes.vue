@@ -169,21 +169,21 @@
                 <tr v-for="client in paginatedData" :key="client.id" class="cursor-pointer border-b border-border-subtle last:border-b-0 transition-theme hover:bg-bg-secondary" @click="handleViewAgenda(client)">
                   <td class="px-4 py-3">
                     <div class="flex items-center gap-3">
-                      <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary flex-shrink-0">
+                      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                         {{ getInitials(client.name) }}
                       </div>
                       <div class="min-w-0">
                         <p class="text-sm font-medium text-text truncate">{{ client.name }}</p>
-                        <p class="text-xs text-text-muted">Desde {{ client.joinDate }}</p>
+                        <p class="text-xs text-slate-400">Desde {{ client.joinDate }}</p>
                       </div>
                     </div>
                   </td>
                   <td class="px-4 py-3">
-                    <div class="text-sm text-text-secondary">{{ client.phone }}</div>
-                    <div v-if="client.email" class="text-xs text-text-muted truncate max-w-40">{{ client.email }}</div>
+                    <div class="text-xs text-slate-500">{{ client.phone }}</div>
+                    <div v-if="client.email" class="text-xs text-slate-400 truncate max-w-40">{{ client.email }}</div>
                   </td>
                   <td class="px-4 py-3">
-                    <span class="text-sm text-text-secondary">{{ client.lastVisit }}</span>
+                    <span class="text-xs text-slate-500">{{ client.lastVisit }}</span>
                   </td>
                   <td class="px-4 py-3">
                     <span class="text-sm font-medium tabular-nums text-text">{{ client.totalAppointments }}</span>

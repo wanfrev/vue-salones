@@ -164,15 +164,15 @@
                       <span class="font-medium text-text">{{ producto.name }}</span>
                     </div>
                   </td>
-                  <td class="px-4 py-3 text-text-muted font-mono text-xs">{{ producto.sku || '—' }}</td>
-                  <td class="px-4 py-3 text-text-secondary">{{ producto.categoryName || '—' }}</td>
+                  <td class="px-4 py-3 text-slate-500 font-mono text-xs">{{ producto.sku || '—' }}</td>
+                  <td class="px-4 py-3 text-xs text-slate-500">{{ producto.categoryName || '—' }}</td>
                   <td class="px-4 py-3 text-right">
                     <span class="text-text">${{ producto.unitCost.toFixed(2) }}</span>
-                    <span class="block text-xs text-text-muted">Bs {{ formatVESInline(producto.unitCost) }}</span>
+                    <span class="inline-block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitCost) }}</span>
                   </td>
                   <td class="px-4 py-3 text-right font-medium">
                     <span class="text-text">${{ producto.unitPrice.toFixed(2) }}</span>
-                    <span class="block text-xs text-text-muted">Bs {{ formatVESInline(producto.unitPrice) }}</span>
+                    <span class="inline-block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitPrice) }}</span>
                   </td>
                   <td class="px-4 py-3 text-right">
                     <span :class="[
@@ -181,7 +181,7 @@
                     ]">
                       {{ producto.stockTotal }}
                     </span>
-                    <span class="text-xs text-text-muted"> {{ producto.unit }}</span>
+                    <span class="text-xs text-slate-400"> {{ producto.unit }}</span>
                   </td>
                   <td class="px-4 py-3 text-center">
                     <span :class="[
