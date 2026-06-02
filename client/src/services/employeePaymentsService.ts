@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { mutate } from '../lib/typedSupabase'
+import { handleDbError } from '../lib/errors'
 import type { EmployeePayment } from '../types/database'
 
 export const employeePaymentKeys = {
@@ -23,7 +24,7 @@ export const listEmployeePayments = async (businessId: string): Promise<Employee
     .eq('business_id', businessId)
     .order('payment_date', { ascending: false })
 
-  if (error) throw error
+  if (error) handleDbError(error, 'Error al cargar pagos de empleados')
 
   const raw = (data ?? []) as Array<
     EmployeePayment & {
@@ -63,5 +64,5 @@ export const createEmployeePayment = async (
       created_by: supabaseUser?.id ?? null,
     })
 
-  if (error) throw error
+  if (error) handleDbError(error, 'Error al registrar el pago del empleado')
 }

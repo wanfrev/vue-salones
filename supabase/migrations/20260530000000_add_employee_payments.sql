@@ -13,14 +13,22 @@ CREATE TABLE employee_payments (
 
 ALTER TABLE employee_payments ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "admins manage employee_payments"
-  ON employee_payments
-  USING (
-    business_id IN (
-      SELECT p.business_id FROM profiles p
-      WHERE p.id = auth.uid() AND p.role IN ('admin', 'superadmin')
-    )
-  );
+CREATE POLICY "employee_payments_select" ON employee_payments
+  FOR SELECT TO AUTHENTICATED
+  USING (public.is_admin_of(business_id));
+
+CREATE POLICY "employee_payments_insert" ON employee_payments
+  FOR INSERT TO AUTHENTICATED
+  WITH CHECK (public.is_admin_of(business_id));
+
+CREATE POLICY "employee_payments_update" ON employee_payments
+  FOR UPDATE TO AUTHENTICATED
+  USING (public.is_admin_of(business_id))
+  WITH CHECK (public.is_admin_of(business_id));
+
+CREATE POLICY "employee_payments_delete" ON employee_payments
+  FOR DELETE TO AUTHENTICATED
+  USING (public.is_admin_of(business_id));
 
 CREATE INDEX idx_employee_payments_business ON employee_payments(business_id);
 CREATE INDEX idx_employee_payments_employee ON employee_payments(employee_id);
