@@ -1,3 +1,4 @@
+import { formatDate, formatTime } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
 import type { Transaction, EmployeePayment } from '../types/database'
 
@@ -58,8 +59,8 @@ export const listEmployeeAppointments = async (
   }
   return (data ?? []).map((row: ApptRow) => ({
     id: row.id,
-    date: new Date(row.start_time).toLocaleDateString('es-ES'),
-    time: new Date(row.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+    date: formatDate(row.start_time),
+    time: formatTime(row.start_time),
     clientName: row.clients?.full_name ?? '—',
     serviceName: row.services?.name ?? '—',
     servicePrice: Number(row.services?.price ?? 0),
@@ -102,7 +103,7 @@ export const listEmployeeTransactions = async (
 
   return raw.map(row => ({
     id: row.id,
-    date: new Date(row.paid_at).toLocaleDateString('es-ES'),
+    date: formatDate(row.paid_at),
     clientName: row.appointments?.clients?.full_name ?? '—',
     serviceName: row.appointments?.services?.name ?? '—',
     totalAmount: Number(row.total_amount),

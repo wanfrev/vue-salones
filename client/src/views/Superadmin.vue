@@ -167,6 +167,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { formatDate } from '../lib/formatters'
 import { useNotification } from '../composables/useNotification'
 import { useAuth } from '../composables/useAuth'
 import { useThemeStore } from '../store/theme'
@@ -259,9 +260,5 @@ const handleSubmit = async () => {
   })
 }
 
-const formatDate = (value: string) => {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: '2-digit' })
-}
+
 </script>

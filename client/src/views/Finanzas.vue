@@ -1,5 +1,4 @@
 <template>
-<AdminLayout>
   <header class="mb-4 lg:mb-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
@@ -114,7 +113,6 @@
       </table>
     </div>
   </div>
-</AdminLayout>
 </template>
 
 <script setup lang="ts">
@@ -123,7 +121,6 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useBusinessStore } from '../store/business'
-import AdminLayout from '../components/layout/AdminLayout.vue'
 import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { useExpenses } from '../composables/useExpenses'
 import { useEmployeePayments } from '../composables/useEmployeePayments'

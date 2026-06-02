@@ -1,3 +1,5 @@
+import { downloadCsv } from './csv'
+
 export function exportToCsv(data: Record<string, unknown>[], filename: string): void {
   if (data.length === 0) return
   const headers = Object.keys(data[0])
@@ -9,13 +11,5 @@ export function exportToCsv(data: Record<string, unknown>[], filename: string): 
     }).join(',')),
   ].join('\n')
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  downloadCsv(filename, csvContent)
 }

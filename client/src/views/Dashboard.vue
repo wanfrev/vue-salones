@@ -87,10 +87,10 @@
                 <span
                   :class="[
                     'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                    statusStyles[appt.status] || statusStyles.confirmed
+                    getStatusColor(appt.status)
                   ]"
                 >
-                  {{ statusLabels[appt.status] || 'Confirmada' }}
+                  {{ getStatusLabel(appt.status) }}
                 </span>
               </td>
             </tr>
@@ -176,9 +176,9 @@
           </thead>
           <tbody class="divide-y divide-border">
             <tr v-for="p in payments" :key="p.id" class="transition-colors hover:bg-bg-secondary/50">
-              <td class="px-4 py-2.5 text-text-secondary">{{ new Date(p.payment_date).toLocaleDateString('es-ES') }}</td>
+              <td class="px-4 py-2.5 text-text-secondary">{{ formatDate(p.payment_date) }}</td>
               <td class="px-4 py-2.5 text-right font-semibold text-text">${{ Number(p.amount).toFixed(2) }}</td>
-              <td class="px-4 py-2.5 text-text-secondary capitalize">{{ p.payment_method }}</td>
+              <td class="px-4 py-2.5 text-text-secondary">{{ formatMethod(p.payment_method) }}</td>
             </tr>
           </tbody>
         </table>
@@ -249,7 +249,7 @@
             <div v-for="p in payments" :key="p.id" class="flex justify-between items-center py-2 border-b border-border last:border-b-0">
               <div>
                 <p class="text-sm font-medium text-text">${{ Number(p.amount).toFixed(2) }}</p>
-                <p class="text-xs text-text-muted">{{ new Date(p.payment_date).toLocaleDateString('es-ES') }} · {{ p.payment_method }}</p>
+                <p class="text-xs text-text-muted">{{ formatDate(p.payment_date) }} · {{ formatMethod(p.payment_method) }}</p>
               </div>
               <span class="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success">Pagado</span>
             </div>
@@ -291,6 +291,7 @@ import { useBusinessStore } from '../store/business'
 import { useAppointmentMutations } from '../composables/useAppointmentMutations'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { listEquipo, equipoKeys } from '../services/equipoService'
+import { getInitials, getStatusLabel, getStatusColor, formatMethod, formatDate, formatNumber } from '../lib/formatters'
 import { listEmployeeAppointments, listEmployeeTransactions, listEmployeePayments, dashboardKeys } from '../services/employeeDashboardService'
 import AppLayout from '../components/layout/AppLayout.vue'
 import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
@@ -343,7 +344,7 @@ const { data: earningsData, isLoading: loadingEarnings } = useQuery({
 const earnings = computed(() => earningsData.value ?? [])
 
 const totalBilled = computed(() =>
-  earnings.value.reduce((sum, r) => sum + r.totalAmount, 0).toLocaleString()
+  formatNumber(earnings.value.reduce((sum, r) => sum + r.totalAmount, 0))
 )
 const totalEarned = computed(() =>
   earnings.value.reduce((sum, r) => sum + r.employeeEarnings, 0).toFixed(2)
@@ -357,28 +358,8 @@ const { data: paymentsData } = useQuery({
 })
 const payments = computed(() => paymentsData.value ?? [])
 
-// Status display helpers
-const statusStyles: Record<string, string> = {
-  confirmed: 'bg-primary/10 text-primary',
-  completed: 'bg-success/10 text-success',
-  paid: 'bg-success/10 text-success',
-  pending: 'bg-warning/10 text-warning',
-  cancelled: 'bg-danger/10 text-danger',
-}
-const statusLabels: Record<string, string> = {
-  confirmed: 'Confirmada',
-  completed: 'Completada',
-  paid: 'Pagada',
-  pending: 'Pendiente',
-  cancelled: 'Cancelada',
-}
-
 // Initials
-const initials = computed(() => {
-  const name = authStore.profile?.full_name
-  if (!name) return '??'
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-})
+const initials = computed(() => getInitials(authStore.profile?.full_name))
 
 // CitaFormModal
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)

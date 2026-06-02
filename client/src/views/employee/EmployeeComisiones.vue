@@ -76,9 +76,9 @@
           </thead>
           <tbody class="divide-y divide-border">
             <tr v-for="p in payments" :key="p.id" class="transition-colors hover:bg-bg-secondary/50">
-              <td class="px-4 py-2.5 text-text-secondary">{{ new Date(p.payment_date).toLocaleDateString('es-ES') }}</td>
+              <td class="px-4 py-2.5 text-text-secondary">{{ formatDate(p.payment_date) }}</td>
               <td class="px-4 py-2.5 text-right font-semibold text-text">${{ Number(p.amount).toFixed(2) }}</td>
-              <td class="px-4 py-2.5 text-text-secondary capitalize">{{ p.payment_method }}</td>
+              <td class="px-4 py-2.5 text-text-secondary">{{ formatMethod(p.payment_method) }}</td>
             </tr>
           </tbody>
         </table>
@@ -90,6 +90,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
+import { formatMethod, formatDate, formatNumber } from '../../lib/formatters'
 import { useAuthStore } from '../../store/auth'
 import { dashboardKeys, listEmployeeTransactions, listEmployeePayments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
@@ -115,7 +116,7 @@ const { data: earningsData, isLoading: loadingEarnings } = useQuery({
 const earnings = computed(() => earningsData.value ?? [])
 
 const totalBilled = computed(() =>
-  earnings.value.reduce((sum, r) => sum + r.totalAmount, 0).toLocaleString()
+  formatNumber(earnings.value.reduce((sum, r) => sum + r.totalAmount, 0))
 )
 const totalEarned = computed(() =>
   earnings.value.reduce((sum, r) => sum + r.employeeEarnings, 0).toFixed(2)

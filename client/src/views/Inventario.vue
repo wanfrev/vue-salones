@@ -1,5 +1,4 @@
 <template>
-<AdminLayout>
   <header class="mb-4 lg:mb-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
@@ -160,7 +159,7 @@
           </thead>
           <tbody class="divide-y divide-border-subtle">
             <tr v-for="mov in filteredMovements" :key="mov.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
-              <td class="px-4 py-3 text-text-muted whitespace-nowrap">{{ formatDate(mov.createdAt) }}</td>
+              <td class="px-4 py-3 text-text-muted whitespace-nowrap">{{ formatDateTime(mov.createdAt) }}</td>
               <td class="px-4 py-3">
                 <span class="font-medium text-text">{{ mov.productName }}</span>
                 <span v-if="mov.variantName" class="text-xs text-text-muted ml-1">({{ mov.variantName }})</span>
@@ -217,12 +216,12 @@
     :is-saving="saveProductoMutation.isPending.value"
     @save="handleSaveProducto"
   />
-</AdminLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { formatDateTime } from '../lib/formatters'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { useInventoryAdjustment } from '../composables/useInventoryAdjustment'
@@ -231,7 +230,6 @@ import { productosKeys, saveProducto } from '../services/productosService'
 import StockAdjustModal from '../components/inventario/StockAdjustModal.vue'
 import SellFromInventoryModal from '../components/inventario/SellFromInventoryModal.vue'
 import ProductoFormModal from '../components/modals/ProductoFormModal.vue'
-import AdminLayout from '../components/layout/AdminLayout.vue'
 
 import type { InventarioItem } from '../types/inventario'
 import type { ProductoFormData } from '../types/producto'
@@ -299,12 +297,7 @@ const filteredMovements = computed(() => {
   )
 })
 
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('es-ES', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
-}
+
 
 const formatMovementType = (type: string) => {
   const map: Record<string, string> = {

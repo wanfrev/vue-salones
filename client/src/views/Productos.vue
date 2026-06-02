@@ -1,5 +1,4 @@
 <template>
-<AdminLayout>
   <header class="mb-4 lg:mb-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
@@ -172,7 +171,6 @@
       El producto dejará de estar disponible en el inventario.
     </p>
   </ModalBase>
-</AdminLayout>
 </template>
 
 <script setup lang="ts">
@@ -180,7 +178,6 @@ import { useProductCRUD } from '../composables/useProductCRUD'
 import ProductStats from '../components/productos/ProductStats.vue'
 import ProductoFormModal from '../components/modals/ProductoFormModal.vue'
 import { ModalBase } from '../components/common'
-import AdminLayout from '../components/layout/AdminLayout.vue'
 
 const {
   productoModalRef,

@@ -1,5 +1,4 @@
 <template>
-  <AdminLayout>
         <!-- Header -->
         <header class="mb-4">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -106,7 +105,6 @@
             @slot-select="handleSlotSelect"
           />
          </section>
-  </AdminLayout>
 
   <!-- Modals -->
   <CitaFormModal 
@@ -122,14 +120,15 @@ import { ref, computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
+import { downloadCsv } from '../lib/csv'
 import { agendaKeys, exportCitasToCsv, listCitas } from '../services/agendaService'
 import { equipoKeys, listEquipo } from '../services/equipoService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { useBusinessStore } from '../store/business'
 import { useAppointmentMutations } from '../composables/useAppointmentMutations'
 import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
+import { toISODate, dateToHHmm } from '../lib/formatters'
 import { CitaFormModal } from '../components/modals'
-import AdminLayout from '../components/layout/AdminLayout.vue'
 import type { Cita } from '../types/cita'
 
 const { authStore } = useAuth()
@@ -185,7 +184,7 @@ const todayLabel = computed(() => {
 })
 
 const stats = computed(() => {
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy = toISODate(new Date())
   const citasHoy = citas.value.filter(c => c.date === hoy)
   
   return {
@@ -216,8 +215,8 @@ const handleNewCita = () => {
 }
 
 const handleSlotSelect = ({ start }: { start: Date }) => {
-  const date = start.toISOString().split('T')[0]
-  const time = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`
+  const date = toISODate(start)
+  const time = dateToHHmm(start)
   citaModalRef.value?.open({ id: '', clientName: '', service: '', employee: '', date, time, duration: 30, price: 0, status: 'confirmed' })
 }
 
@@ -231,19 +230,11 @@ const handleEventClick = (event: { id: string; title: string; start: Date; end: 
 }
 
 const handleExport = () => {
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy = toISODate(new Date())
   const citasHoy = citas.value.filter(c => c.date === hoy)
   
   const csvContent = exportCitasToCsv(citasHoy)
-  
-  const blob = new Blob([csvContent], { type: 'text/csv' })
-  const url = window.URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `citas-${hoy}.csv`
-  a.click()
-  window.URL.revokeObjectURL(url)
-  
+  downloadCsv(`citas-${hoy}.csv`, csvContent)
   success('Citas exportadas correctamente')
 }
 </script>

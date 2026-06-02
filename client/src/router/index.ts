@@ -4,6 +4,7 @@ import EmployeeAgenda from '../views/employee/EmployeeAgenda.vue'
 import EmployeeHistorial from '../views/employee/EmployeeHistorial.vue'
 import EmployeeComisiones from '../views/employee/EmployeeComisiones.vue'
 import EmployeeRecibo from '../views/employee/EmployeeRecibo.vue'
+import AdminLayout from '../components/layout/AdminLayout.vue'
 import AdminView from '../views/Admin.vue'
 import SuperadminView from '../views/Superadmin.vue'
 import SuperadminBusinessAdminsView from '../views/SuperadminBusinessAdmins.vue'
@@ -58,9 +59,55 @@ const router = createRouter({
     },
     {
       path: '/admin',
-      name: 'admin',
-      component: AdminView,
+      component: AdminLayout,
       meta: { requiresAuth: true, adminOnly: true },
+      children: [
+        {
+          path: '',
+          name: 'admin',
+          component: AdminView,
+        },
+        {
+          path: 'clientes',
+          name: 'admin-clientes',
+          component: ClientesView,
+        },
+        {
+          path: 'clientes/:id',
+          name: 'admin-cliente-historial',
+          component: ClienteHistorialView,
+        },
+        {
+          path: 'finanzas',
+          name: 'admin-finanzas',
+          component: FinanzasView,
+        },
+        {
+          path: 'equipo',
+          name: 'admin-equipo',
+          component: EquipoView,
+        },
+        {
+          path: 'servicios',
+          name: 'admin-servicios',
+          component: ServiciosView,
+        },
+        {
+          path: 'productos',
+          name: 'admin-productos',
+          component: ProductosView,
+        },
+        {
+          path: 'inventario',
+          name: 'admin-inventario',
+          component: InventarioView,
+        },
+        {
+          path: 'pos',
+          name: 'admin-pos',
+          component: POSView,
+        },
+      ],
     },
     {
       path: '/superadmin',
@@ -80,54 +127,15 @@ const router = createRouter({
       component: SuperadminBusinessAdminsView,
       meta: { requiresAuth: true, superadminOnly: true },
     },
-    {
-      path: '/clientes',
-      name: 'clientes',
-      component: ClientesView,
-      meta: { requiresAuth: true, adminOnly: true },
-    },
-    {
-      path: '/clientes/:id',
-      name: 'cliente-historial',
-      component: ClienteHistorialView,
-      meta: { requiresAuth: true, adminOnly: true },
-    },
-    {
-      path: '/finanzas',
-      name: 'finanzas',
-      component: FinanzasView,
-      meta: { requiresAuth: true, adminOnly: true },
-    },
-    {
-      path: '/equipo',
-      name: 'equipo',
-      component: EquipoView,
-      meta: { requiresAuth: true, adminOnly: true },
-    },
-    {
-      path: '/servicios',
-      name: 'servicios',
-      component: ServiciosView,
-      meta: { requiresAuth: true, adminOnly: true },
-    },
-    {
-      path: '/productos',
-      name: 'productos',
-      component: ProductosView,
-      meta: { requiresAuth: true, adminOnly: true },
-    },
-    {
-      path: '/inventario',
-      name: 'inventario',
-      component: InventarioView,
-      meta: { requiresAuth: true, adminOnly: true },
-    },
-    {
-      path: '/pos',
-      name: 'pos',
-      component: POSView,
-      meta: { requiresAuth: true, adminOnly: true },
-    },
+    // Legacy redirects
+    { path: '/clientes', redirect: '/admin/clientes' },
+    { path: '/clientes/:id', redirect: to => `/admin/clientes/${to.params.id}` },
+    { path: '/finanzas', redirect: '/admin/finanzas' },
+    { path: '/equipo', redirect: '/admin/equipo' },
+    { path: '/servicios', redirect: '/admin/servicios' },
+    { path: '/productos', redirect: '/admin/productos' },
+    { path: '/inventario', redirect: '/admin/inventario' },
+    { path: '/pos', redirect: '/admin/pos' },
   ],
 })
 

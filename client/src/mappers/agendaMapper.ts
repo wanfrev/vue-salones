@@ -1,35 +1,15 @@
+import { normalizeAppointmentStatus, getStatusLabel, getStatusColor } from '../lib/formatters'
 import type { AppointmentWithRelations, Service } from '../types/database'
 import type { Cita, CitaFormData, CitaFormServiceItem } from '../types/cita'
 
 const toDateInput = (iso: string) => new Date(iso).toISOString().slice(0, 10)
 const toTimeInput = (iso: string) => new Date(iso).toISOString().slice(11, 16)
 
-const mapStatus = (appointment: { status: string; payment_status: string }) => {
-  if (appointment.payment_status === 'paid') return 'paid' as const
-  if (appointment.status === 'no_show') return 'cancelled' as const
-  if (appointment.status === 'completed') return 'confirmed' as const
-  return appointment.status as 'pending' | 'confirmed'
-}
-
-const statusLabelMap: Record<string, string> = {
-  confirmed: 'Confirmada',
-  pending: 'Pendiente',
-  cancelled: 'Cancelada',
-  paid: 'Pagada',
-}
-
-const statusColorMap: Record<string, string> = {
-  confirmed: 'var(--color-primary)',
-  pending: 'var(--color-warning)',
-  cancelled: 'var(--color-danger)',
-  paid: 'var(--color-success)',
-}
-
 export const mapAppointmentToCita = (appointment: AppointmentWithRelations): Cita => {
   const service = appointment.services
   const employee = appointment.profiles
   const client = appointment.clients
-  const normalizedStatus = mapStatus(appointment)
+  const normalizedStatus = normalizeAppointmentStatus(appointment) as 'confirmed' | 'pending' | 'cancelled' | 'paid'
 
   return {
     id: appointment.id,
@@ -46,8 +26,8 @@ export const mapAppointmentToCita = (appointment: AppointmentWithRelations): Cit
     price: Number(service?.price ?? 0),
     status: normalizedStatus,
     paymentStatus: appointment.payment_status,
-    statusLabel: statusLabelMap[normalizedStatus] ?? 'Confirmada',
-    statusColor: statusColorMap[normalizedStatus] ?? 'var(--color-primary)',
+    statusLabel: getStatusLabel(normalizedStatus),
+    statusColor: getStatusColor(normalizedStatus),
     notes: appointment.internal_notes ?? '',
   }
 }

@@ -63,7 +63,7 @@
             <div v-for="p in payments" :key="p.id" class="flex justify-between items-center py-2 border-b border-border last:border-b-0">
               <div>
                 <p class="text-sm font-medium text-text">${{ Number(p.amount).toFixed(2) }}</p>
-                <p class="text-xs text-text-muted">{{ new Date(p.payment_date).toLocaleDateString('es-ES') }} · {{ p.payment_method }}</p>
+                <p class="text-xs text-text-muted">{{ formatDate(p.payment_date) }} · {{ formatMethod(p.payment_method) }}</p>
               </div>
               <span class="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success">Pagado</span>
             </div>
@@ -93,6 +93,7 @@ import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuthStore } from '../../store/auth'
 import { useBusinessStore } from '../../store/business'
+import { getInitials, formatMethod, formatDate, formatNumber } from '../../lib/formatters'
 import { dashboardKeys, listEmployeeTransactions, listEmployeePayments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 
@@ -111,11 +112,7 @@ const payInfo = computed(() => {
   return { type, percentage, typeLabel }
 })
 
-const initials = computed(() => {
-  const name = authStore.profile?.full_name
-  if (!name) return '??'
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-})
+const initials = computed(() => getInitials(authStore.profile?.full_name))
 
 const { data: earningsData, isLoading: loadingEarnings } = useQuery({
   queryKey: dashboardKeys.earnings(businessId.value, employeeId.value),
@@ -125,7 +122,7 @@ const { data: earningsData, isLoading: loadingEarnings } = useQuery({
 const earnings = computed(() => earningsData.value ?? [])
 
 const totalBilled = computed(() =>
-  earnings.value.reduce((sum, r) => sum + r.totalAmount, 0).toLocaleString()
+  formatNumber(earnings.value.reduce((sum, r) => sum + r.totalAmount, 0))
 )
 const totalEarned = computed(() =>
   earnings.value.reduce((sum, r) => sum + r.employeeEarnings, 0).toFixed(2)

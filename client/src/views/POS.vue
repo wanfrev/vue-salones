@@ -1,5 +1,4 @@
 <template>
-<AdminLayout>
   <header class="mb-4 lg:mb-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
@@ -56,7 +55,6 @@
       />
     </div>
   </div>
-</AdminLayout>
 </template>
 
 <script setup lang="ts">
@@ -65,7 +63,6 @@ import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { listPendingAppointments, listSaleableProducts, posKeys } from '../services/posService'
-import AdminLayout from '../components/layout/AdminLayout.vue'
 import { usePOSCart } from '../composables/usePOSCart'
 import { usePOSPayment } from '../composables/usePOSPayment'
 import POSAppointmentSelector from '../components/pos/POSAppointmentSelector.vue'

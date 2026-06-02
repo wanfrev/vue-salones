@@ -83,6 +83,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import type { CalendarOptions, EventInput } from '@fullcalendar/core'
+import { getStatusLabel, getStatusColor, normalizeAppointmentStatus, dateToHHmm, toISODate } from '../../lib/formatters'
 import { useAgenda } from '../../composables/useAgenda'
 import { useAuthStore } from '../../store/auth'
 import { isAdminPanelRole } from '../../constants/roles'
@@ -120,28 +121,6 @@ onMounted(() => {
   }
 })
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'confirmed': return 'var(--color-primary)'
-    case 'paid': return 'var(--color-success)'
-    case 'pending': return 'var(--color-warning)'
-    case 'cancelled':
-    case 'no_show': return 'var(--color-danger)'
-    default: return 'var(--color-primary)'
-  }
-}
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'confirmed': return 'Confirmada'
-    case 'paid': return 'Pagada'
-    case 'pending': return 'Pendiente'
-    case 'cancelled':
-    case 'no_show': return 'Cancelada'
-    default: return 'Confirmada'
-  }
-}
-
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'confirmed': return 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
@@ -160,12 +139,7 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'cancelled', label: 'Cancelada' },
 ]
 
-const getVisualStatus = (appt: any) => {
-  if (appt.payment_status === 'paid') return 'paid'
-  if (appt.status === 'no_show') return 'cancelled'
-  if (appt.status === 'completed') return 'confirmed'
-  return appt.status
-}
+
 
 const calendarEvents = computed<EventInput[]>(() => {
   const events: EventInput[] = []
@@ -185,7 +159,7 @@ const calendarEvents = computed<EventInput[]>(() => {
 
   if (appointments.value) {
     appointments.value.forEach(appt => {
-      const visualStatus = getVisualStatus(appt)
+      const visualStatus = normalizeAppointmentStatus(appt)
       const service = services.value?.find(s => s.id === appt.service_id)
       const employee = employees.value?.find(e => e.id === appt.employee_id)
       const clientName = appt.clients?.full_name || ''
@@ -321,8 +295,8 @@ const calendarOptions = computed<CalendarOptions>(() => ({
     const start = arg.event.start!
     const end = arg.event.end!
     const duration = ext.serviceDuration || Math.round((end.getTime() - start.getTime()) / 60000)
-    const date = start.toISOString().split('T')[0]
-    const time = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`
+    const date = toISODate(start)
+    const time = dateToHHmm(start)
     const citaStatus = (ext?.status || 'confirmed') as Cita['status']
     emit('eventClick', {
       id: arg.event.id,

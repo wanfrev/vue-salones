@@ -41,6 +41,7 @@ import { listServicios, serviciosKeys } from '../../services/serviciosService'
 import { listEquipo, equipoKeys } from '../../services/equipoService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 import AgendaCalendar from '../../components/agenda/AgendaCalendar.vue'
+import { toISODate, dateToHHmm } from '../../lib/formatters'
 import { CitaFormModal } from '../../components/modals'
 
 const authStore = useAuthStore()
@@ -77,8 +78,8 @@ const handleNewCita = () => {
 }
 
 const handleSlotSelect = ({ start }: { start: Date }) => {
-  const date = start.toISOString().split('T')[0]
-  const time = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`
+  const date = toISODate(start)
+  const time = dateToHHmm(start)
   citaModalRef.value?.open({ id: '', clientName: '', service: '', employee: '', date, time, duration: 30, price: 0, status: 'confirmed' })
 }
 

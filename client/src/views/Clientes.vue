@@ -1,5 +1,4 @@
 <template>
-<AdminLayout>
   <header class="mb-4">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
@@ -185,7 +184,6 @@
     @apply="handleApplyFilters"
     @clear="handleClearFilters"
   />
-</AdminLayout>
 </template>
 
 <script setup lang="ts">
@@ -197,9 +195,9 @@ import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { useBusinessStore } from '../store/business'
 import { clientesKeys, deleteCliente, listClientes, saveCliente } from '../services/clientesService'
+import { getInitials, sanitizePhone } from '../lib/formatters'
 import { exportToCsv } from '../lib/exportCsv'
 import ClientStats from '../components/clientes/ClientStats.vue'
-import AdminLayout from '../components/layout/AdminLayout.vue'
 import { ClienteFormModal } from '../components/modals'
 import { FilterDrawer } from '../components/filters'
 
@@ -254,7 +252,7 @@ const {
 const label = computed(() => (businessStore.terminology.client || 'cliente').toLowerCase())
 
 const handleViewAgenda = (cliente: Cliente) => {
-  router.push(`/clientes/${cliente.id}`)
+  router.push(`/admin/clientes/${cliente.id}`)
   info(`Mostrando historial de ${cliente.name}`)
 }
 
@@ -276,12 +274,8 @@ const handleExport = () => {
   success('Clientes exportados correctamente')
 }
 
-const getInitials = (name: string): string => {
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-}
-
 const handleWhatsApp = (cliente: Cliente) => {
-  const phone = (cliente.phone || '').replace(/[^\d]/g, '')
+  const phone = sanitizePhone(cliente.phone)
   if (!phone) return
   window.open(`https://wa.me/${phone}`, '_blank')
 }

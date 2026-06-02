@@ -43,6 +43,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatTime } from '../../lib/formatters'
 import { ref, computed } from 'vue'
 
 const props = defineProps<{
@@ -65,6 +66,5 @@ const filteredAppointments = computed(() => {
   )
 })
 
-const formatTime = (iso: string) =>
-  new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+
 </script>

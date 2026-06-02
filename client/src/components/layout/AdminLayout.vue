@@ -26,7 +26,7 @@
 
     <main class="ml-0 min-h-screen pt-16 lg:ml-64">
       <div class="p-4 lg:p-6">
-        <slot />
+        <router-view />
       </div>
     </main>
   </div>

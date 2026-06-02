@@ -204,6 +204,7 @@ import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
 import { useAuthStore } from '../../store/auth'
 import { useBusinessStore } from '../../store/business'
+import { toISODate, minutesToHHmm } from '../../lib/formatters'
 import { searchClients } from '../../services/clientesService'
 import type { Cita, CitaFormData, CitaFormServiceItem } from '../../types/cita'
 import ModalBase from '../common/ModalBase.vue'
@@ -299,12 +300,10 @@ const emptyServiceRow = (): CitaFormServiceItem => ({
 })
 
 const defaultFormData = (): CitaFormData & { extraServices: CitaFormServiceItem[] } => {
-  const today = new Date().toISOString().split('T')[0]
+  const today = toISODate(new Date())
   const now = new Date()
   const minutes = now.getHours() * 60 + now.getMinutes()
   const nextSlot = Math.ceil(minutes / 30) * 30
-  const hh = String(Math.floor(nextSlot / 60)).padStart(2, '0')
-  const mm = String(nextSlot % 60).padStart(2, '0')
   return {
     clientId: undefined,
     clientName: '',
@@ -315,7 +314,7 @@ const defaultFormData = (): CitaFormData & { extraServices: CitaFormServiceItem[
     price: 0,
     extraServices: [],
     date: today,
-    time: `${hh}:${mm}`,
+    time: minutesToHHmm(nextSlot),
     status: 'confirmed',
     notes: '',
   }
@@ -458,7 +457,7 @@ watch(
         duration: cita.duration || 30,
         price: cita.price || 0,
         extraServices: [],
-        date: cita.date || new Date().toISOString().split('T')[0],
+        date: cita.date || toISODate(new Date()),
         time: cita.time || '09:00',
         status: cita.status || 'confirmed',
         notes: cita.notes || '',
@@ -480,7 +479,7 @@ const normalizePhone = (phone: string): string => {
 }
 
 const isTimeInPast = (date: string, time: string): boolean => {
-  const today = new Date().toISOString().split('T')[0]
+  const today = toISODate(new Date())
   if (date !== today) return false
   const now = new Date()
   const currentMinutes = now.getHours() * 60 + now.getMinutes()

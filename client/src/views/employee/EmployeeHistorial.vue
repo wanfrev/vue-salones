@@ -44,10 +44,10 @@
                 <span
                   :class="[
                     'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                    statusStyles[appt.status] || statusStyles.confirmed
+                    getStatusColor(appt.status)
                   ]"
                 >
-                  {{ statusLabels[appt.status] || 'Confirmada' }}
+                  {{ getStatusLabel(appt.status) }}
                 </span>
               </td>
             </tr>
@@ -61,6 +61,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
+import { getStatusLabel, getStatusColor } from '../../lib/formatters'
 import { useAuthStore } from '../../store/auth'
 import { dashboardKeys, listEmployeeAppointments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
@@ -76,18 +77,5 @@ const { data: historyData, isLoading: loadingHistory } = useQuery({
 })
 const historyAppointments = computed(() => historyData.value ?? [])
 
-const statusStyles: Record<string, string> = {
-  confirmed: 'bg-primary/10 text-primary',
-  completed: 'bg-success/10 text-success',
-  paid: 'bg-success/10 text-success',
-  pending: 'bg-warning/10 text-warning',
-  cancelled: 'bg-danger/10 text-danger',
-}
-const statusLabels: Record<string, string> = {
-  confirmed: 'Confirmada',
-  completed: 'Completada',
-  paid: 'Pagada',
-  pending: 'Pendiente',
-  cancelled: 'Cancelada',
-}
+
 </script>

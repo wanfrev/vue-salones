@@ -69,6 +69,7 @@ import { useRoute } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
 import { useBusinessStore } from '../../store/business'
 import { isAdminPanelRole } from '../../constants/roles'
+import { getInitials } from '../../lib/formatters'
 import ThemeToggle from '../common/ThemeToggle.vue'
 import { sidebarSections } from './sidebarLinks'
 import type { SidebarLink } from './sidebarLinks'
@@ -113,8 +114,5 @@ const resolveLabel = (link: SidebarLink): string => {
   return link.label
 }
 
-const getInitials = (name?: string): string => {
-  if (!name) return 'U'
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-}
+
 </script>

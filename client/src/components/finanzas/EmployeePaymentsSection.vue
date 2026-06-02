@@ -138,6 +138,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { formatMethod } from '../../lib/formatters'
 import { useCurrency } from '../../composables/useCurrency'
 import { useNotification } from '../../composables/useNotification'
 import { supabase } from '../../lib/supabase'
@@ -198,15 +199,5 @@ const handleSavePayment = async () => {
   }
 }
 
-const formatMethod = (method: string) => {
-  switch (method) {
-    case 'cash': return 'Efectivo'
-    case 'card': return 'Tarjeta'
-    case 'transfer': return 'Transferencia'
-    case 'zelle': return 'Zelle'
-    case 'pago_movil': return 'Pago Móvil'
-    case 'mixed': return 'Mixto'
-    default: return method
-  }
-}
+
 </script>

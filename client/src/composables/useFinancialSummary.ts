@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
+import { formatMethod, formatDate } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
 import type { Transaction } from '../types/database'
 
@@ -87,24 +88,7 @@ const formatBucketLabel = (date: Date, bucket: 'day' | 'week' | 'month') => {
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
 }
 
-const formatDate = (value: string) => {
-  const date = new Date(value)
-  return new Intl.DateTimeFormat('es-ES', {
-    day: '2-digit', month: 'short', year: 'numeric',
-  }).format(date)
-}
 
-const formatMethod = (method: string) => {
-  switch (method) {
-    case 'cash': return 'Efectivo'
-    case 'card': return 'Tarjeta'
-    case 'transfer': return 'Transferencia'
-    case 'zelle': return 'Zelle'
-    case 'pago_movil': return 'Pago Móvil'
-    case 'mixed': return 'Mixto'
-    default: return method
-  }
-}
 
 function buildExpenseBuckets(rows: { date: string; amount: number }[], bucket: 'day' | 'week' | 'month') {
   const map = new Map<string, number>()
