@@ -62,7 +62,7 @@
 import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuthStore } from '../../store/auth'
-import { listEmployeeAppointments } from '../../services/employeeDashboardService'
+import { dashboardKeys, listEmployeeAppointments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 
 const authStore = useAuthStore()
@@ -70,7 +70,7 @@ const businessId = computed(() => authStore.businessId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
 
 const { data: historyData, isLoading: loadingHistory } = useQuery({
-  queryKey: ['employee-history', businessId, employeeId],
+  queryKey: dashboardKeys.history(businessId.value, employeeId.value),
   queryFn: () => listEmployeeAppointments(businessId.value!, employeeId.value!),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })

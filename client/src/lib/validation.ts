@@ -1,0 +1,64 @@
+import { z } from 'zod'
+
+const paymentMethodSchema = z.enum(['cash', 'card', 'transfer', 'other', 'zelle', 'pago_movil', 'mixed'])
+
+export const serviceItemSchema = z.object({
+  serviceId: z.string().min(1, 'Selecciona un servicio'),
+  employeeId: z.string().min(1, 'Selecciona un empleado'),
+  duration: z.number().positive('La duración debe ser positiva'),
+  price: z.number().min(0, 'El precio no puede ser negativo'),
+})
+
+export const citaFormSchema = z.object({
+  clientId: z.string().optional(),
+  clientName: z.string().min(1, 'El nombre del cliente es requerido'),
+  clientPhone: z.string().min(1, 'El teléfono del cliente es requerido'),
+  service: z.string().min(1, 'Selecciona un servicio'),
+  employee: z.string().min(1, 'Selecciona un empleado'),
+  duration: z.number().positive('La duración debe ser positiva'),
+  price: z.number().min(0, 'El precio no puede ser negativo'),
+  extraServices: z.array(serviceItemSchema).default([]),
+  date: z.string().min(1, 'Selecciona una fecha'),
+  time: z.string().min(1, 'Selecciona una hora'),
+  status: z.enum(['confirmed', 'pending', 'cancelled', 'paid']).default('pending'),
+  notes: z.string().default(''),
+})
+
+const posProductItemSchema = z.object({
+  productId: z.string().min(1, 'Selecciona un producto'),
+  variantId: z.string().nullable(),
+  quantity: z.number().positive('La cantidad debe ser mayor a 0'),
+  locationId: z.string().min(1, 'Selecciona una ubicación'),
+  unitCost: z.number().min(0, 'El costo no puede ser negativo'),
+  productName: z.string().optional(),
+  variantName: z.string().nullable().optional(),
+  unitPrice: z.number().optional(),
+  subtotal: z.number().optional(),
+})
+
+const paymentBreakdownItemSchema = z.object({
+  method: paymentMethodSchema,
+  inputAmount: z.number().min(0, 'El monto no puede ser negativo'),
+  currency: z.enum(['USD', 'VES']),
+  amount: z.number().min(0, 'El monto no puede ser negativo'),
+})
+
+export const posSaleSchema = z.object({
+  appointmentId: z.string().min(1, 'Selecciona una cita'),
+  amount: z.number().min(0, 'El monto no puede ser negativo'),
+  method: paymentMethodSchema,
+  products: z.array(posProductItemSchema).default([]),
+  notes: z.string().default(''),
+  exchangeRate: z.number().min(0, 'La tasa de cambio no puede ser negativa'),
+  paymentsBreakdown: z.array(paymentBreakdownItemSchema).min(1, 'Agrega al menos un método de pago'),
+})
+
+export const clienteFormSchema = z.object({
+  name: z.string().min(1, 'El nombre del cliente es requerido'),
+  phone: z.string().min(1, 'El teléfono del cliente es requerido'),
+  email: z.string().email('Email inválido').or(z.literal('')).default(''),
+  notes: z.string().default(''),
+  birthday: z.string().default(''),
+  preferredServices: z.array(z.string()).default([]),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+})

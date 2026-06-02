@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase'
+import { mutate } from '../lib/typedSupabase'
 import type { EmployeePayment } from '../types/database'
-
-const writable = supabase as any
 
 export const employeePaymentKeys = {
   all: (businessId?: string | null) => ['employee-payments', businessId] as const,
@@ -51,8 +50,8 @@ export const createEmployeePayment = async (
   notes: string,
   paymentDate: string,
 ): Promise<void> => {
-  const supabaseUser = (writable as any).auth?.currentUser
-  const { error } = await writable
+  const supabaseUser = mutate.auth?.currentUser
+  const { error } = await mutate
     .from('employee_payments')
     .insert({
       business_id: businessId,

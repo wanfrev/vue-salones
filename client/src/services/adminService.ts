@@ -1,6 +1,4 @@
-import { supabase } from '../lib/supabase'
-
-const serviceSupabase = supabase as any
+import { mutate } from '../lib/typedSupabase'
 
 export type CreateUserInput = {
   email: string
@@ -25,7 +23,7 @@ export type CreateUserResult = {
 }
 
 export const createAuthUser = async (input: CreateUserInput): Promise<CreateUserResult> => {
-  const { data, error } = await serviceSupabase.functions.invoke('manage-user', {
+  const { data, error } = await mutate.functions.invoke('manage-user', {
     body: {
       action: 'create',
       email: input.email.trim().toLowerCase(),
@@ -46,7 +44,7 @@ export const updateAuthUser = async (userId: string, input: {
   password?: string
   user_metadata?: Record<string, unknown>
 }): Promise<void> => {
-  const { data, error } = await serviceSupabase.functions.invoke('manage-user', {
+  const { data, error } = await mutate.functions.invoke('manage-user', {
     body: {
       action: 'update',
       user_id: userId,
@@ -62,7 +60,7 @@ export const updateAuthUser = async (userId: string, input: {
 }
 
 export const deleteAuthUser = async (userId: string): Promise<void> => {
-  const { data, error } = await serviceSupabase.functions.invoke('manage-user', {
+  const { data, error } = await mutate.functions.invoke('manage-user', {
     body: {
       action: 'delete',
       user_id: userId,

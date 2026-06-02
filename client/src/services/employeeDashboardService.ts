@@ -1,6 +1,13 @@
 import { supabase } from '../lib/supabase'
 import type { Transaction, EmployeePayment } from '../types/database'
 
+export const dashboardKeys = {
+  appointments: (businessId?: string | null, employeeId?: string | null) => ['employee-appointments', businessId, employeeId] as const,
+  earnings: (businessId?: string | null, employeeId?: string | null) => ['employee-earnings', businessId, employeeId] as const,
+  payments: (businessId?: string | null, employeeId?: string | null) => ['employee-payments', businessId, employeeId] as const,
+  history: (businessId?: string | null, employeeId?: string | null) => ['employee-history', businessId, employeeId] as const,
+}
+
 export interface EmployeeAppointmentRecord {
   id: string
   date: string
@@ -45,7 +52,11 @@ export const listEmployeeAppointments = async (
 
   if (error) throw error
 
-  return (data ?? []).map((row: any) => ({
+  type ApptRow = {
+    id: string; start_time: string; end_time: string; status: string; payment_status: string
+    clients: { full_name: string } | null; services: { name: string; price: number } | null
+  }
+  return (data ?? []).map((row: ApptRow) => ({
     id: row.id,
     date: new Date(row.start_time).toLocaleDateString('es-ES'),
     time: new Date(row.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),

@@ -1,6 +1,12 @@
 import { supabase } from '../lib/supabase'
+import { posSaleSchema } from '../lib/validation'
 import type { PaymentMethod } from '../types/database'
 import type { POSProductItem, PaymentBreakdownItem } from '../types/pos'
+
+export const posKeys = {
+  pending: (businessId?: string | null) => ['pos-pending', businessId] as const,
+  products: (businessId?: string | null) => ['pos-products', businessId] as const,
+}
 
 export const recordSale = async (params: {
   appointmentId: string
@@ -11,6 +17,10 @@ export const recordSale = async (params: {
   exchangeRate: number
   paymentsBreakdown: PaymentBreakdownItem[]
 }): Promise<string> => {
+  const parsed = posSaleSchema.safeParse(params)
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues.map(e => e.message).join('. '))
+  }
   const productsJson = (params.products ?? []).map(p => ({
     product_id: p.productId,
     variant_id: p.variantId,

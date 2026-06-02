@@ -64,7 +64,7 @@ import { ref, computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
-import { listPendingAppointments, listSaleableProducts } from '../services/posService'
+import { listPendingAppointments, listSaleableProducts, posKeys } from '../services/posService'
 import AdminLayout from '../components/layout/AdminLayout.vue'
 import { usePOSCart } from '../composables/usePOSCart'
 import { usePOSPayment } from '../composables/usePOSPayment'
@@ -82,12 +82,12 @@ const paymentCtx = usePOSPayment()
 const selectedAppointment = ref<any>(null)
 
 const { data: appointmentsData } = useQuery({
-  queryKey: computed(() => ['pos-pending', businessId.value]),
+  queryKey: computed(() => posKeys.pending(businessId.value)),
   queryFn: () => listPendingAppointments(businessId.value!),
   enabled: computed(() => !!businessId.value),
 })
 const { data: productsData } = useQuery({
-  queryKey: computed(() => ['pos-products', businessId.value]),
+  queryKey: computed(() => posKeys.products(businessId.value)),
   queryFn: () => listSaleableProducts(businessId.value!),
   enabled: computed(() => !!businessId.value),
 })

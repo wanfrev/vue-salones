@@ -1,8 +1,7 @@
 import { supabase } from '../lib/supabase'
+import { mutate } from '../lib/typedSupabase'
 import type { Business } from '../types/database'
 import type { AuthProfile } from '../types/auth'
-
-const serviceSupabase = supabase as any
 
 export type CreateBusinessInput = {
   businessName: string
@@ -34,7 +33,7 @@ export const listBusinesses = async (): Promise<Business[]> => {
 }
 
 export const createBusinessWithOwner = async (input: CreateBusinessInput): Promise<CreateBusinessResult> => {
-  const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
+  const { data, error } = await mutate.functions.invoke('superadmin-invite', {
     body: {
       action: 'create',
       businessName: input.businessName.trim(),
@@ -65,7 +64,7 @@ export type UpdateBusinessInput = {
 }
 
 export const updateBusiness = async (input: UpdateBusinessInput): Promise<Business> => {
-  const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
+  const { data, error } = await mutate.functions.invoke('superadmin-invite', {
     body: {
       action: 'update_business',
       ...input,
@@ -81,7 +80,7 @@ export const updateBusiness = async (input: UpdateBusinessInput): Promise<Busine
 }
 
 export const deleteBusiness = async (businessId: string): Promise<void> => {
-  const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
+  const { data, error } = await mutate.functions.invoke('superadmin-invite', {
     body: {
       action: 'delete_business',
       business_id: businessId,
@@ -95,7 +94,7 @@ export const deleteBusiness = async (businessId: string): Promise<void> => {
 }
 
 export const suspendBusiness = async (businessId: string): Promise<void> => {
-  const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
+  const { data, error } = await mutate.functions.invoke('superadmin-invite', {
     body: {
       action: 'suspend_business',
       business_id: businessId,
@@ -109,7 +108,7 @@ export const suspendBusiness = async (businessId: string): Promise<void> => {
 }
 
 export const resumeBusiness = async (businessId: string): Promise<void> => {
-  const { data, error } = await serviceSupabase.functions.invoke('superadmin-invite', {
+  const { data, error } = await mutate.functions.invoke('superadmin-invite', {
     body: {
       action: 'resume_business',
       business_id: businessId,

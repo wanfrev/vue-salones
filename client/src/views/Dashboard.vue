@@ -291,7 +291,7 @@ import { useBusinessStore } from '../store/business'
 import { useAppointmentMutations } from '../composables/useAppointmentMutations'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { listEquipo, equipoKeys } from '../services/equipoService'
-import { listEmployeeAppointments, listEmployeeTransactions, listEmployeePayments } from '../services/employeeDashboardService'
+import { listEmployeeAppointments, listEmployeeTransactions, listEmployeePayments, dashboardKeys } from '../services/employeeDashboardService'
 import AppLayout from '../components/layout/AppLayout.vue'
 import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
 import { CitaFormModal } from '../components/modals'
@@ -319,16 +319,16 @@ const tabs = [
 const payInfo = computed(() => {
   const profile = authStore.profile
   if (!profile) return null
-  const type = (profile as any).pay_type ?? 'percentage'
-  const percentage = Number((profile as any).pay_percentage ?? 50)
-  const baseSalary = Number((profile as any).base_salary ?? 0)
+  const type = profile.pay_type ?? 'percentage'
+  const percentage = Number(profile.pay_percentage ?? 50)
+  const baseSalary = Number(profile.base_salary ?? 0)
   const typeLabel = type === 'salary' ? 'Sueldo base' : type === 'mixed' ? 'Sueldo + %' : 'Porcentaje'
   return { type, percentage, baseSalary, typeLabel }
 })
 
 // History
 const { data: historyData, isLoading: loadingHistory } = useQuery({
-  queryKey: ['employee-history', businessId, employeeId],
+  queryKey: dashboardKeys.history(businessId.value, employeeId.value),
   queryFn: () => listEmployeeAppointments(businessId.value!, employeeId.value!),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
@@ -336,7 +336,7 @@ const historyAppointments = computed(() => historyData.value ?? [])
 
 // Earnings
 const { data: earningsData, isLoading: loadingEarnings } = useQuery({
-  queryKey: ['employee-earnings', businessId, employeeId],
+  queryKey: dashboardKeys.earnings(businessId.value, employeeId.value),
   queryFn: () => listEmployeeTransactions(businessId.value!, employeeId.value!),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
@@ -351,7 +351,7 @@ const totalEarned = computed(() =>
 
 // Payments (employee_payments)
 const { data: paymentsData } = useQuery({
-  queryKey: ['employee-payments', businessId, employeeId],
+  queryKey: dashboardKeys.payments(businessId.value, employeeId.value),
   queryFn: () => listEmployeePayments(businessId.value!, employeeId.value!),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })

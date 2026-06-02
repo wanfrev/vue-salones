@@ -1,40 +1,30 @@
 import { supabase } from '../lib/supabase'
+import { mutate } from '../lib/typedSupabase'
+import { handleDbError } from '../lib/errors'
+import { citaFormSchema } from '../lib/validation'
 import { mapAppointmentToCita, mapCitaFormToAppointmentInsert, mapServiceItemToAppointmentInsert } from '../mappers/agendaMapper'
 import { findOrCreateClientByPhone } from './clientesService'
 import type { AppointmentWithRelations, Service } from '../types/database'
 import type { Cita, CitaFormData } from '../types/cita'
 
-const writableSupabase = supabase as any
-const EMPLOYEE_OVERLAP_CONSTRAINT = 'appointments_no_employee_overlap'
-
 function generateId(): string {
   return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 }
 
-type SupabaseErrorLike = {
-  code?: string
-  message?: string
-  details?: string
-  hint?: string
-}
-
-const isEmployeeOverlapError = (error: unknown): error is SupabaseErrorLike => {
-  if (!error || typeof error !== 'object') return false
-  const candidate = error as SupabaseErrorLike
-  const message = candidate.message ?? ''
-  const details = candidate.details ?? ''
-  return candidate.code === '23P01' ||
-    message.includes(EMPLOYEE_OVERLAP_CONSTRAINT) ||
-    details.includes(EMPLOYEE_OVERLAP_CONSTRAINT)
-}
-
-const mapAgendaWriteError = (error: unknown, action: 'guardar' | 'reagendar') => {
-  if (isEmployeeOverlapError(error)) {
+function mapAgendaWriteError(error: unknown, action: 'guardar' | 'reagendar'): Error {
+  if (!error || typeof error !== 'object') {
+    return new Error(`Error al ${action} la cita`)
+  }
+  const candidate = error as Record<string, unknown>
+  const message = String(candidate.message ?? '')
+  const isOverlap = candidate.code === '23P01' ||
+    message.includes('appointments_no_employee_overlap')
+  if (isOverlap) {
     return new Error(`No se puede ${action} la cita: el empleado ya tiene otra cita en ese horario.`)
   }
-
-  if (error instanceof Error) return error
-  return new Error(`Error al ${action} la cita`)
+  const mapped = (() => { try { handleDbError(error, ''); return null } catch (e) { return e as Error } })()
+  if (mapped) return mapped
+  return error instanceof Error ? error : new Error(`Error al ${action} la cita`)
 }
 
 export const agendaKeys = {
@@ -75,7 +65,12 @@ export const saveCita = async (
   data: CitaFormData & { id?: string; clientPhone?: string },
   createdBy?: string | null
 ): Promise<Cita> => {
-  const serviceId = data.service
+  const parsed = citaFormSchema.safeParse(data)
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues.map(e => e.message).join('. '))
+  }
+
+  const serviceId = parsed.data.service
   const { data: service, error: serviceError } = await supabase
     .from('services')
     .select('*')
@@ -107,8 +102,8 @@ export const saveCita = async (
     )
 
     const query = data.id
-      ? writableSupabase.from('appointments').update(payload).eq('id', data.id).select(APPOINTMENT_SELECT).single()
-      : writableSupabase.from('appointments').insert(payload).select(APPOINTMENT_SELECT).single()
+      ? mutate.from('appointments').update(payload).eq('id', data.id).select(APPOINTMENT_SELECT).single()
+      : mutate.from('appointments').insert(payload).select(APPOINTMENT_SELECT).single()
 
     const { data: saved, error } = await query
     if (error) throw mapAgendaWriteError(error, 'guardar')
@@ -161,7 +156,7 @@ export const saveCita = async (
     ))
   }
 
-  const { data: saved, error: insertError } = await writableSupabase
+  const { data: saved, error: insertError } = await mutate
     .from('appointments')
     .insert(inserts)
     .select(APPOINTMENT_SELECT)
@@ -184,7 +179,7 @@ export const updateCitaStatus = async (
     ? { status: 'completed' as const, payment_status: 'paid' as const }
     : { status, payment_status: 'unpaid' as const }
 
-  const { error } = await writableSupabase
+  const { error } = await mutate
     .from('appointments')
     .update(statusPayload)
     .eq('id', id)
@@ -197,7 +192,7 @@ export const updateAppointmentTime = async (
   startTime: string,
   endTime: string
 ): Promise<void> => {
-  const { error } = await writableSupabase
+  const { error } = await mutate
     .from('appointments')
     .update({ start_time: startTime, end_time: endTime })
     .eq('id', id)

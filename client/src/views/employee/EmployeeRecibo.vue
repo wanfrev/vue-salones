@@ -93,7 +93,7 @@ import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuthStore } from '../../store/auth'
 import { useBusinessStore } from '../../store/business'
-import { listEmployeeTransactions, listEmployeePayments } from '../../services/employeeDashboardService'
+import { dashboardKeys, listEmployeeTransactions, listEmployeePayments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 
 const authStore = useAuthStore()
@@ -118,7 +118,7 @@ const initials = computed(() => {
 })
 
 const { data: earningsData, isLoading: loadingEarnings } = useQuery({
-  queryKey: ['employee-earnings', businessId, employeeId],
+  queryKey: dashboardKeys.earnings(businessId.value, employeeId.value),
   queryFn: () => listEmployeeTransactions(businessId.value!, employeeId.value!),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
@@ -132,7 +132,7 @@ const totalEarned = computed(() =>
 )
 
 const { data: paymentsData } = useQuery({
-  queryKey: ['employee-payments', businessId, employeeId],
+  queryKey: dashboardKeys.payments(businessId.value, employeeId.value),
   queryFn: () => listEmployeePayments(businessId.value!, employeeId.value!),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })

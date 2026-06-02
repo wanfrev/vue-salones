@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { validateSaleQuantity, movementTypeForAdjust, getStockRecord, updateStockQuantity, insertStockRecord, recordMovement } from '../business/stockRules'
 import type { InventoryLocation, InventoryStock, InventoryMovement } from '../types/database'
 import type { InventarioItem, InventarioLocation, InventarioMovimiento } from '../types/inventario'
 
@@ -81,7 +82,7 @@ export const listInventoryMovements = async (
     .limit(50)
 
   if (productId) {
-    query = (query as any).eq('product_id', productId)
+    query = query.eq('product_id', productId)
   }
 
   const { data, error } = await query
@@ -133,61 +134,22 @@ export const adjustInventory = async (
   notes: string,
   variantId?: string | null
 ): Promise<void> => {
-  const writable = supabase as any
+  const existing = await getStockRecord(businessId, productId, locationId, variantId)
 
-  let stockQuery = supabase
-    .from('inventory_stock')
-    .select('id, quantity')
-    .eq('business_id', businessId)
-    .eq('product_id', productId)
-    .eq('location_id', locationId)
-
-  if (variantId) {
-    stockQuery = stockQuery.eq('variant_id', variantId)
+  if (existing?.data) {
+    await updateStockQuantity(existing.data.id, Number(existing.data.quantity) + quantity)
   } else {
-    stockQuery = stockQuery.is('variant_id', null)
+    await insertStockRecord(businessId, productId, locationId, quantity, variantId)
   }
 
-  const { data: existing } = await stockQuery.maybeSingle()
-
-  if (existing) {
-    const { error } = await writable
-      .from('inventory_stock')
-      .update({ quantity: Number(existing.quantity) + quantity })
-      .eq('id', existing.id)
-
-    if (error) throw error
-  } else {
-    const { error } = await writable
-      .from('inventory_stock')
-      .insert({
-        business_id: businessId,
-        location_id: locationId,
-        product_id: productId,
-        variant_id: variantId ?? null,
-        quantity,
-      })
-
-    if (error) throw error
-  }
-
-  const movementType = quantity > 0 ? 'purchase' : 'adjustment'
-
-  const supabaseUser = (supabase as any).auth?.currentUser
-  const { error: movError } = await writable
-    .from('inventory_movements')
-    .insert({
-      business_id: businessId,
-      location_id: locationId,
-      product_id: productId,
-      variant_id: variantId ?? null,
-      movement_type: movementType,
-      quantity,
-      notes,
-      created_by: supabaseUser?.id ?? null,
-    })
-
-  if (movError) throw movError
+  await recordMovement(businessId, {
+    locationId,
+    productId,
+    variantId,
+    movementType: movementTypeForAdjust(quantity),
+    quantity,
+    notes,
+  })
 }
 
 export const sellProduct = async (
@@ -199,51 +161,23 @@ export const sellProduct = async (
   variantId?: string | null,
   unitPrice?: number,
 ): Promise<void> => {
-  if (quantity <= 0) throw new Error('La cantidad debe ser mayor a 0')
+  const existing = await getStockRecord(businessId, productId, locationId, variantId)
 
-  const writable = supabase as any
+  if (!existing?.data) throw new Error('No hay stock de este producto')
 
-  let stockQuery = supabase
-    .from('inventory_stock')
-    .select('id, quantity')
-    .eq('business_id', businessId)
-    .eq('product_id', productId)
-    .eq('location_id', locationId)
+  const currentQty = Number(existing.data.quantity)
+  validateSaleQuantity(quantity, currentQty)
 
-  if (variantId) {
-    stockQuery = stockQuery.eq('variant_id', variantId)
-  } else {
-    stockQuery = stockQuery.is('variant_id', null)
-  }
+  const newQty = currentQty - quantity
+  await updateStockQuantity(existing.data.id, newQty)
 
-  const { data: existing } = await stockQuery.maybeSingle()
-
-  if (!existing) throw new Error('No hay stock de este producto')
-
-  const newQty = Number(existing.quantity) - quantity
-  if (newQty < 0) throw new Error('Stock insuficiente')
-
-  const { error } = await writable
-    .from('inventory_stock')
-    .update({ quantity: newQty })
-    .eq('id', existing.id)
-
-  if (error) throw error
-
-  const supabaseUser = (supabase as any).auth?.currentUser
-  const { error: movError } = await writable
-    .from('inventory_movements')
-    .insert({
-      business_id: businessId,
-      location_id: locationId,
-      product_id: productId,
-      variant_id: variantId ?? null,
-      movement_type: 'sale',
-      quantity: -quantity,
-      unit_cost: unitPrice ?? 0,
-      notes: notes || 'Venta directa',
-      created_by: supabaseUser?.id ?? null,
-    })
-
-  if (movError) throw movError
+  await recordMovement(businessId, {
+    locationId,
+    productId,
+    variantId,
+    movementType: 'sale',
+    quantity: -quantity,
+    notes: notes || 'Venta directa',
+    unitCost: unitPrice,
+  })
 }

@@ -1,9 +1,8 @@
 import { supabase } from '../lib/supabase'
+import { mutate } from '../lib/typedSupabase'
 import { mapServiceToServicio, mapServicioFormToServiceInsert } from '../mappers/serviciosMapper'
 import type { Service } from '../types/database'
 import type { Servicio, ServicioFormData } from '../types/servicio'
-
-const writableSupabase = supabase as any
 
 export const serviciosKeys = {
   all: (businessId?: string | null) => ['servicios', businessId] as const,
@@ -40,8 +39,8 @@ export const saveServicio = async (
   const payload = mapServicioFormToServiceInsert(businessId, data)
 
   const query = data.id
-    ? writableSupabase.from('services').update(payload).eq('id', data.id).select('*').single()
-    : writableSupabase.from('services').insert(payload).select('*').single()
+    ? mutate.from('services').update(payload).eq('id', data.id).select('*').single()
+    : mutate.from('services').insert(payload).select('*').single()
 
   const { data: saved, error } = await query
   if (error) throw error
@@ -50,7 +49,7 @@ export const saveServicio = async (
 }
 
 export const deleteServicio = async (id: string): Promise<void> => {
-  const { error } = await writableSupabase
+  const { error } = await mutate
     .from('services')
     .update({ active: false })
     .eq('id', id)

@@ -7,6 +7,10 @@ export interface AuthProfile {
   role: Role
   phone: string | null
   avatar_url: string | null
+  job_title?: string | null
+  pay_type?: 'salary' | 'percentage' | 'mixed' | null
+  pay_percentage?: number | null
+  base_salary?: number | null
 }
 
 export interface LoginCredentials {

@@ -1,11 +1,10 @@
 import { supabase } from '../lib/supabase'
+import { mutate } from '../lib/typedSupabase'
+import type { UpdateFor } from '../types/helpers'
 import { createAuthUser, deleteAuthUser } from './adminService'
 import { mapEmpleadoFormToProfileUpdate, mapEmpleadoFormToScheduleBlocks, mapProfileToEmpleado } from '../mappers/equipoMapper'
 import type { EmployeeProfile } from '../mappers/equipoMapper'
 import type { Empleado, EmpleadoFormData } from '../types/empleado'
-import type { Business } from '../types/database'
-
-const writableSupabase = supabase as any
 
 export const equipoKeys = {
   all: (businessId?: string | null) => ['equipo', businessId] as const,
@@ -47,7 +46,7 @@ export const saveEmpleado = async (
     })
 
     const scheduleBlocks = mapEmpleadoFormToScheduleBlocks(user.id, data)
-    const { error: scheduleError } = await writableSupabase
+    const { error: scheduleError } = await mutate
       .from('employee_schedules')
       .insert(scheduleBlocks)
 
@@ -55,7 +54,7 @@ export const saveEmpleado = async (
     return
   }
 
-  const { error: profileError } = await writableSupabase
+  const { error: profileError } = await mutate
     .from('profiles')
     .update(mapEmpleadoFormToProfileUpdate(data))
     .eq('id', data.id)
@@ -70,58 +69,41 @@ export const saveEmpleado = async (
   if (deleteScheduleError) throw deleteScheduleError
 
   const scheduleBlocks = mapEmpleadoFormToScheduleBlocks(data.id, data)
-  const { error: scheduleError } = await writableSupabase
+  const { error: scheduleError } = await mutate
     .from('employee_schedules')
     .insert(scheduleBlocks)
 
   if (scheduleError) throw scheduleError
 }
 
-export const addBusinessCategory = async (businessId: string, category: string): Promise<string[]> => {
+async function addBusinessArrayField(businessId: string, column: 'service_categories' | 'job_titles', value: string): Promise<string[]> {
   const { data: biz, error: fetchError } = await supabase
     .from('businesses')
-    .select('service_categories')
+    .select(column)
     .eq('id', businessId)
     .single()
 
   if (fetchError) throw fetchError
 
-  const current: string[] = (biz?.service_categories as string[]) || []
-  if (current.includes(category)) return current
+  const current: string[] = (biz?.[column] ?? []) as string[]
+  if (current.includes(value)) return current
 
-  const updated = [...current, category]
+  const updated = [...current, value]
 
-  const { error } = await supabase
+  const { error } = await mutate
     .from('businesses')
-    .update({ service_categories: updated } as Partial<Business>)
+    .update({ [column]: updated } satisfies Partial<UpdateFor<'businesses'>>)
     .eq('id', businessId)
 
   if (error) throw error
   return updated
 }
 
-export const addBusinessJobTitle = async (businessId: string, title: string): Promise<string[]> => {
-  const { data: biz, error: fetchError } = await supabase
-    .from('businesses')
-    .select('job_titles')
-    .eq('id', businessId)
-    .single()
+export const addBusinessCategory = (businessId: string, category: string): Promise<string[]> =>
+  addBusinessArrayField(businessId, 'service_categories', category)
 
-  if (fetchError) throw fetchError
-
-  const current: string[] = (biz?.job_titles as string[]) || []
-  if (current.includes(title)) return current
-
-  const updated = [...current, title]
-
-  const { error } = await supabase
-    .from('businesses')
-    .update({ job_titles: updated } as Partial<Business>)
-    .eq('id', businessId)
-
-  if (error) throw error
-  return updated
-}
+export const addBusinessJobTitle = (businessId: string, title: string): Promise<string[]> =>
+  addBusinessArrayField(businessId, 'job_titles', title)
 
 export const deleteEmpleado = async (profileId: string): Promise<void> => {
   await deleteAuthUser(profileId)

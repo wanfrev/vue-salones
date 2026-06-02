@@ -10,9 +10,9 @@ export const mapProfileToEmpleado = (
   stats?: { citasHoy?: number; producido?: number; isOnBreak?: boolean; isOnVacation?: boolean }
 ): Empleado => {
   const firstSchedule = profile.employee_schedules?.[0]
-  const payType = (profile as any).pay_type || 'percentage'
-  const payPercentage = Number((profile as any).pay_percentage ?? 0)
-  const baseSalary = Number((profile as any).base_salary ?? 0)
+  const payType = profile.pay_type || 'percentage'
+  const payPercentage = Number(profile.pay_percentage ?? 0)
+  const baseSalary = Number(profile.base_salary ?? 0)
   const payTypeLabel = payType === 'salary'
     ? 'Sueldo base'
     : payType === 'mixed'
