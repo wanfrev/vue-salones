@@ -1,426 +1,210 @@
 <template>
-  <AdminLayout>
-        <header class="mb-4 lg:mb-6">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div class="flex items-center gap-2 text-xs text-primary mb-1">
-                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-                <span class="font-medium uppercase tracking-wider">Inventario</span>
-              </div>
-              <h1 class="text-xl font-bold text-text lg:text-2xl">Productos</h1>
-            </div>
-            <button
-              @click="handleNewProducto"
-              class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover"
-            >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span class="hidden sm:inline">Nuevo producto</span>
-            </button>
-          </div>
-        </header>
-
-        <div class="mb-4 grid grid-cols-2 gap-2 sm:gap-3 lg:mb-6 lg:grid-cols-4">
-          <div class="rounded-xl border border-border bg-surface p-3 transition-theme hover:border-border-strong">
-            <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-lg font-bold text-text">{{ totalProductos }}</p>
-                <p class="text-xs text-text-muted">Productos Activos</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-xl border border-border bg-surface p-3 transition-theme hover:border-border-strong">
-            <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10">
-                <svg class="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-lg font-bold text-text">{{ totalCategorias }}</p>
-                <p class="text-xs text-text-muted">Categorías</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-xl border border-border bg-surface p-3 transition-theme hover:border-border-strong">
-            <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10">
-                <svg class="h-4 w-4 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-lg font-bold text-text">{{ stockBajo }}</p>
-                <p class="text-xs text-text-muted">Stock Bajo</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-xl border border-border bg-surface p-3 transition-theme hover:border-border-strong">
-            <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10">
-                <svg class="h-4 w-4 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-lg font-bold text-text">{{ formatUSD(valorInventarioNumerico) }}</p>
-                <p class="text-xs text-text-muted">Bs {{ formatVESInline(valorInventarioNumerico) }}</p>
-                <p class="text-xs text-text-muted">Valor en Stock</p>
-              </div>
-            </div>
-          </div>
+<AdminLayout>
+  <header class="mb-4 lg:mb-6">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <div class="flex items-center gap-2 text-xs text-primary mb-1">
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <span class="font-medium uppercase tracking-wider">Inventario</span>
         </div>
-
-        <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div class="relative flex-1 max-w-md">
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Buscar producto por nombre o SKU..."
-              class="w-full rounded-lg border border-border bg-surface pl-9 pr-3 py-2 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15"
-            />
-            <div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted">
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-          </div>
-          <div class="flex rounded-xl border border-border bg-surface p-1">
-            <button
-              v-for="tab in tabs"
-              :key="tab.value"
-              @click="activeTab = tab.value"
-              :class="[
-                'rounded-lg px-3 py-1.5 text-xs font-medium transition-theme',
-                activeTab === tab.value
-                  ? 'bg-primary text-text-inverse'
-                  : 'text-text-secondary hover:bg-bg-secondary'
-              ]"
-            >
-              {{ tab.label }}
-            </button>
-          </div>
-        </div>
-
-        <div class="rounded-xl border border-border bg-surface overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead>
-                <tr class="border-b border-border">
-                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Producto</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">SKU</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Categoría</th>
-                  <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Costo</th>
-                  <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Precio</th>
-                  <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Stock</th>
-                  <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Estado</th>
-                  <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-border-subtle">
-                <tr v-for="producto in filteredProductos" :key="producto.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
-                  <td class="px-4 py-3">
-                    <div class="flex items-center gap-2">
-                      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                        <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                      </div>
-                      <span class="font-medium text-text">{{ producto.name }}</span>
-                    </div>
-                  </td>
-                  <td class="px-4 py-3 text-slate-500 font-mono text-xs">{{ producto.sku || '—' }}</td>
-                  <td class="px-4 py-3 text-xs text-slate-500">{{ producto.categoryName || '—' }}</td>
-                  <td class="px-4 py-3 text-right">
-                    <span class="text-text">${{ producto.unitCost.toFixed(2) }}</span>
-                    <span class="inline-block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitCost) }}</span>
-                  </td>
-                  <td class="px-4 py-3 text-right font-medium">
-                    <span class="text-text">${{ producto.unitPrice.toFixed(2) }}</span>
-                    <span class="inline-block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitPrice) }}</span>
-                  </td>
-                  <td class="px-4 py-3 text-right">
-                    <span :class="[
-                      'font-medium tabular-nums',
-                      producto.stockTotal <= producto.reorderPoint ? 'text-danger' : 'text-text'
-                    ]">
-                      {{ producto.stockTotal }}
-                    </span>
-                    <span class="text-xs text-slate-400"> {{ producto.unit }}</span>
-                  </td>
-                  <td class="px-4 py-3 text-center">
-                    <span :class="[
-                      'rounded-full px-2 py-0.5 text-xs font-medium',
-                      producto.status === 'Activo' ? 'bg-success/10 text-success' : 'bg-bg-secondary text-text-muted'
-                    ]">
-                      {{ producto.status }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3 text-center">
-                    <div class="flex items-center justify-center gap-1">
-                      <button
-                        @click="openStockAdjust(producto)"
-                        class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-success"
-                        title="Ajustar stock"
-                      >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                      </button>
-                      <button
-                        @click="handleEditProducto(producto)"
-                        class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
-                        title="Editar producto"
-                      >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                      </button>
-                      <button
-                        @click="handleDeleteProducto(producto)"
-                        class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-danger"
-                        title="Desactivar producto"
-                      >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-if="filteredProductos.length === 0" class="py-12 text-center">
-            <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
-              <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-            </div>
-            <h3 class="mt-4 text-lg font-medium text-text">No hay productos</h3>
-            <p class="mt-1 text-sm text-text-muted">Agrega tu primer producto al inventario.</p>
-          </div>
-        </div>
-  </AdminLayout>
-
-    <ProductoFormModal
-      ref="productoModalRef"
-      :is-saving="saveProductoMutation.isPending.value"
-      @save="handleSaveProducto"
-    />
-
-    <ModalBase
-      :is-open="stockAdjustModalOpen"
-      title="Ajustar stock"
-      subtitle="Agrega o reduce la cantidad disponible"
-      icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-      size="sm"
-      confirm-text="Guardar ajuste"
-      :is-confirm-disabled="stockAdjustQty === 0"
-      @close="closeStockAdjust"
-      @confirm="confirmStockAdjust"
-    >
-      <div class="space-y-4">
-        <div class="rounded-lg bg-bg-secondary p-3">
-          <p class="text-sm font-medium text-text">{{ stockAdjustProduct?.name }}</p>
-          <p class="text-xs text-text-muted">Stock actual: {{ stockAdjustProduct?.stockTotal }} {{ stockAdjustProduct?.unit }}</p>
-        </div>
-        <FormInput
-          v-model.number="stockAdjustQty"
-          label="Cantidad a ajustar"
-          type="number"
-          placeholder="Ej: 5 o -3"
-          prefix-icon="M12 6v6m0 0v6m0-6h6m-6 0H6"
-        />
-        <p class="text-xs text-text-muted">Usa valores positivos para agregar stock, negativos para reducir.</p>
-        <FormInput
-          v-model="stockAdjustNotes"
-          label="Motivo del ajuste"
-          placeholder="Ej: Compra nueva, producto dañado..."
-          prefix-icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-        />
+        <h1 class="text-xl font-bold text-text lg:text-2xl">Productos</h1>
       </div>
-    </ModalBase>
+      <button
+        @click="productoModalRef?.open()"
+        class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        <span class="hidden sm:inline">Nuevo producto</span>
+      </button>
+    </div>
+  </header>
 
-    <ModalBase
-      :is-open="isDeleteModalOpen"
-      title="Desactivar producto"
-      subtitle="Esta acción no se puede deshacer"
-      icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-      variant="danger"
-      size="sm"
-      confirm-text="Desactivar"
-      cancel-text="Cancelar"
-      @close="isDeleteModalOpen = false"
-      @confirm="confirmDelete"
-      @cancel="isDeleteModalOpen = false"
-    >
-      <p class="text-sm text-text-secondary">
-        ¿Estás seguro de que deseas desactivar <strong>{{ productoToDelete?.name }}</strong>?
-        El producto dejará de estar disponible en el inventario.
-      </p>
-    </ModalBase>
+  <ProductStats
+    :total-productos="totalProductos"
+    :total-categorias="totalCategorias"
+    :stock-bajo="stockBajo"
+    :valor-u-s-d="valorUSD"
+    :valor-v-e-s="valorVES"
+  />
+
+  <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div class="relative flex-1 max-w-md">
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Buscar producto por nombre o SKU..."
+        class="w-full rounded-lg border border-border bg-surface pl-9 pr-3 py-2 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15"
+      />
+      <div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+    </div>
+    <div class="flex rounded-xl border border-border bg-surface p-1">
+      <button
+        v-for="tab in tabs"
+        :key="tab.value"
+        @click="activeTab = tab.value"
+        :class="[
+          'rounded-lg px-3 py-1.5 text-xs font-medium transition-theme',
+          activeTab === tab.value
+            ? 'bg-primary text-text-inverse'
+            : 'text-text-secondary hover:bg-bg-secondary'
+        ]"
+      >
+        {{ tab.label }}
+      </button>
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-border bg-surface overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-border">
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Producto</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">SKU</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Categoría</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Costo</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Precio</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Stock</th>
+            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Estado</th>
+            <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border-subtle">
+          <tr v-for="producto in filteredProductos" :key="producto.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                  <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <span class="font-medium text-text">{{ producto.name }}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-slate-500 font-mono text-xs">{{ producto.sku || '—' }}</td>
+            <td class="px-4 py-3 text-xs text-slate-500">{{ producto.categoryName || '—' }}</td>
+            <td class="px-4 py-3 text-right">
+              <span class="text-text">${{ producto.unitCost.toFixed(2) }}</span>
+              <span class="inline-block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitCost) }}</span>
+            </td>
+            <td class="px-4 py-3 text-right font-medium">
+              <span class="text-text">${{ producto.unitPrice.toFixed(2) }}</span>
+              <span class="inline-block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitPrice) }}</span>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <span :class="[
+                'font-medium tabular-nums',
+                producto.stockTotal <= producto.reorderPoint ? 'text-danger' : 'text-text'
+              ]">{{ producto.stockTotal }}</span>
+              <span class="text-xs text-slate-400"> {{ producto.unit }}</span>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <span :class="[
+                'rounded-full px-2 py-0.5 text-xs font-medium',
+                producto.status === 'Activo' ? 'bg-success/10 text-success' : 'bg-bg-secondary text-text-muted'
+              ]">{{ producto.status }}</span>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <div class="flex items-center justify-center gap-1">
+                <button
+                  @click="productoModalRef?.open(producto)"
+                  class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
+                  title="Editar producto"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+                <button
+                  @click="openDeleteModal(producto)"
+                  class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-danger"
+                  title="Desactivar producto"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div v-if="filteredProductos.length === 0" class="py-12 text-center">
+      <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
+        <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+      </div>
+      <h3 class="mt-4 text-lg font-medium text-text">No hay productos</h3>
+      <p class="mt-1 text-sm text-text-muted">Agrega tu primer producto al inventario.</p>
+    </div>
+  </div>
+
+  <ProductoFormModal
+    ref="productoModalRef"
+    :is-saving="saveProductoMutation.isPending.value"
+    @save="handleSaveProducto"
+  />
+
+  <ModalBase
+    :is-open="isDeleteModalOpen"
+    title="Desactivar producto"
+    subtitle="Esta acción no se puede deshacer"
+    icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+    variant="danger"
+    size="sm"
+    confirm-text="Desactivar"
+    @close="closeDeleteModal"
+    @confirm="confirmDelete"
+    @cancel="closeDeleteModal"
+  >
+    <p class="text-sm text-text-secondary">
+      ¿Estás seguro de que deseas desactivar <strong>{{ productoToDelete?.name }}</strong>?
+      El producto dejará de estar disponible en el inventario.
+    </p>
+  </ModalBase>
+</AdminLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
-import { useCrud } from '../composables/useCrud'
-import { useAuth } from '../composables/useAuth'
-import { useCurrency } from '../composables/useCurrency'
-import { useNotification } from '../composables/useNotification'
-import { deleteProducto, listProductos, productosKeys, saveProducto } from '../services/productosService'
-import { adjustInventory, inventarioKeys, listInventoryLocations } from '../services/inventarioService'
-import AdminLayout from '../components/layout/AdminLayout.vue'
-import { ProductoFormModal } from '../components/modals'
+import { useProductCRUD } from '../composables/useProductCRUD'
+import ProductStats from '../components/productos/ProductStats.vue'
+import ProductoFormModal from '../components/modals/ProductoFormModal.vue'
 import { ModalBase } from '../components/common'
-import { FormInput } from '../components/forms'
-import type { Producto, ProductoFormData } from '../types/producto'
+import AdminLayout from '../components/layout/AdminLayout.vue'
 
-const { authStore } = useAuth()
-const { formatUSD, formatVESInline } = useCurrency()
-const { success, error: showError, warning } = useNotification()
-const queryClient = useQueryClient()
-
-const activeTab = ref('todos')
-const searchQuery = ref('')
-const productoModalRef = ref<InstanceType<typeof ProductoFormModal> | null>(null)
-const isDeleteModalOpen = ref(false)
-const productoToDelete = ref<Producto | null>(null)
-const businessId = computed(() => authStore.businessId)
+const {
+  productoModalRef,
+  saveProductoMutation,
+  handleSaveProducto,
+  totalProductos,
+  totalCategorias,
+  stockBajo,
+  valorUSD,
+  valorVES,
+  searchQuery,
+  activeTab,
+  filteredProductos,
+  isDeleteModalOpen,
+  productoToDelete,
+  openDeleteModal,
+  closeDeleteModal,
+  confirmDelete,
+  formatVESInline,
+} = useProductCRUD()
 
 const tabs = [
   { label: 'Todos', value: 'todos' },
   { label: 'Activos', value: 'activos' },
   { label: 'Inactivos', value: 'inactivos' },
 ]
-
-const {
-  items: productos,
-  saveMutation: saveProductoMutation,
-  deleteMutation: deleteProductoMutation,
-  handleSave: handleSaveProducto,
-} = useCrud<Producto, ProductoFormData>({
-  businessId,
-  queryKey: (id) => productosKeys.all(id),
-  queryFn: (id) => listProductos(id),
-  saveFn: (id, data) => saveProducto(id, data),
-  deleteFn: (id) => deleteProducto(id),
-  entityName: 'Producto',
-  modalRef: productoModalRef,
-  extraInvalidations: [
-    (id) => ['inventario', id],
-    (id) => ['inventario-locations', id],
-  ],
-})
-
-// Stock adjust
-const stockAdjustModalOpen = ref(false)
-const stockAdjustProduct = ref<Producto | null>(null)
-const stockAdjustQty = ref(0)
-const stockAdjustNotes = ref('')
-
-const { data: locationsData } = useQuery({
-  queryKey: computed(() => inventarioKeys.locations(businessId.value)),
-  queryFn: () => listInventoryLocations(businessId.value!),
-  enabled: computed(() => !!businessId.value),
-})
-
-const stockAdjustMutation = useMutation({
-  mutationFn: (params: { productId: string; quantity: number; notes: string }) =>
-    adjustInventory(businessId.value!, params.productId, defaultLocationId.value, params.quantity, params.notes),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
-    queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
-    queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(businessId.value) })
-    closeStockAdjust()
-    success('Stock ajustado correctamente')
-  },
-  onError: (err) => {
-    showError(err instanceof Error ? err.message : 'Error al ajustar el stock')
-  },
-})
-
-const defaultLocationId = computed(() => {
-  const locs = locationsData.value ?? []
-  return locs.find(l => l.isDefault)?.id ?? locs[0]?.id ?? ''
-})
-
-const openStockAdjust = (producto: Producto) => {
-  stockAdjustProduct.value = producto
-  stockAdjustQty.value = 0
-  stockAdjustNotes.value = ''
-  stockAdjustModalOpen.value = true
-}
-
-const closeStockAdjust = () => {
-  stockAdjustModalOpen.value = false
-  stockAdjustProduct.value = null
-  stockAdjustQty.value = 0
-  stockAdjustNotes.value = ''
-}
-
-const confirmStockAdjust = async () => {
-  if (!stockAdjustProduct.value || stockAdjustQty.value === 0) return
-  if (!defaultLocationId.value) {
-    showError('No hay ubicaciones de inventario configuradas')
-    return
-  }
-  await stockAdjustMutation.mutateAsync({
-    productId: stockAdjustProduct.value.id,
-    quantity: stockAdjustQty.value,
-    notes: stockAdjustNotes.value,
-  })
-}
-
-const totalProductos = computed(() => productos.value.filter(p => p.status === 'Activo').length)
-const totalCategorias = computed(() => {
-  const cats = new Set(productos.value.map(p => p.categoryName).filter(Boolean))
-  return cats.size
-})
-const stockBajo = computed(() => productos.value.filter(p => p.stockTotal <= p.reorderPoint && p.status === 'Activo').length)
-const valorInventarioNumerico = computed(() => {
-  return productos.value.reduce((sum, p) => sum + p.unitCost * p.stockTotal, 0)
-})
-
-const filteredProductos = computed(() => {
-  let result = productos.value
-  if (searchQuery.value) {
-    const q = searchQuery.value.toLowerCase()
-    result = result.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q))
-  }
-  if (activeTab.value === 'activos') result = result.filter(p => p.status === 'Activo')
-  if (activeTab.value === 'inactivos') result = result.filter(p => p.status === 'Inactivo')
-  return result
-})
-
-const handleNewProducto = () => {
-  productoModalRef.value?.open()
-}
-
-const handleEditProducto = (producto: Producto) => {
-  productoModalRef.value?.open(producto)
-}
-
-const handleDeleteProducto = (producto: Producto) => {
-  productoToDelete.value = producto
-  isDeleteModalOpen.value = true
-}
-
-const confirmDelete = async () => {
-  if (productoToDelete.value) {
-    await deleteProductoMutation!.mutateAsync(productoToDelete.value.id)
-    warning(`Producto "${productoToDelete.value.name}" desactivado`)
-    isDeleteModalOpen.value = false
-    productoToDelete.value = null
-  }
-}
 </script>

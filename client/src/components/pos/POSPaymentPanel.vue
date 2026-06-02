@@ -1,0 +1,160 @@
+<template>
+  <div class="rounded-xl border border-border bg-surface p-4 sticky top-6">
+    <h3 class="text-base font-semibold text-text mb-4">Resumen de cobro</h3>
+
+    <div v-if="selectedAppointment" class="space-y-3">
+      <div class="rounded-lg bg-bg-secondary p-3">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-text-muted">Servicio</span>
+          <span class="font-medium text-text">{{ selectedAppointment.services?.name || '—' }}</span>
+        </div>
+        <div class="flex items-center justify-between text-sm mt-1">
+          <span class="text-text-muted">Empleado</span>
+          <span class="font-medium text-text">{{ selectedAppointment.profiles?.full_name || '—' }}</span>
+        </div>
+        <div class="flex items-center justify-between text-sm mt-1">
+          <span class="text-text-muted">Cliente</span>
+          <span class="font-medium text-text">{{ selectedAppointment.clients?.full_name || '—' }}</span>
+        </div>
+      </div>
+
+      <div class="border-t border-border-subtle pt-3 space-y-2">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-text-muted">Servicio</span>
+          <span class="font-medium text-text">{{ formatDual(servicePrice) }}</span>
+        </div>
+        <div v-if="productsTotal > 0" class="flex items-center justify-between text-sm">
+          <span class="text-text-muted">Productos ({{ cartCount }})</span>
+          <span class="font-medium text-text">{{ formatDual(productsTotal) }}</span>
+        </div>
+        <div class="flex items-center justify-between border-t border-border pt-2">
+          <span class="text-base font-bold text-text">Total</span>
+          <span class="text-lg font-bold text-primary">{{ formatDual(grandTotal) }}</span>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-text">Método de pago</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            v-for="pm in paymentMethods"
+            :key="pm.value"
+            @click="$emit('select-method', pm.value)"
+            :class="[
+              'rounded-lg border p-2 text-sm font-medium transition-theme text-center',
+              paymentMethod === pm.value
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border text-text-secondary hover:bg-bg-secondary'
+            ]"
+          >
+            {{ pm.label }}
+          </button>
+        </div>
+      </div>
+
+      <div v-if="paymentMethod === 'mixed'" class="space-y-2 border-t border-border-subtle pt-3">
+        <label class="block text-sm font-medium text-text">Distribución del pago</label>
+        <div v-for="(split, idx) in paymentsBreakdown" :key="idx" class="flex items-center gap-2">
+          <select
+            v-model="split.method"
+            class="flex-1 rounded-lg border border-border bg-surface px-2 py-2 text-xs text-text outline-none focus:border-primary"
+          >
+            <option v-for="m in mixedMethods" :key="m.value" :value="m.value">{{ m.label }}</option>
+          </select>
+          <select
+            v-model="split.currency"
+            class="w-16 rounded-lg border border-border bg-surface px-1 py-2 text-xs text-text outline-none focus:border-primary"
+          >
+            <option value="USD">USD</option>
+            <option value="VES">Bs</option>
+          </select>
+          <div class="relative flex-1">
+            <input
+              v-model.number="split.inputAmount"
+              type="number" step="0.01" min="0"
+              class="w-full rounded-lg border border-border bg-surface px-2 py-2 text-xs text-text outline-none placeholder:text-text-muted focus:border-primary"
+            />
+          </div>
+          <button
+            v-if="paymentsBreakdown.length > 1"
+            @click="$emit('remove-split', idx)"
+            class="rounded p-1 text-text-muted hover:text-danger hover:bg-danger/10"
+          >
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <button @click="$emit('add-split')" class="text-primary hover:text-primary-hover transition-theme font-medium">
+            + Agregar método
+          </button>
+          <span :class="splitRemaining === 0 ? 'text-success' : 'text-warning'">
+            Restante: {{ formatDual(splitRemaining) }}
+          </span>
+        </div>
+      </div>
+
+      <textarea
+        :value="notes"
+        @input="$emit('update:notes', ($event.target as HTMLTextAreaElement).value)"
+        placeholder="Notas del pago (opcional)"
+        rows="2"
+        class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary"
+      ></textarea>
+
+      <button
+        @click="$emit('process-payment')"
+        :disabled="isProcessing || !canPay"
+        class="w-full flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-text-inverse transition-theme hover:bg-primary-hover disabled:opacity-50"
+      >
+        <svg v-if="isProcessing" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {{ isProcessing ? 'Procesando...' : `Cobrar ${formatDual(grandTotal)}` }}
+      </button>
+    </div>
+
+    <div v-else class="py-8 text-center text-sm text-text-muted">
+      <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-bg-secondary mb-3">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+        </svg>
+      </div>
+      <p>Selecciona una cita pendiente para cobrar</p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useCurrency } from '../../composables/useCurrency'
+import type { PaymentMethod } from '../../types/database'
+import type { PaymentBreakdownItem } from '../../types/pos'
+
+defineProps<{
+  selectedAppointment: any
+  servicePrice: number
+  productsTotal: number
+  cartCount: number
+  grandTotal: number
+  paymentMethod: PaymentMethod
+  paymentMethods: { label: string; value: PaymentMethod }[]
+  mixedMethods: { label: string; value: PaymentMethod }[]
+  paymentsBreakdown: PaymentBreakdownItem[]
+  splitRemaining: number
+  isProcessing: boolean
+  canPay: boolean
+  notes: string
+}>()
+
+defineEmits<{
+  'select-method': [method: PaymentMethod]
+  'add-split': []
+  'remove-split': [idx: number]
+  'update:notes': [value: string]
+  'process-payment': []
+}>()
+
+const { formatDual } = useCurrency()
+</script>
