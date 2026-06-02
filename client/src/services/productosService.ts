@@ -70,9 +70,9 @@ export const saveProducto = async (
   const { data: saved, error } = await query
   if (error) throw error
 
-  if (isNew && initialStock) {
+  if (isNew) {
     const loc = await ensureDefaultLocation(businessId)
-    await createInitialStock(businessId, saved.id, loc.id, Number(initialStock))
+    await createInitialStock(businessId, saved.id, loc.id, Number(initialStock ?? 0))
   }
 
   return mapProductToProducto(saved as Product)
