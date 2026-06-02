@@ -188,6 +188,7 @@
     size="sm"
     confirm-text="Eliminar"
     cancel-text="Cancelar"
+    :loading="deleteServicioMutation?.isPending.value ?? false"
     @close="isDeleteModalOpen = false"
     @confirm="confirmDelete"
     @cancel="isDeleteModalOpen = false"
@@ -233,6 +234,7 @@ const {
   items: servicios,
   saveMutation: saveServicioMutation,
   handleSave: handleSaveServicio,
+  deleteMutation: deleteServicioMutation,
 } = useCrud<Servicio, ServicioFormData>({
   businessId,
   queryKey: (id) => serviciosKeys.all(id),
@@ -273,9 +275,8 @@ const handleDeleteServicio = (servicio: Servicio) => {
 }
 
 const confirmDelete = async () => {
-  if (servicioToDelete.value) {
-    // TODO: wire delete mutation when needed
-    console.warn('delete not wired from useCrud')
+  if (servicioToDelete.value && deleteServicioMutation) {
+    deleteServicioMutation.mutate(servicioToDelete.value.id)
     isDeleteModalOpen.value = false
     servicioToDelete.value = null
   }
