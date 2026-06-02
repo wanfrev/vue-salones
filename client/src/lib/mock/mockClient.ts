@@ -171,7 +171,7 @@ class MockQueryBuilder {
     return this
   }
 
-  limit(count: number): this {
+  limit(_count: number): this {
     return this
   }
 
@@ -600,9 +600,9 @@ export function createMockClient() {
         if (!biz) {
           return { data: null, error: { message: 'Business not found' } }
         }
-        const allowed = ['name', 'phone', 'address', 'timezone', 'currency', 'niche_type', 'active', 'ves_exchange_rate', 'theme_config', 'terminology']
+        const allowed = ['name', 'phone', 'address', 'timezone', 'currency', 'niche_type', 'active', 'ves_exchange_rate', 'theme_config', 'terminology'] as const
         for (const f of allowed) {
-          if (payload[f] !== undefined) biz[f] = payload[f]
+          if (payload[f] !== undefined) (biz as any)[f] = payload[f]
         }
         biz.updated_at = new Date().toISOString()
         return { data: { business: biz }, error: null }

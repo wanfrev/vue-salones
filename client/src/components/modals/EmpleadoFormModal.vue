@@ -180,6 +180,7 @@ import { ref, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
 import { useAuthStore } from '../../store/auth'
+import { useBusinessStore } from '../../store/business'
 import { addBusinessJobTitle } from '../../services/equipoService'
 import type { Empleado, EmpleadoFormData } from '../../types/empleado'
 import ModalBase from '../common/ModalBase.vue'
@@ -195,8 +196,9 @@ const emit = defineEmits<{
 const { isOpen, modalData, close } = useModal(MODAL_ID)
 const { error: showError } = useNotification()
 const authStore = useAuthStore()
+const businessStore = useBusinessStore()
 
-const t = computed(() => authStore.terminology)
+const t = computed(() => businessStore.terminology)
 
 const isLoading = ref(false)
 const isEditing = computed(() => !!modalData.value?.empleado)
@@ -204,7 +206,7 @@ const isEditing = computed(() => !!modalData.value?.empleado)
 const showingCustomRole = ref(false)
 
 const roleOptions = computed(() => {
-  const titles = authStore.jobTitles || []
+  const titles = businessStore.jobTitles || []
   const options = titles.map((t: string) => ({ value: t, label: t }))
   options.push({ value: '__new__', label: '+ Agregar nuevo' })
   return options
@@ -344,11 +346,9 @@ const handleSubmit = async () => {
 
     // Persist new role to business config
     const businessId = authStore.businessId
-    if (businessId && role && !authStore.jobTitles.includes(role)) {
+    if (businessId && role && !businessStore.jobTitles.includes(role)) {
       const updated = await addBusinessJobTitle(businessId, role)
-      if (authStore.business) {
-        authStore.business = { ...authStore.business, job_titles: updated }
-      }
+      businessStore.updateBusiness({ job_titles: updated })
     }
 
     const empleadoData: EmpleadoFormData & { id?: string } = {

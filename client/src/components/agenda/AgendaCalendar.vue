@@ -86,11 +86,19 @@ import type { CalendarOptions, EventInput } from '@fullcalendar/core'
 import { useAgenda } from '../../composables/useAgenda'
 import { useAuthStore } from '../../store/auth'
 import { isAdminPanelRole } from '../../constants/roles'
+import type { Cita } from '../../types/cita'
 
 const authStore = useAuthStore()
 const isAdmin = computed(() => isAdminPanelRole(authStore.role ?? undefined))
 const emit = defineEmits<{
-  eventClick: [event: { id: string; title: string; start: Date; end: Date; status?: string }]
+  eventClick: [event: {
+    id: string
+    title: string
+    start: Date
+    end: Date
+    status?: string
+    citaData?: Omit<Cita, 'paymentStatus' | 'statusLabel' | 'statusColor' | 'groupId'>
+  }]
   statusChange: [payload: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }]
   eventChange: [payload: { id: string; start: string; end: string }]
   slotSelect: [payload: { start: Date; end: Date }]
@@ -194,6 +202,8 @@ const calendarEvents = computed<EventInput[]>(() => {
           ...appt,
           status: visualStatus,
           serviceName: service?.name,
+          servicePrice: service?.price,
+          serviceDuration: service?.duration_minutes,
           employeeName: employee?.full_name,
           clientName,
           statusLabel: getStatusLabel(visualStatus),
@@ -307,12 +317,34 @@ const calendarOptions = computed<CalendarOptions>(() => ({
     if (target?.closest('[data-action="toggle-status-dropdown"]') || target?.closest('.agenda-status-dropdown')) {
       return
     }
+    const ext = arg.event.extendedProps as any
+    const start = arg.event.start!
+    const end = arg.event.end!
+    const duration = ext.serviceDuration || Math.round((end.getTime() - start.getTime()) / 60000)
+    const date = start.toISOString().split('T')[0]
+    const time = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`
+    const citaStatus = (ext?.status || 'confirmed') as Cita['status']
     emit('eventClick', {
       id: arg.event.id,
       title: arg.event.title,
-      start: arg.event.start!,
-      end: arg.event.end!,
-      status: (arg.event.extendedProps as any)?.status,
+      start,
+      end,
+      status: ext?.status,
+      citaData: {
+        id: arg.event.id,
+        clientId: ext.client_id,
+        clientName: arg.event.title,
+        serviceId: ext.service_id,
+        service: ext.serviceName || 'Servicio',
+        employeeId: ext.employee_id,
+        employee: ext.employeeName || 'Empleado',
+        date,
+        time,
+        duration,
+        price: Number(ext.servicePrice ?? 0),
+        status: citaStatus,
+        notes: ext.internal_notes || '',
+      },
     })
   },
   eventDidMount: (info) => {

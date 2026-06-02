@@ -237,6 +237,7 @@ import { computed, ref } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useRoute, useRouter } from 'vue-router'
 import { useNotification } from '../composables/useNotification'
+import { useThemeStore } from '../store/theme'
 import {
   deleteBusiness,
   listBusinessAdmins,
@@ -248,6 +249,11 @@ import {
 } from '../services/superadminService'
 import type { AuthProfile } from '../types/auth'
 import type { Business } from '../types/database'
+import lumaLogoLight from '../assets/Luma.svg'
+import lumaLogoDark from '../assets/Luma blanco.svg'
+
+const themeStore = useThemeStore()
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 const { success, error } = useNotification()
 const queryClient = useQueryClient()

@@ -284,26 +284,26 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useQuery } from '@tanstack/vue-query'
 import { useNotification } from '../composables/useNotification'
 import { useAuthStore } from '../store/auth'
-import { saveCita, updateCitaStatus, updateAppointmentTime } from '../services/agendaService'
+import { useBusinessStore } from '../store/business'
+import { useAppointmentMutations } from '../composables/useAppointmentMutations'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { listEquipo, equipoKeys } from '../services/equipoService'
 import { listEmployeeAppointments, listEmployeeTransactions, listEmployeePayments } from '../services/employeeDashboardService'
-import type { CitaFormData } from '../types/cita'
 import AppLayout from '../components/layout/AppLayout.vue'
 import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
 import { CitaFormModal } from '../components/modals'
 
 const authStore = useAuthStore()
-const { success, error: showError } = useNotification()
-const queryClient = useQueryClient()
+const businessStore = useBusinessStore()
+useNotification()
 
-const t = computed(() => authStore.terminology)
+const t = computed(() => businessStore.terminology)
 const businessId = computed(() => authStore.businessId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
-const businessName = computed(() => authStore.business?.name ?? '')
+const businessName = computed(() => businessStore.business?.name ?? '')
 
 type TabId = 'agenda' | 'historial' | 'comisiones' | 'recibo'
 const activeTab = ref<TabId>('agenda')
@@ -411,47 +411,15 @@ const handleEventClick = (_event: { id: string; title: string; start: Date; end:
   // Employees can view details but not edit through modal
 }
 
-const handleEventChange = async ({ id, start, end }: { id: string; start: string; end: string }) => {
-  try {
-    await updateAppointmentTime(id, start, end)
-    queryClient.invalidateQueries({ queryKey: ['appointments'] })
-    success('Cita reagendada correctamente')
-  } catch (err) {
-    showError(err instanceof Error ? err.message : 'Error al reagendar')
-  }
-}
-
-const handleStatusChange = async ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }) => {
-  try {
-    await updateCitaStatus(id, status)
-    queryClient.invalidateQueries({ queryKey: ['appointments'] })
-    success(`Estado actualizado a ${statusLabels[status] || status}`)
-  } catch (err) {
-    showError(err instanceof Error ? err.message : 'Error al actualizar estado')
-  }
-}
-
-const saveCitaMutation = useMutation({
-  mutationFn: (data: CitaFormData & { id?: string; clientPhone?: string }) => saveCita(
-    businessId.value!,
-    data,
-    authStore.profile?.id
-  ),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['appointments'] })
-    citaModalRef.value?.close()
-    citaModalRef.value?.onSaveComplete()
-    success('Cita guardada correctamente')
-  },
-  onError: (err) => {
-    citaModalRef.value?.onSaveComplete()
-    showError(err instanceof Error ? err.message : 'Error al guardar la cita')
-  },
+const {
+  handleSaveCita,
+  handleStatusChange,
+  handleEventChange,
+} = useAppointmentMutations({
+  businessId,
+  createdBy: computed(() => authStore.profile?.id),
+  modalRef: citaModalRef,
 })
-
-const handleSaveCita = async (data: CitaFormData & { id?: string; clientPhone?: string }) => {
-  await saveCitaMutation.mutateAsync(data)
-}
 
 // Print receipt
 const windowPrint = () => {

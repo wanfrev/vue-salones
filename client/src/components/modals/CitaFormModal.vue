@@ -165,13 +165,13 @@
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <!-- Precio (total) -->
         <FormInput
-          :model-value="totalPrice"
+          :model-value="displayPrice"
+          @update:model-value="onPriceInput"
           label="Precio total ($)"
           type="number"
           placeholder="0.00"
           required
           prefix-icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          readonly
         />
 
         <!-- Duración (máxima) -->
@@ -203,6 +203,7 @@ import { ref, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
 import { useAuthStore } from '../../store/auth'
+import { useBusinessStore } from '../../store/business'
 import { searchClients } from '../../services/clientesService'
 import type { Cita, CitaFormData, CitaFormServiceItem } from '../../types/cita'
 import ModalBase from '../common/ModalBase.vue'
@@ -224,8 +225,9 @@ const saveInProgress = ref(false)
 const { isOpen, modalData, close } = useModal(MODAL_ID)
 const { error: showError } = useNotification()
 const authStore = useAuthStore()
+const businessStore = useBusinessStore()
 
-const t = computed(() => authStore.terminology)
+const t = computed(() => businessStore.terminology)
 const businessId = computed(() => authStore.businessId)
 
 const clientSuggestions = ref<{ id: string; full_name: string; phone: string }[]>([])
@@ -322,6 +324,15 @@ const defaultFormData = (): CitaFormData & { extraServices: CitaFormServiceItem[
 const formData = ref<CitaFormData & { extraServices: CitaFormServiceItem[] }>(defaultFormData())
 const errors = ref<Partial<Record<keyof CitaFormData, string>> & { rowErrors?: Record<number, Partial<Record<string, string>>> }>({})
 
+const priceOverride = ref<number | null>(null)
+
+const displayPrice = computed(() => priceOverride.value !== null ? String(priceOverride.value) : String(totalPrice.value))
+
+const onPriceInput = (val: string) => {
+  const num = val === '' ? 0 : Number(val)
+  priceOverride.value = num
+}
+
 const servicesLoaded = computed(() => (props.servicios?.length ?? 0) > 0)
 const employeesLoaded = computed(() => (props.empleados?.length ?? 0) > 0)
 
@@ -341,12 +352,14 @@ const serviceRows = computed<CitaFormServiceItem[]>(() => {
 
 const addServiceRow = () => {
   formData.value.extraServices.push(emptyServiceRow())
+  priceOverride.value = null
 }
 
 const removeServiceRow = (index: number) => {
   const extraIndex = index - 1 // first row is primary
   if (extraIndex >= 0 && extraIndex < formData.value.extraServices.length) {
     formData.value.extraServices.splice(extraIndex, 1)
+    priceOverride.value = null
   }
 }
 
@@ -380,8 +393,9 @@ const getRowError = (index: number, field: string): string | undefined => {
   return (errors.value as any)?.rowErrors?.[index]?.[field]
 }
 
-// When primary service changes, auto-fill price/duration
+// When primary service changes, auto-fill price/duration and reset override
 watch(() => formData.value.service, (serviceId) => {
+  priceOverride.value = null
   if (!serviceId) return
   const svc = props.servicios?.find(s => s.id === serviceId)
   if (svc) {
@@ -425,6 +439,7 @@ const isFormValid = computed(() => {
 watch(
   () => modalData.value?.cita,
   async (cita) => {
+    priceOverride.value = null
     if (cita) {
       let phone = ''
       if (cita.clientId && businessId.value) {
@@ -541,9 +556,10 @@ const handleSubmit = () => {
 
   saveInProgress.value = true
 
+  const finalPrice = priceOverride.value !== null ? priceOverride.value : totalPrice.value
   const citaData: CitaFormData & { id?: string } = {
     ...formData.value,
-    price: totalPrice.value,
+    price: finalPrice,
     duration: maxDuration.value,
   }
 

@@ -1,30 +1,5 @@
 <template>
-  <div class="min-h-screen bg-bg">
-    <!-- Top Header -->
-    <header class="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
-      <div class="flex items-center gap-2">
-        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <div class="flex flex-col">
-          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-6 w-auto object-contain" />
-          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
-        </div>
-      </div>
-      <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-      </button>
-    </header>
-
-    <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
-    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 top-16 z-30 bg-black/50 lg:hidden"></div>
-
-    <main class="ml-0 min-h-screen pt-16 lg:ml-64">
-      <div class="p-4 lg:p-6">
+<AdminLayout>
         <!-- Header -->
         <header class="mb-4 lg:mb-6">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -312,10 +287,10 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-border-subtle">
-                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.employee || 'Empleado' }}</th>
-                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.service || 'Servicio' }}</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.employee || 'Empleado' }}</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.service || 'Servicio' }}</th>
                   <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Costo</th>
-                  <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">% {{ authStore.terminology.employee || 'Empleado' }}</th>
+                  <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">% {{ businessStore.terminology.employee || 'Empleado' }}</th>
                   <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Ganancia</th>
                 </tr>
               </thead>
@@ -346,7 +321,7 @@
                 <thead>
                   <tr class="border-b border-border-subtle">
                     <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
-                    <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.employee || 'Empleado' }}</th>
+                    <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.employee || 'Empleado' }}</th>
                     <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
                     <th class="pb-2 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
                   </tr>
@@ -381,8 +356,8 @@
               <thead>
                 <tr class="border-b border-border-subtle">
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
-                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.client || 'Cliente' }}</th>
-                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.service || 'Servicio' }}</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.client || 'Cliente' }}</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.service || 'Servicio' }}</th>
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
                   <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
                 </tr>
@@ -413,7 +388,6 @@
             </table>
           </div>
         </div>
-      </div>
       <!-- Expense Modal -->
       <div
         v-if="showExpenseModal"
@@ -519,19 +493,19 @@
       >
         <div class="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
           <div class="mb-4">
-            <h2 class="text-lg font-semibold text-text">Registrar pago a {{ authStore.terminology.employee || 'empleado' }}</h2>
+            <h2 class="text-lg font-semibold text-text">Registrar pago a {{ businessStore.terminology.employee || 'empleado' }}</h2>
             <p class="text-sm text-text-muted">Registra un adelanto, sueldo o comisión pagada</p>
           </div>
 
           <form class="space-y-4" @submit.prevent="handleSavePayment">
             <div>
-              <label class="mb-1 block text-sm font-medium text-text">{{ authStore.terminology.employee || 'Empleado' }}</label>
+              <label class="mb-1 block text-sm font-medium text-text">{{ businessStore.terminology.employee || 'Empleado' }}</label>
               <select
                 v-model="paymentForm.employeeId"
                 class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
                 required
               >
-                <option value="" disabled>Seleccionar {{ (authStore.terminology.employee || 'empleado').toLowerCase() }}</option>
+                <option value="" disabled>Seleccionar {{ (businessStore.terminology.employee || 'empleado').toLowerCase() }}</option>
                 <option v-for="emp in employeeList" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
               </select>
             </div>
@@ -609,8 +583,7 @@
           </form>
         </div>
       </div>
-    </main>
-  </div>
+</AdminLayout>
 </template>
 
 <script setup lang="ts">
@@ -619,16 +592,14 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
-import { useThemeStore } from '../store/theme'
-import Sidebar from '../components/layout/Sidebar.vue'
-import lumaLogoLight from '../assets/Luma.svg'
-import lumaLogoDark from '../assets/Luma blanco.svg'
+import { useBusinessStore } from '../store/business'
+import AdminLayout from '../components/layout/AdminLayout.vue'
 import type { Expense, Transaction } from '../types/database'
 interface EmployeeOption {
   id: string
   name: string
 }
-import { listEmployeePayments, createEmployeePayment, employeePaymentKeys, type EmployeePaymentRecord } from '../services/employeePaymentsService'
+import { listEmployeePayments, createEmployeePayment, type EmployeePaymentRecord } from '../services/employeePaymentsService'
 
 type SummaryBucket = {
   bucket: string
@@ -664,12 +635,10 @@ type TransactionRow = {
   amount: number
 }
 
-const { logout, authStore } = useAuth()
+const { authStore } = useAuth()
+const businessStore = useBusinessStore()
 const { exchangeRate, formatUSD, formatVESInline, setExchangeRate, isAdmin } = useCurrency()
 const { success: notifySuccess, error: notifyError } = useNotification()
-const themeStore = useThemeStore()
-const isSidebarOpen = ref(false)
-const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 const editRateValue = ref(0)
 const updatingRate = ref(false)
 

@@ -1,31 +1,5 @@
 <template>
-  <div class="min-h-screen bg-bg">
-    <!-- Top Header -->
-    <header class="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
-      <div class="flex items-center gap-2">
-        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <div class="flex flex-col">
-          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-6 w-auto object-contain" />
-          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
-        </div>
-      </div>
-      <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-      </button>
-    </header>
-
-    <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
-
-    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 top-16 z-30 bg-black/50 lg:hidden"></div>
-
-    <main class="ml-0 min-h-screen pt-16 lg:ml-64">
-      <div class="p-4 lg:p-6">
+<AdminLayout>
         <!-- Header -->
         <header class="mb-4">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -34,10 +8,10 @@
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                {{ authStore.terminology.client || 'Cliente' }}s
+                {{ businessStore.terminology.client || 'Cliente' }}s
               </div>
               <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">
-                {{ totalClientes }} {{ totalClientes === 1 ? (authStore.terminology.client || 'cliente').toLowerCase() : (authStore.terminology.client || 'cliente').toLowerCase() + 's' }}
+                {{ totalClientes }} {{ totalClientes === 1 ? (businessStore.terminology.client || 'cliente').toLowerCase() : (businessStore.terminology.client || 'cliente').toLowerCase() + 's' }}
               </h1>
             </div>
             
@@ -49,7 +23,7 @@
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
-                <span>Nuevo {{ (authStore.terminology.client || 'cliente').toLowerCase() }}</span>
+                <span>Nuevo {{ (businessStore.terminology.client || 'cliente').toLowerCase() }}</span>
               </button>
             </div>
           </div>
@@ -157,10 +131,10 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-border">
-                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">{{ authStore.terminology.client || 'Cliente' }}</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">{{ businessStore.terminology.client || 'Cliente' }}</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Contacto</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Última visita</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">{{ authStore.terminology.appointment || 'Cita' }}s</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">{{ businessStore.terminology.appointment || 'Cita' }}s</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Gasto</th>
                   <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-text-muted">Acciones</th>
                 </tr>
@@ -196,7 +170,7 @@
                       <button 
                         @click.stop="handleEditCliente(client)"
                         class="rounded-md p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
-                        title="Editar {{ (authStore.terminology.client || 'cliente').toLowerCase() }}"
+                        title="Editar {{ (businessStore.terminology.client || 'cliente').toLowerCase() }}"
                       >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -253,9 +227,7 @@
             </div>
           </div>
         </div>
-      </div>
-    </main>
-  </div>
+</AdminLayout>
 
   <!-- Modals -->
   <ClienteFormModal 
@@ -275,57 +247,46 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useCrud } from '../composables/useCrud'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { usePagination } from '../composables/usePagination'
 import { clientesKeys, deleteCliente, listClientes, saveCliente } from '../services/clientesService'
-import { useThemeStore } from '../store/theme'
-import Sidebar from '../components/layout/Sidebar.vue'
+import { useBusinessStore } from '../store/business'
+import AdminLayout from '../components/layout/AdminLayout.vue'
 import { ClienteFormModal } from '../components/modals'
 import { FilterDrawer } from '../components/filters'
-import lumaLogoLight from '../assets/Luma.svg'
-import lumaLogoDark from '../assets/Luma blanco.svg'
+
 import type { Cliente, ClienteFormData } from '../types/cliente'
 import type { FilterState } from '../components/filters'
 
 const router = useRouter()
-const { logout, authStore } = useAuth()
-const { success, info, error: showError } = useNotification()
-const themeStore = useThemeStore()
-const queryClient = useQueryClient()
+const { authStore } = useAuth()
+const businessStore = useBusinessStore()
+const { success, info } = useNotification()
 
-const isSidebarOpen = ref(false)
 const searchQuery = ref('')
 const clienteModalRef = ref<InstanceType<typeof ClienteFormModal> | null>(null)
 const filterDrawerRef = ref<InstanceType<typeof FilterDrawer> | null>(null)
-const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
-
 const businessId = computed(() => authStore.businessId)
 
-const { data: clientsData } = useQuery({
-  queryKey: computed(() => clientesKeys.all(businessId.value)),
-  queryFn: () => listClientes(businessId.value!),
-  enabled: computed(() => !!businessId.value),
-})
-
-const clients = computed<Cliente[]>(() => clientsData.value ?? [])
-
-const saveClienteMutation = useMutation({
-  mutationFn: (data: ClienteFormData & { id?: string }) => saveCliente(businessId.value!, data),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: clientesKeys.all(businessId.value) })
-    clienteModalRef.value?.close()
-    success('Cliente guardado correctamente')
-  },
-  onError: (err) => {
-    showError(err instanceof Error ? err.message : 'Error al guardar el cliente')
-  },
+const {
+  items: clients,
+  handleSave: handleSaveCliente,
+  handleDelete: handleDeleteCliente,
+} = useCrud<Cliente, ClienteFormData>({
+  businessId,
+  queryKey: (id) => clientesKeys.all(id),
+  queryFn: (id) => listClientes(id),
+  saveFn: (id, data) => saveCliente(id, data),
+  deleteFn: (id) => deleteCliente(id),
+  entityName: 'Cliente',
+  modalRef: clienteModalRef,
 })
 
 const activeFilters = ref<Partial<FilterState>>({})
-const daysSinceVisitFilter = ref(30)
+const daysSinceVisitFilter = ref(0)
 
 const filteredClients = computed(() => {
   let result = clients.value
@@ -334,13 +295,13 @@ const filteredClients = computed(() => {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(c => 
       c.name.toLowerCase().includes(query) ||
-      c.phone.toLowerCase().includes(query) ||
+      c.phone?.toLowerCase().includes(query) ||
       c.email?.toLowerCase().includes(query)
     )
   }
 
-  if (activeFilters.value.daysSinceVisit && activeFilters.value.daysSinceVisit !== '') {
-    daysSinceVisitFilter.value = Number(activeFilters.value.daysSinceVisit) || 30
+  if (activeFilters.value.daysSinceVisit !== undefined && activeFilters.value.daysSinceVisit !== '') {
+    daysSinceVisitFilter.value = Number(activeFilters.value.daysSinceVisit) || 0
   }
 
   if (daysSinceVisitFilter.value > 0) {
@@ -403,26 +364,6 @@ const handleEditCliente = (cliente: Cliente) => {
   clienteModalRef.value?.open(cliente)
 }
 
-const handleSaveCliente = async (data: ClienteFormData & { id?: string }) => {
-  await saveClienteMutation.mutateAsync(data)
-}
-
-const deleteClienteMutation = useMutation({
-  mutationFn: (clientId: string) => deleteCliente(clientId),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: clientesKeys.all(businessId.value) })
-    clienteModalRef.value?.close()
-    success('Cliente eliminado correctamente')
-  },
-  onError: (err) => {
-    showError(err instanceof Error ? err.message : 'Error al eliminar el cliente')
-  },
-})
-
-const handleDeleteCliente = (clientId: string) => {
-  deleteClienteMutation.mutate(clientId)
-}
-
 const handleViewAgenda = (cliente: Cliente) => {
   router.push(`/clientes/${cliente.id}`)
   info(`Mostrando historial de ${cliente.name}`)
@@ -441,7 +382,7 @@ const handleApplyFilters = (filters: FilterState) => {
 
 const handleClearFilters = () => {
   activeFilters.value = {}
-  daysSinceVisitFilter.value = 30
+  daysSinceVisitFilter.value = 0
   currentPage.value = 1
   info('Filtros limpiados')
 }

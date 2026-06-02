@@ -92,13 +92,15 @@
 import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuthStore } from '../../store/auth'
+import { useBusinessStore } from '../../store/business'
 import { listEmployeeTransactions, listEmployeePayments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 
 const authStore = useAuthStore()
+const businessStore = useBusinessStore()
 const businessId = computed(() => authStore.businessId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
-const businessName = computed(() => authStore.business?.name ?? '')
+const businessName = computed(() => businessStore.business?.name ?? '')
 
 const payInfo = computed(() => {
   const profile = authStore.profile

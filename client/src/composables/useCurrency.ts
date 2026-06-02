@@ -1,12 +1,14 @@
 import { computed } from 'vue'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
+import { useBusinessStore } from '../store/business'
 
 export function useCurrency() {
   const { authStore } = useAuth()
+  const businessStore = useBusinessStore()
 
-  const exchangeRate = computed(() => authStore.business?.ves_exchange_rate ?? 1)
-  const currency = computed(() => authStore.business?.currency ?? 'USD')
+  const exchangeRate = computed(() => businessStore.business?.ves_exchange_rate ?? 1)
+  const currency = computed(() => businessStore.business?.currency ?? 'USD')
 
   const formatUSD = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -48,9 +50,7 @@ export function useCurrency() {
 
     if (error) throw error
 
-    if (authStore.business) {
-      authStore.business = { ...authStore.business, ves_exchange_rate: rate }
-    }
+    businessStore.updateBusiness({ ves_exchange_rate: rate })
   }
 
   const isAdmin = computed(() => {

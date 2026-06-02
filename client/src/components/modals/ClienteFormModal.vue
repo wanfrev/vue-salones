@@ -85,7 +85,7 @@
 import { reactive, ref, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
-import { useAuthStore } from '../../store/auth'
+import { useBusinessStore } from '../../store/business'
 import type { Cliente, ClienteFormData } from '../../types/cliente'
 import ModalBase from '../common/ModalBase.vue'
 import { FormInput, FormTextarea } from '../forms'
@@ -105,10 +105,10 @@ const emit = defineEmits<{
 
 const { isOpen, modalData, close } = useModal(MODAL_ID)
 const { error: showError } = useNotification()
-const authStore = useAuthStore()
+const businessStore = useBusinessStore()
 
-const terminology = computed(() => authStore.terminology)
-const nicheType = computed(() => authStore.nicheType)
+const terminology = computed(() => businessStore.terminology)
+const nicheType = computed(() => businessStore.nicheType)
 
 const isLoading = ref(false)
 

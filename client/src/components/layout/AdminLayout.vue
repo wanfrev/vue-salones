@@ -8,20 +8,16 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <img :src="lumaLogo" alt="Luma" class="-ml-1 h-7 w-auto object-contain" />
         <div class="flex flex-col">
-          <span class="text-sm font-semibold text-text leading-tight">{{ businessName }}</span>
-          <span class="text-[10px] text-text-muted uppercase tracking-wide">{{ roleLabel }}</span>
+          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-7 w-auto object-contain" />
+          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <slot name="header-actions" />
-        <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </button>
-      </div>
+      <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+      </button>
     </header>
 
     <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
@@ -39,29 +35,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useAuth } from '../../composables/useAuth'
-import { useAuthStore } from '../../store/auth'
 import { useThemeStore } from '../../store/theme'
-import { useBusinessStore } from '../../store/business'
 import lumaLogoLight from '../../assets/Luma.svg'
 import lumaLogoDark from '../../assets/Luma blanco.svg'
 import Sidebar from './Sidebar.vue'
 
 const { logout } = useAuth()
-const authStore = useAuthStore()
 const themeStore = useThemeStore()
-const businessStore = useBusinessStore()
-
-const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 const isSidebarOpen = ref(false)
-
-const businessName = computed(() => businessStore.business?.name ?? '')
-
-const roleLabel = computed(() => {
-  const role = authStore.role
-  if (role === 'admin') return 'Admin'
-  if (role === 'empleado') return 'Empleado'
-  if (role === 'superadmin') return 'Superadmin'
-  return ''
-})
+const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 </script>

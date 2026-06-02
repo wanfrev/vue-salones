@@ -1,32 +1,5 @@
 <template>
-  <div class="min-h-screen bg-bg">
-    <!-- Top Header -->
-    <header class="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
-      <div class="flex items-center gap-2">
-        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <img :src="lumaLogo" alt="Luma" class="-ml-1 h-7 w-auto object-contain" />
-        <div class="flex flex-col">
-          <span class="text-sm font-semibold text-text leading-tight">{{ businessName }}</span>
-          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
-        </div>
-      </div>
-      <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-      </button>
-    </header>
-
-    <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
-
-    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 top-16 z-30 bg-black/50 lg:hidden"></div>
-
-    <main class="ml-0 min-h-screen pt-16 lg:ml-64">
-      <div class="p-4 lg:p-6">
+  <AdminLayout>
         <!-- Header -->
         <header class="mb-4">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -35,7 +8,7 @@
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                {{ authStore.terminology.appointment || 'Cita' }}s
+                {{ businessStore.terminology.appointment || 'Cita' }}s
               </div>
               <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">
                 {{ todayLabel }}
@@ -59,7 +32,7 @@
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                <span>Nueva {{ (authStore.terminology.appointment || 'cita').toLowerCase() }}</span>
+                <span>Nueva {{ (businessStore.terminology.appointment || 'cita').toLowerCase() }}</span>
               </button>
             </div>
           </div>
@@ -76,7 +49,7 @@
               </div>
               <div>
                 <p class="text-xl font-bold tabular-nums text-text sm:text-2xl">{{ stats.citasHoy }}</p>
-                <p class="text-xs text-text-muted">{{ authStore.terminology.appointment || 'Cita' }}s hoy</p>
+                <p class="text-xs text-text-muted">{{ businessStore.terminology.appointment || 'Cita' }}s hoy</p>
               </div>
             </div>
           </div>
@@ -133,9 +106,7 @@
             @slot-select="handleSlotSelect"
           />
          </section>
-      </div>
-    </main>
-  </div>
+  </AdminLayout>
 
   <!-- Modals -->
   <CitaFormModal 
@@ -148,30 +119,25 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
-import { agendaKeys, exportCitasToCsv, listCitas, saveCita, updateCitaStatus, updateAppointmentTime } from '../services/agendaService'
+import { agendaKeys, exportCitasToCsv, listCitas } from '../services/agendaService'
 import { equipoKeys, listEquipo } from '../services/equipoService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
-import { useThemeStore } from '../store/theme'
+import { useBusinessStore } from '../store/business'
+import { useAppointmentMutations } from '../composables/useAppointmentMutations'
 import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
-import Sidebar from '../components/layout/Sidebar.vue'
 import { CitaFormModal } from '../components/modals'
-import lumaLogoLight from '../assets/Luma.svg'
-import lumaLogoDark from '../assets/Luma blanco.svg'
-import type { Cita, CitaFormData } from '../types/cita'
+import AdminLayout from '../components/layout/AdminLayout.vue'
+import type { Cita } from '../types/cita'
 
-const { logout, authStore } = useAuth()
-const { success, error: showError } = useNotification()
-const themeStore = useThemeStore()
-const queryClient = useQueryClient()
+const { authStore } = useAuth()
+const { success } = useNotification()
+const businessStore = useBusinessStore()
 
-const isSidebarOpen = ref(false)
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
 const businessId = computed(() => authStore.businessId)
-const businessName = computed(() => authStore.business?.name ?? '')
-const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 const todayRange = computed(() => {
   const start = new Date()
@@ -201,42 +167,14 @@ const { data: empleadosData } = useQuery({
   enabled: computed(() => !!businessId.value),
 })
 
-const saveCitaMutation = useMutation({
-  mutationFn: (data: CitaFormData & { id?: string; clientPhone?: string }) => saveCita(
-    businessId.value!,
-    data,
-    authStore.profile?.id
-  ),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['appointments'] })
-    citaModalRef.value?.close()
-    citaModalRef.value?.onSaveComplete()
-    success('Cita guardada correctamente')
-  },
-  onError: (err) => {
-    citaModalRef.value?.onSaveComplete()
-    showError(err instanceof Error ? err.message : 'Error al guardar la cita')
-  },
-})
-
-const updateStatusMutation = useMutation({
-  mutationFn: ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }) => updateCitaStatus(id, status),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['appointments'] })
-  },
-  onError: (err) => {
-    showError(err instanceof Error ? err.message : 'Error al actualizar el estado de la cita')
-  },
-})
-
-const updateTimeMutation = useMutation({
-  mutationFn: ({ id, start, end }: { id: string; start: string; end: string }) => updateAppointmentTime(id, start, end),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['appointments'] })
-  },
-  onError: (err) => {
-    showError(err instanceof Error ? err.message : 'Error al reagendar la cita')
-  },
+const {
+  handleSaveCita,
+  handleStatusChange,
+  handleEventChange,
+} = useAppointmentMutations({
+  businessId,
+  createdBy: computed(() => authStore.profile?.id),
+  modalRef: citaModalRef,
 })
 
 const todayLabel = computed(() => {
@@ -283,25 +221,13 @@ const handleSlotSelect = ({ start }: { start: Date }) => {
   citaModalRef.value?.open({ id: '', clientName: '', service: '', employee: '', date, time, duration: 30, price: 0, status: 'confirmed' })
 }
 
-const handleEventClick = (event: { id: string; title: string; start: Date; end: Date }) => {
+const handleEventClick = (event: { id: string; title: string; start: Date; end: Date; citaData?: Cita }) => {
   const cita = citas.value.find(c => c.id === event.id)
   if (cita) {
     citaModalRef.value?.open(cita)
+  } else if (event.citaData) {
+    citaModalRef.value?.open(event.citaData)
   }
-}
-
-const handleSaveCita = async (data: CitaFormData & { id?: string; clientPhone?: string }) => {
-  await saveCitaMutation.mutateAsync(data)
-}
-
-const handleStatusChange = async ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }) => {
-  await updateStatusMutation.mutateAsync({ id, status })
-  success(`Estado actualizado a ${status}`)
-}
-
-const handleEventChange = async ({ id, start, end }: { id: string; start: string; end: string }) => {
-  await updateTimeMutation.mutateAsync({ id, start, end })
-  success('Cita reagendada correctamente')
 }
 
 const handleExport = () => {

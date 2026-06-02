@@ -50,7 +50,7 @@ export type InputSize = 'sm' | 'md' | 'lg'
 export type InputType = 'text' | 'email' | 'tel' | 'password' | 'number' | 'date' | 'time' | 'search' | 'url'
 
 interface Props {
-  modelValue: string | number
+  modelValue: string | number | undefined
   label?: string
   type?: InputType
   placeholder?: string

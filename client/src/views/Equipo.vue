@@ -1,30 +1,5 @@
 <template>
-  <div class="min-h-screen bg-bg">
-    <!-- Top Header -->
-    <header class="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
-      <div class="flex items-center gap-2">
-        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <div class="flex flex-col">
-          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-6 w-auto object-contain" />
-          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
-        </div>
-      </div>
-      <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-      </button>
-    </header>
-
-    <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
-    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 top-16 z-30 bg-black/50 lg:hidden"></div>
-
-    <main class="ml-0 min-h-screen pt-16 lg:ml-64">
-      <div class="p-4 lg:p-6">
+  <AdminLayout>
         <!-- Header -->
         <header class="mb-4 lg:mb-6">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -33,9 +8,9 @@
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span class="font-medium uppercase tracking-wider">{{ authStore.terminology.employee || 'Empleado' }}s</span>
+                <span class="font-medium uppercase tracking-wider">{{ businessStore.terminology.employee || 'Empleado' }}s</span>
               </div>
-              <h1 class="text-xl font-bold text-text lg:text-2xl">Gestión de {{ (authStore.terminology.employee || 'Empleado').toLowerCase() }}s</h1>
+              <h1 class="text-xl font-bold text-text lg:text-2xl">Gestión de {{ (businessStore.terminology.employee || 'Empleado').toLowerCase() }}s</h1>
             </div>
             <button
               @click="handleNewEmpleado"
@@ -44,7 +19,7 @@
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
-              <span class="hidden sm:inline">Nuevo {{ authStore.terminology.employee || 'Empleado' }}</span>
+              <span class="hidden sm:inline">Nuevo {{ businessStore.terminology.employee || 'Empleado' }}</span>
             </button>
           </div>
         </header>
@@ -60,7 +35,7 @@
               </div>
               <div>
                 <p class="text-lg font-bold text-text">{{ totalEmpleados }}</p>
-                <p class="text-xs text-text-muted">{{ authStore.terminology.employee || 'Empleado' }}s</p>
+                <p class="text-xs text-text-muted">{{ businessStore.terminology.employee || 'Empleado' }}s</p>
               </div>
             </div>
           </div>
@@ -160,11 +135,11 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-border-subtle">
-                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.employee || 'Empleado' }}</th>
+                  <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.employee || 'Empleado' }}</th>
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Entrada</th>
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Salida</th>
                   <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Descanso</th>
-                  <th class="pb-3 text-center text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.appointment || 'Cita' }}s</th>
+                  <th class="pb-3 text-center text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.appointment || 'Cita' }}s</th>
                   <th class="pb-3 text-center text-xs font-semibold uppercase text-text-muted">Disponible</th>
                 </tr>
               </thead>
@@ -190,9 +165,7 @@
             </table>
           </div>
         </div>
-      </div>
-    </main>
-  </div>
+  </AdminLayout>
 
   <!-- Modals -->
   <EmpleadoFormModal
@@ -204,37 +177,37 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useCrud } from '../composables/useCrud'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { deleteEmpleado, equipoKeys, listEquipo, saveEmpleado } from '../services/equipoService'
-import { useThemeStore } from '../store/theme'
-import Sidebar from '../components/layout/Sidebar.vue'
+import { useBusinessStore } from '../store/business'
+import AdminLayout from '../components/layout/AdminLayout.vue'
 import { EmpleadoFormModal } from '../components/modals'
-import lumaLogoLight from '../assets/Luma.svg'
-import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Empleado, EmpleadoFormData } from '../types/empleado'
 
 const router = useRouter()
-const { logout, authStore } = useAuth()
-const { success, info, error: showError } = useNotification()
-const themeStore = useThemeStore()
-const queryClient = useQueryClient()
-
-const isSidebarOpen = ref(false)
+const { authStore } = useAuth()
+const businessStore = useBusinessStore()
+const { info } = useNotification()
 const empleadoModalRef = ref<InstanceType<typeof EmpleadoFormModal> | null>(null)
-const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
 const businessId = computed(() => authStore.businessId)
 
-const { data: teamData } = useQuery({
-  queryKey: computed(() => equipoKeys.all(businessId.value)),
-  queryFn: () => listEquipo(businessId.value!),
-  enabled: computed(() => !!businessId.value),
+const {
+  items: team,
+  handleSave: handleSaveEmpleado,
+  handleDelete: handleDeleteEmpleado,
+} = useCrud<Empleado, EmpleadoFormData>({
+  businessId,
+  queryKey: (id) => equipoKeys.all(id),
+  queryFn: (id) => listEquipo(id),
+  saveFn: (id, data) => saveEmpleado(data, id),
+  deleteFn: (id) => deleteEmpleado(id),
+  entityName: 'Empleado',
+  modalRef: empleadoModalRef,
 })
-
-const team = computed<Empleado[]>(() => teamData.value ?? [])
 
 const teamSchedule = computed(() => team.value
   .filter(member => member.schedule)
@@ -249,18 +222,6 @@ const teamSchedule = computed(() => team.value
   }))
 )
 
-const saveEmpleadoMutation = useMutation({
-  mutationFn: (data: EmpleadoFormData & { id?: string }) => saveEmpleado(data, businessId.value!),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: equipoKeys.all(businessId.value) })
-    empleadoModalRef.value?.close()
-    success('Empleado guardado correctamente')
-  },
-  onError: (err) => {
-    showError(err instanceof Error ? err.message : 'Error al guardar el empleado')
-  },
-})
-
 // Stats
 const totalEmpleados = computed(() => team.value.length)
 const empleadosPorcentaje = computed(() => team.value.filter(e => e.payType === 'percentage' || e.payType === 'mixed').length)
@@ -274,30 +235,6 @@ const handleNewEmpleado = () => {
 
 const handleEditEmpleado = (empleado: Empleado) => {
   empleadoModalRef.value?.open(empleado)
-}
-
-const handleSaveEmpleado = async (data: EmpleadoFormData & { id?: string }) => {
-  try {
-    await saveEmpleadoMutation.mutateAsync(data)
-  } catch (err) {
-    showError(err instanceof Error ? err.message : 'No fue posible guardar el empleado')
-  }
-}
-
-const deleteEmpleadoMutation = useMutation({
-  mutationFn: (profileId: string) => deleteEmpleado(profileId),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: equipoKeys.all(businessId.value) })
-    empleadoModalRef.value?.close()
-    success('Empleado eliminado correctamente')
-  },
-  onError: (err) => {
-    showError(err instanceof Error ? err.message : 'Error al eliminar el empleado')
-  },
-})
-
-const handleDeleteEmpleado = (empleadoId: string) => {
-  deleteEmpleadoMutation.mutate(empleadoId)
 }
 
 const handleViewAgenda = (empleado: Empleado) => {

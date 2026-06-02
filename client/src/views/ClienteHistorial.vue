@@ -1,31 +1,5 @@
 <template>
-  <div class="min-h-screen bg-bg">
-    <!-- Top Header -->
-    <header class="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
-      <div class="flex items-center gap-2">
-        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <div class="flex flex-col">
-          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-6 w-auto object-contain" />
-          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
-        </div>
-      </div>
-      <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-      </button>
-    </header>
-
-    <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
-
-    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 top-16 z-30 bg-black/50 lg:hidden"></div>
-
-    <main class="ml-0 min-h-screen pt-16 lg:ml-64">
-      <div class="p-4 lg:p-6">
+  <AdminLayout>
         <header class="mb-4 lg:mb-6">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -33,9 +7,9 @@
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10M7 16h6" />
                 </svg>
-                <span class="font-medium uppercase tracking-wider">{{ authStore.terminology.client || 'Cliente' }}s</span>
+                <span class="font-medium uppercase tracking-wider">{{ businessStore.terminology.client || 'Cliente' }}s</span>
               </div>
-              <h1 class="text-xl font-bold text-text lg:text-2xl">Historial de {{ cliente?.name || authStore.terminology.client || 'Cliente' }}</h1>
+              <h1 class="text-xl font-bold text-text lg:text-2xl">Historial de {{ cliente?.name || businessStore.terminology.client || 'Cliente' }}</h1>
               <p class="hidden text-sm text-text-muted sm:block">Servicios y visitas anteriores</p>
             </div>
             <div class="flex gap-2">
@@ -70,8 +44,8 @@
                 <thead>
                   <tr class="border-b border-border-subtle">
                     <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
-                    <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.service || 'Servicio' }}</th>
-                    <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ authStore.terminology.employee || 'Empleado' }}</th>
+                    <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.service || 'Servicio' }}</th>
+                    <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.employee || 'Empleado' }}</th>
                     <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
                     <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Estado</th>
                   </tr>
@@ -98,7 +72,7 @@
             <h3 class="mb-4 text-base font-semibold text-text">Resumen</h3>
             <div class="space-y-3">
               <div class="rounded-lg bg-bg-secondary p-3">
-                <p class="text-xs text-text-muted">Total {{ (authStore.terminology.appointment || 'cita').toLowerCase() }}s</p>
+                <p class="text-xs text-text-muted">Total {{ (businessStore.terminology.appointment || 'cita').toLowerCase() }}s</p>
                 <p class="text-lg font-bold text-text">{{ historial.length }}</p>
               </div>
               <div class="rounded-lg bg-bg-secondary p-3">
@@ -112,23 +86,22 @@
             </div>
           </div>
         </section>
-      </div>
-    </main>
-  </div>
+  </AdminLayout>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
+import { useBusinessStore } from '../store/business'
+import AdminLayout from '../components/layout/AdminLayout.vue'
 import { listCitas } from '../services/agendaService'
 import { getClienteById } from '../services/clientesService'
-import Sidebar from '../components/layout/Sidebar.vue'
 import type { Cliente } from '../types/cliente'
 
-const { logout, authStore } = useAuth()
-const isSidebarOpen = ref(false)
+const { authStore } = useAuth()
+const businessStore = useBusinessStore()
 const route = useRoute()
 const router = useRouter()
 

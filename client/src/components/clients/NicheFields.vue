@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { FormInput, FormSelect, FormTextarea } from '../forms'
 import type { NicheConfig, NicheFieldConfig } from '../../config/nicheFields'
 
@@ -125,8 +125,8 @@ const emit = defineEmits<{
 
 const expandedGroups = ref<Record<string, boolean>>({})
 
-const update = (key: string, value: string) => {
-  emit('update', key, value)
+const update = (key: string, value: string | number | undefined) => {
+  emit('update', key, String(value ?? ''))
 }
 
 const resolveLabel = (field: NicheFieldConfig): string => {

@@ -6,36 +6,18 @@ import { queryClient } from '../queryClient'
 import type { Role } from '../constants/roles'
 import { isRole } from '../constants/roles'
 import type { AuthProfile } from '../types/auth'
-import type { Business, Profile, Terminology } from '../types/database'
-
-const DEFAULT_TERMINOLOGY: Terminology = {
-  client: 'Cliente',
-  employee: 'Empleado',
-  service: 'Servicio',
-  appointment: 'Cita',
-  staff: 'Personal',
-  pet: 'Mascota',
-  owner: 'Dueño',
-  breed: 'Raza',
-  weight: 'Peso',
-  vaccines: 'Vacunas',
-}
+import type { Profile } from '../types/database'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const session = ref<Session | null>(null)
   const profile = ref<AuthProfile | null>(null)
-  const business = ref<Business | null>(null)
   const initialized = ref(false)
   const loading = ref(false)
 
   const isAuthenticated = computed(() => !!session.value && !!user.value)
   const role = computed<Role | null>(() => profile.value?.role ?? null)
   const businessId = computed(() => profile.value?.business_id ?? null)
-  const nicheType = computed(() => business.value?.niche_type ?? 'salon')
-  const terminology = computed(() => business.value?.terminology ?? DEFAULT_TERMINOLOGY)
-  const jobTitles = computed(() => business.value?.job_titles ?? [])
-  const serviceCategories = computed(() => business.value?.service_categories ?? [])
 
   const loadProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -76,36 +58,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const loadBusiness = async (nextBusinessId: string | null) => {
-    if (!nextBusinessId) {
-      business.value = null
-      return
-    }
-
-    const { data, error } = await supabase
-      .from('businesses')
-      .select('id, name, slug, phone, address, timezone, currency, ves_exchange_rate, niche_type, theme_config, terminology, job_titles, service_categories, active')
-      .eq('id', nextBusinessId)
-      .single()
-
-    if (error) {
-      business.value = null
-      throw error
-    }
-
-    if (data.deleted_at) {
-      business.value = null
-      throw new Error('El negocio ha sido dado de baja.')
-    }
-
-    business.value = data as Business
-  }
-
   const clearAuthState = () => {
     user.value = null
     session.value = null
     profile.value = null
-    business.value = null
   }
 
   const initialize = async () => {
@@ -123,7 +79,9 @@ export const useAuthStore = defineStore('auth', () => {
       if (user.value) {
         try {
           await loadProfile(user.value.id)
-          await loadBusiness(profile.value?.business_id ?? null)
+          const { useBusinessStore } = await import('./business')
+          const businessStore = useBusinessStore()
+          await businessStore.loadBusiness(profile.value?.business_id ?? null)
         } catch {
           clearAuthState()
           await supabase.auth.signOut()
@@ -137,13 +95,16 @@ export const useAuthStore = defineStore('auth', () => {
         if (user.value) {
           try {
             await loadProfile(user.value.id)
-            await loadBusiness(profile.value?.business_id ?? null)
+            const { useBusinessStore } = await import('./business')
+            const businessStore = useBusinessStore()
+            await businessStore.loadBusiness(profile.value?.business_id ?? null)
           } catch {
             clearAuthState()
           }
         } else {
           profile.value = null
-          business.value = null
+          const { useBusinessStore } = await import('./business')
+          useBusinessStore().clearBusiness()
         }
       })
     } finally {
@@ -163,7 +124,9 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (data.user) {
         await loadProfile(data.user.id)
-        await loadBusiness(profile.value?.business_id ?? null)
+        const { useBusinessStore } = await import('./business')
+        const businessStore = useBusinessStore()
+        await businessStore.loadBusiness(profile.value?.business_id ?? null)
       }
     } catch (err) {
       clearAuthState()
@@ -180,6 +143,8 @@ export const useAuthStore = defineStore('auth', () => {
       await supabase.auth.signOut()
       queryClient.clear()
       clearAuthState()
+      const { useBusinessStore } = await import('./business')
+      useBusinessStore().clearBusiness()
     } finally {
       loading.value = false
     }
@@ -189,16 +154,11 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     session,
     profile,
-    business,
     initialized,
     loading,
     isAuthenticated,
     role,
     businessId,
-    nicheType,
-    terminology,
-    jobTitles,
-    serviceCategories,
     initialize,
     signIn,
     signOut,

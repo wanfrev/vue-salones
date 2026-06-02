@@ -101,6 +101,7 @@ import { ref, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
 import { useAuthStore } from '../../store/auth'
+import { useBusinessStore } from '../../store/business'
 import { addBusinessCategory } from '../../services/equipoService'
 import type { Servicio, ServicioFormData } from '../../types/servicio'
 import ModalBase from '../common/ModalBase.vue'
@@ -123,9 +124,10 @@ const props = withDefaults(defineProps<Props>(), {
 const { isOpen, modalData, close } = useModal(MODAL_ID)
 const { error: showError } = useNotification()
 const authStore = useAuthStore()
+const businessStore = useBusinessStore()
 
-const t = computed(() => authStore.terminology)
-const nicheType = computed(() => authStore.nicheType)
+const t = computed(() => businessStore.terminology)
+const nicheType = computed(() => businessStore.nicheType)
 
 const isEditing = computed(() => !!modalData.value?.servicio)
 
@@ -224,7 +226,7 @@ const NICHE_CATEGORIES: Record<string, { value: string; label: string }[]> = {
 const showingCustomCategory = ref(false)
 
 const categoryOptions = computed(() => {
-  const bizCats = authStore.serviceCategories
+  const bizCats = businessStore.serviceCategories
   const items = bizCats.length > 0
     ? bizCats.map((c: string) => ({ value: c, label: c }))
     : (NICHE_CATEGORIES[nicheType.value] || NICHE_CATEGORIES.salon)
@@ -324,12 +326,10 @@ const handleSubmit = async () => {
 
     // Persist new category to business config
     const businessId = authStore.businessId
-    const bizCats = authStore.serviceCategories
+  const bizCats = businessStore.serviceCategories
     if (businessId && category && !bizCats.includes(category)) {
       const updated = await addBusinessCategory(businessId, category)
-      if (authStore.business) {
-        authStore.business = { ...authStore.business, service_categories: updated }
-      }
+      businessStore.updateBusiness({ service_categories: updated })
     }
 
     const servicioData: ServicioFormData & { id?: string } = {

@@ -1,32 +1,5 @@
 <template>
-  <div class="min-h-screen bg-bg">
-    <header class="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between bg-surface border-b border-border px-4">
-      <div class="flex items-center gap-3">
-        <button @click="isSidebarOpen = !isSidebarOpen" class="rounded-lg p-2 text-text-secondary transition-theme hover:bg-bg-secondary lg:hidden">
-          <svg v-if="!isSidebarOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          <svg v-else class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        <div class="flex flex-col">
-          <img :src="lumaLogo" alt="Luma" class="-ml-1 h-6 w-auto object-contain" />
-          <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
-        </div>
-      </div>
-      <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-      </button>
-    </header>
-
-    <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
-    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 top-16 z-30 bg-black/50 lg:hidden"></div>
-
-    <main class="ml-0 min-h-screen pt-16 lg:ml-64">
-      <div class="p-4 lg:p-6">
+  <AdminLayout>
         <header class="mb-4 lg:mb-6">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -236,8 +209,7 @@
             <p class="mt-1 text-sm text-text-muted">Agrega tu primer producto al inventario.</p>
           </div>
         </div>
-      </div>
-    </main>
+  </AdminLayout>
 
     <ProductoFormModal
       ref="productoModalRef"
@@ -296,34 +268,28 @@
         El producto dejará de estar disponible en el inventario.
       </p>
     </ModalBase>
-  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
+import { useCrud } from '../composables/useCrud'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
 import { deleteProducto, listProductos, productosKeys, saveProducto } from '../services/productosService'
 import { adjustInventory, inventarioKeys, listInventoryLocations } from '../services/inventarioService'
-import { useThemeStore } from '../store/theme'
-import Sidebar from '../components/layout/Sidebar.vue'
+import AdminLayout from '../components/layout/AdminLayout.vue'
 import { ProductoFormModal } from '../components/modals'
 import { ModalBase } from '../components/common'
 import { FormInput } from '../components/forms'
-import lumaLogoLight from '../assets/Luma.svg'
-import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Producto, ProductoFormData } from '../types/producto'
 
-const { logout, authStore } = useAuth()
+const { authStore } = useAuth()
 const { formatUSD, formatVESInline } = useCurrency()
 const { success, error: showError, warning } = useNotification()
-const themeStore = useThemeStore()
 const queryClient = useQueryClient()
 
-const isSidebarOpen = ref(false)
-const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 const activeTab = ref('todos')
 const searchQuery = ref('')
 const productoModalRef = ref<InstanceType<typeof ProductoFormModal> | null>(null)
@@ -337,33 +303,23 @@ const tabs = [
   { label: 'Inactivos', value: 'inactivos' },
 ]
 
-const { data: productosData } = useQuery({
-  queryKey: computed(() => productosKeys.all(businessId.value)),
-  queryFn: () => listProductos(businessId.value!),
-  enabled: computed(() => !!businessId.value),
-})
-
-const productos = computed<Producto[]>(() => productosData.value ?? [])
-
-const saveProductoMutation = useMutation({
-  mutationFn: (data: ProductoFormData & { id?: string }) => saveProducto(businessId.value!, data),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
-    queryClient.invalidateQueries({ queryKey: ['inventario', businessId.value] })
-    queryClient.invalidateQueries({ queryKey: ['inventario-locations', businessId.value] })
-    productoModalRef.value?.close()
-    success('Producto guardado correctamente')
-  },
-  onError: (err) => {
-    showError(err instanceof Error ? err.message : 'Error al guardar el producto')
-  },
-})
-
-const deleteProductoMutation = useMutation({
-  mutationFn: (id: string) => deleteProducto(id),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
-  },
+const {
+  items: productos,
+  saveMutation: saveProductoMutation,
+  deleteMutation: deleteProductoMutation,
+  handleSave: handleSaveProducto,
+} = useCrud<Producto, ProductoFormData>({
+  businessId,
+  queryKey: (id) => productosKeys.all(id),
+  queryFn: (id) => listProductos(id),
+  saveFn: (id, data) => saveProducto(id, data),
+  deleteFn: (id) => deleteProducto(id),
+  entityName: 'Producto',
+  modalRef: productoModalRef,
+  extraInvalidations: [
+    (id) => ['inventario', id],
+    (id) => ['inventario-locations', id],
+  ],
 })
 
 // Stock adjust
@@ -454,14 +410,6 @@ const handleEditProducto = (producto: Producto) => {
   productoModalRef.value?.open(producto)
 }
 
-const handleSaveProducto = async (data: ProductoFormData & { id?: string }) => {
-  try {
-    await saveProductoMutation.mutateAsync(data)
-  } catch {
-    // Error is handled by mutation's onError
-  }
-}
-
 const handleDeleteProducto = (producto: Producto) => {
   productoToDelete.value = producto
   isDeleteModalOpen.value = true
@@ -469,7 +417,7 @@ const handleDeleteProducto = (producto: Producto) => {
 
 const confirmDelete = async () => {
   if (productoToDelete.value) {
-    await deleteProductoMutation.mutateAsync(productoToDelete.value.id)
+    await deleteProductoMutation!.mutateAsync(productoToDelete.value.id)
     warning(`Producto "${productoToDelete.value.name}" desactivado`)
     isDeleteModalOpen.value = false
     productoToDelete.value = null
