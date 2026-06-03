@@ -147,7 +147,7 @@ const todayRange = computed(() => {
 })
 
 const { data: citasData } = useQuery({
-  queryKey: computed(() => agendaKeys.appointments(businessId.value)),
+  queryKey: computed(() => ['appointments', businessId.value, toISODate(new Date())]),
   queryFn: () => listCitas(businessId.value!, todayRange.value),
   enabled: computed(() => !!businessId.value),
 })

@@ -78,6 +78,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import FullCalendar from '@fullcalendar/vue3'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -89,6 +90,7 @@ import { useAuthStore } from '../../store/auth'
 import { isAdminPanelRole } from '../../constants/roles'
 import type { Cita } from '../../types/cita'
 
+const route = useRoute()
 const authStore = useAuthStore()
 const isAdmin = computed(() => isAdminPanelRole(authStore.role ?? undefined))
 const emit = defineEmits<{
@@ -118,6 +120,10 @@ const {
 onMounted(() => {
   if (!isAdmin.value && authStore.profile?.id) {
     selectedEmployeeId.value = authStore.profile.id
+  }
+  const employeeParam = route.query.employee as string | undefined
+  if (employeeParam) {
+    selectedEmployeeId.value = employeeParam
   }
 })
 

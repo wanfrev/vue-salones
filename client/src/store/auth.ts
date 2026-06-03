@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
   const loadProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, business_id, full_name, role, phone, avatar_url, active')
+      .select('id, business_id, full_name, role, phone, avatar_url, active, pay_type, pay_percentage, base_salary')
       .eq('id', userId)
       .maybeSingle()
 
@@ -55,6 +55,9 @@ export const useAuthStore = defineStore('auth', () => {
       role: authProfile.role,
       phone: authProfile.phone,
       avatar_url: authProfile.avatar_url,
+      pay_type: (authProfile as any).pay_type ?? null,
+      pay_percentage: (authProfile as any).pay_percentage ?? null,
+      base_salary: (authProfile as any).base_salary ?? null,
     }
   }
 
@@ -140,11 +143,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (loading.value) return
     loading.value = true
     try {
-      await supabase.auth.signOut()
-      queryClient.clear()
       clearAuthState()
+      queryClient.clear()
       const { useBusinessStore } = await import('./business')
       useBusinessStore().clearBusiness()
+      await supabase.auth.signOut()
     } finally {
       loading.value = false
     }

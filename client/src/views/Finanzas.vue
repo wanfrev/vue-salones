@@ -83,8 +83,8 @@
         <thead>
           <tr class="border-b border-border-subtle">
             <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
-            <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.client || 'Cliente' }}</th>
-            <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ businessStore.terminology.service || 'Servicio' }}</th>
+            <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Descripción</th>
+            <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Tipo</th>
             <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
             <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
           </tr>
@@ -92,20 +92,23 @@
         <tbody class="divide-y divide-border-subtle">
           <tr v-for="tx in summaryCtx.transactions.value" :key="tx.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
             <td class="py-3 text-text-secondary whitespace-nowrap">{{ tx.date }}</td>
-            <td class="py-3 font-medium text-text">{{ tx.client }}</td>
-            <td class="py-3 text-text-secondary">{{ tx.service }}</td>
+            <td class="py-3 font-medium text-text">{{ tx.description }}</td>
             <td class="py-3">
-              <span :class="['rounded-full px-2 py-0.5 text-xs',
-                tx.method === 'Efectivo' ? 'bg-success/10 text-success' :
-                tx.method === 'Tarjeta' ? 'bg-primary/10 text-primary' :
-                tx.method === 'Transferencia' ? 'bg-info/10 text-info' :
-                tx.method === 'Zelle' ? 'bg-warning/10 text-warning' :
-                tx.method === 'Pago Móvil' ? 'bg-info/10 text-info' :
-                tx.method === 'Mixto' ? 'bg-primary/10 text-primary' : 'bg-bg-secondary text-text-muted'
-              ]">{{ tx.method }}</span>
+              <span :class="['rounded-full px-2 py-0.5 text-xs font-semibold',
+                tx.type === 'ingreso' ? 'bg-success/10 text-success' :
+                tx.type === 'nomina' ? 'bg-warning/10 text-warning' :
+                'bg-danger/10 text-danger'
+              ]">
+                {{ tx.type === 'ingreso' ? 'Ingreso' : tx.type === 'nomina' ? 'Nómina' : 'Gasto' }}
+              </span>
+            </td>
+            <td class="py-3">
+              <span class="text-xs text-text-muted">{{ tx.method }}</span>
             </td>
             <td class="py-3 text-right">
-              <div class="font-medium text-text">{{ formatUSD(tx.amount) }}</div>
+              <div class="font-medium" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
+                {{ tx.type === 'ingreso' ? '' : '-' }}{{ formatUSD(tx.amount) }}
+              </div>
               <div class="text-xs text-text-muted">Bs {{ formatVESInline(tx.amount) }}</div>
             </td>
           </tr>

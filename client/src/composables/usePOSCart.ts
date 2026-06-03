@@ -1,7 +1,10 @@
 import { ref, computed } from 'vue'
+import { useAuth } from './useAuth'
+import { listLocationsWithStock } from '../services/posService'
 import type { POSProductItem } from '../types/pos'
 
 export function usePOSCart() {
+  const { authStore } = useAuth()
   const cart = ref<POSProductItem[]>([])
   const productSearch = ref('')
 
@@ -9,12 +12,23 @@ export function usePOSCart() {
     cart.value.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
   )
 
-  const addProduct = (product: any) => {
+  const addProduct = async (product: any) => {
     const existing = cart.value.find(c => c.productId === product.id)
     if (existing) {
       existing.quantity++
       existing.subtotal = existing.unitPrice * existing.quantity
     } else {
+      let locationId = ''
+      if (authStore.businessId) {
+        try {
+          const locations = await listLocationsWithStock(authStore.businessId, product.id)
+          if (locations.length > 0) {
+            locationId = (locations[0] as any).location_id || (locations[0] as any).inventory_locations?.id || ''
+          }
+        } catch {
+          // Location lookup failed, proceed without
+        }
+      }
       cart.value.push({
         productId: product.id,
         productName: product.name,
@@ -23,7 +37,7 @@ export function usePOSCart() {
         quantity: 1,
         unitPrice: Number(product.unit_price),
         unitCost: Number(product.unit_cost),
-        locationId: '',
+        locationId,
         subtotal: Number(product.unit_price),
       })
     }

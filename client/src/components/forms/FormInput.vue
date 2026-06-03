@@ -85,6 +85,7 @@ const sizeClasses: Record<InputSize, string> = {
 
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
-  emit('update:modelValue', target.value)
+  const raw = target.value
+  emit('update:modelValue', props.type === 'number' ? (raw === '' ? '' : Number(raw)) : raw)
 }
 </script>

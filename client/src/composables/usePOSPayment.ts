@@ -56,6 +56,7 @@ export function usePOSPayment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: posKeys.pending() })
       queryClient.invalidateQueries({ queryKey: ['inventario'] })
+      queryClient.invalidateQueries({ queryKey: ['appointments'] })
     },
   })
 

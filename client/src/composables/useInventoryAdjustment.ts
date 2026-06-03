@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from './useAuth'
 import { useNotification } from './useNotification'
@@ -9,7 +9,7 @@ export function useInventoryAdjustment() {
   const { authStore } = useAuth()
   const { success, error: showError } = useNotification()
   const queryClient = useQueryClient()
-  const businessId = authStore.businessId
+  const businessId = computed(() => authStore.businessId)
 
   const adjustModalOpen = ref(false)
   const adjustItem = ref<InventarioItem | null>(null)
@@ -18,10 +18,10 @@ export function useInventoryAdjustment() {
 
   const adjustMutation = useMutation({
     mutationFn: (params: { productId: string; locationId: string; quantity: number; notes: string; variantId?: string | null }) =>
-      adjustInventory(businessId!, params.productId, params.locationId, params.quantity, params.notes, params.variantId),
+      adjustInventory(businessId.value!, params.productId, params.locationId, params.quantity, params.notes, params.variantId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId) })
-      queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(businessId) })
+      queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
+      queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(businessId.value) })
       closeAdjustModal()
       success('Stock ajustado correctamente')
     },
@@ -45,11 +45,13 @@ export function useInventoryAdjustment() {
   }
 
   const confirmAdjust = async () => {
-    if (!adjustItem.value || adjustQuantity.value === 0) return
+    if (!adjustItem.value) return
+    const qty = Number(adjustQuantity.value)
+    if (qty === 0) return
     await adjustMutation.mutateAsync({
       productId: adjustItem.value.productId,
       locationId: adjustItem.value.locationId,
-      quantity: adjustQuantity.value,
+      quantity: qty,
       notes: adjustNotes.value,
       variantId: adjustItem.value.variantId,
     })

@@ -2,7 +2,16 @@ import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { formatMethod, formatDate } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
-import type { Transaction } from '../types/database'
+import type { Transaction, EmployeePayment, Expense } from '../types/database'
+
+export type UnifiedTransaction = {
+  id: string
+  date: string
+  description: string
+  method: string
+  amount: number
+  type: 'ingreso' | 'nomina' | 'gasto'
+}
 
 type SummaryBucket = {
   bucket: string
@@ -179,6 +188,42 @@ function useFinancialSummary(
 
   const rawTransactions = computed(() => transactionsData.value ?? [])
 
+  // Employee payments query for same period
+  const { data: rawEmployeePayments } = useQuery({
+    queryKey: computed(() => ['finanzas-employee-payments', businessId.value, selectedPeriod.value]),
+    queryFn: async () => {
+      const cfg = periodConfig.value
+      const { data, error } = await supabase
+        .from('employee_payments')
+        .select('id, amount, payment_method, payment_date, profiles!inner(full_name)')
+        .eq('business_id', businessId.value!)
+        .gte('payment_date', cfg.start.toISOString().slice(0, 10))
+        .lte('payment_date', cfg.end.toISOString().slice(0, 10))
+        .order('payment_date', { ascending: false })
+      if (error) throw error
+      return (data ?? []) as Array<EmployeePayment & { profiles?: { full_name: string } | null }>
+    },
+    enabled: computed(() => !!businessId.value),
+  })
+
+  // Expenses query for same period
+  const { data: rawExpenses } = useQuery({
+    queryKey: computed(() => ['finanzas-expenses', businessId.value, selectedPeriod.value]),
+    queryFn: async () => {
+      const cfg = periodConfig.value
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('id, name, amount, expense_date')
+        .eq('business_id', businessId.value!)
+        .gte('expense_date', cfg.start.toISOString().slice(0, 10))
+        .lte('expense_date', cfg.end.toISOString().slice(0, 10))
+        .order('expense_date', { ascending: false })
+      if (error) throw error
+      return (data ?? []) as Expense[]
+    },
+    enabled: computed(() => !!businessId.value),
+  })
+
   const transactionsAll = computed<TransactionRow[]>(() =>
     rawTransactions.value.map(row => ({
       id: row.id,
@@ -190,7 +235,52 @@ function useFinancialSummary(
     }))
   )
 
-  const transactions = computed(() => transactionsAll.value.slice(0, 10))
+  const unifiedTransactions = computed<UnifiedTransaction[]>(() => {
+    const result: UnifiedTransaction[] = []
+
+    // Appointment payments (income)
+    for (const tx of rawTransactions.value) {
+      result.push({
+        id: tx.id,
+        date: formatDate(tx.paid_at),
+        description: (tx.appointments?.clients?.full_name ?? '—') + ' · ' + (tx.appointments?.services?.name ?? '—'),
+        method: formatMethod(tx.method),
+        amount: tx.total_amount,
+        type: 'ingreso',
+      })
+    }
+
+    // Employee payments (nomina)
+    const empPayments = rawEmployeePayments.value ?? []
+    for (const ep of empPayments) {
+      result.push({
+        id: 'ep-' + ep.id,
+        date: formatDate(ep.payment_date),
+        description: 'Pago a ' + (ep.profiles?.full_name ?? 'empleado'),
+        method: formatMethod(ep.payment_method),
+        amount: ep.amount,
+        type: 'nomina',
+      })
+    }
+
+    // Expenses (gastos)
+    const expenses = rawExpenses.value ?? []
+    for (const ex of expenses) {
+      result.push({
+        id: 'ex-' + ex.id,
+        date: formatDate(ex.expense_date),
+        description: ex.name,
+        method: '—',
+        amount: ex.amount,
+        type: 'gasto',
+      })
+    }
+
+    result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return result
+  })
+
+  const transactions = computed(() => unifiedTransactions.value.slice(0, 10))
 
   const employeePayments = computed<PaymentRow[]>(() =>
     rawTransactions.value.map(row => ({

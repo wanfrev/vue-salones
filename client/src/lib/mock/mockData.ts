@@ -58,6 +58,9 @@ export const MOCK_PASSWORD = 'demo123'
 export const SUPERADMIN_USER_ID = SUPERADMIN
 export const SUPERADMIN_EMAIL = 'superadmin@demo.com'
 export const SUPERADMIN_PASSWORD = 'superdemo123'
+export const EMPLOYEE_USER_ID = EMP3
+export const EMPLOYEE_EMAIL = 'empleado@demo.com'
+export const EMPLOYEE_PASSWORD = 'demo123'
 
 export function createMockDataStore(): MockDataStore {
   const now = new Date().toISOString()
@@ -113,9 +116,9 @@ export function createMockDataStore(): MockDataStore {
   const profiles: Profile[] = [
     { id: SUPERADMIN, business_id: null, full_name: 'Super Admin', role: 'superadmin', job_title: null, phone: null, avatar_url: null, active: true, created_at: now, updated_at: now },
     { id: ADMIN, business_id: BIZ, full_name: 'Admin Demo', role: 'admin', job_title: 'Administrador', phone: '+525551234500', avatar_url: null, active: true, created_at: now, updated_at: now },
-    { id: EMP1, business_id: BIZ, full_name: 'María García', role: 'empleado', job_title: 'Estilista Senior', phone: '+525551234501', avatar_url: null, active: true, created_at: now, updated_at: now },
-    { id: EMP2, business_id: BIZ, full_name: 'Ana López', role: 'empleado', job_title: 'Manicurista', phone: '+525551234502', avatar_url: null, active: true, created_at: now, updated_at: now },
-    { id: EMP3, business_id: BIZ, full_name: 'Sofía Martínez', role: 'empleado', job_title: 'Barbera', phone: '+525551234503', avatar_url: null, active: true, created_at: now, updated_at: now },
+    { id: EMP1, business_id: BIZ, full_name: 'María García', role: 'empleado', job_title: 'Estilista Senior', phone: '+525551234501', avatar_url: null, active: true, pay_type: 'percentage', pay_percentage: 50, base_salary: null, created_at: now, updated_at: now },
+    { id: EMP2, business_id: BIZ, full_name: 'Ana López', role: 'empleado', job_title: 'Manicurista', phone: '+525551234502', avatar_url: null, active: true, pay_type: 'percentage', pay_percentage: 50, base_salary: null, created_at: now, updated_at: now },
+    { id: EMP3, business_id: BIZ, full_name: 'Sofía Martínez', role: 'empleado', job_title: 'Barbera', phone: '+525551234503', avatar_url: null, active: true, pay_type: 'percentage', pay_percentage: 50, base_salary: null, created_at: now, updated_at: now },
   ]
 
   const employee_schedules: EmployeeSchedule[] = [
@@ -266,6 +269,7 @@ export function createMockDataStore(): MockDataStore {
   const employee_payments: EmployeePayment[] = [
     { id: 'ep-01', business_id: BIZ, employee_id: EMP1, amount: 125, payment_method: 'cash', notes: 'Pago comisión servicios', payment_date: dateOffset(-1).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
     { id: 'ep-02', business_id: BIZ, employee_id: EMP2, amount: 80, payment_method: 'transfer', notes: 'Anticipo semanal', payment_date: dateOffset(-3).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
+    { id: 'ep-03', business_id: BIZ, employee_id: EMP3, amount: 90, payment_method: 'cash', notes: 'Pago comisión servicios', payment_date: dateOffset(-2).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
   ]
 
   return {

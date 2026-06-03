@@ -94,31 +94,47 @@ export const deleteBusiness = async (businessId: string): Promise<void> => {
 }
 
 export const suspendBusiness = async (businessId: string): Promise<void> => {
-  const { data, error } = await mutate.functions.invoke('superadmin-invite', {
-    body: {
-      action: 'suspend_business',
-      business_id: businessId,
-    },
-  })
+  // Try edge function first, fall back to direct update
+  try {
+    const { data, error } = await mutate.functions.invoke('superadmin-invite', {
+      body: {
+        action: 'suspend_business',
+        business_id: businessId,
+      },
+    })
+    if (!error && data?.success) return
+  } catch {
+    // Edge function not available, try direct update
+  }
+
+  const { error } = await mutate
+    .from('businesses')
+    .update({ active: false })
+    .eq('id', businessId)
 
   if (error) throw error
-  if (!data?.success) {
-    throw new Error('No fue posible suspender el servicio.')
-  }
 }
 
 export const resumeBusiness = async (businessId: string): Promise<void> => {
-  const { data, error } = await mutate.functions.invoke('superadmin-invite', {
-    body: {
-      action: 'resume_business',
-      business_id: businessId,
-    },
-  })
+  // Try edge function first, fall back to direct update
+  try {
+    const { data, error } = await mutate.functions.invoke('superadmin-invite', {
+      body: {
+        action: 'resume_business',
+        business_id: businessId,
+      },
+    })
+    if (!error && data?.success) return
+  } catch {
+    // Edge function not available, try direct update
+  }
+
+  const { error } = await mutate
+    .from('businesses')
+    .update({ active: true })
+    .eq('id', businessId)
 
   if (error) throw error
-  if (!data?.success) {
-    throw new Error('No fue posible reactivar el servicio.')
-  }
 }
 
 export const listBusinessAdmins = async (businessId: string): Promise<AuthProfile[]> => {

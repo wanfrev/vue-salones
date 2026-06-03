@@ -1,4 +1,4 @@
-import { MOCK_USER_ID, MOCK_BUSINESS_ID, MOCK_EMAIL, MOCK_PASSWORD, SUPERADMIN_USER_ID, SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD, createMockDataStore, type MockDataStore } from './mockData'
+import { MOCK_USER_ID, MOCK_BUSINESS_ID, MOCK_EMAIL, MOCK_PASSWORD, SUPERADMIN_USER_ID, SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD, EMPLOYEE_USER_ID, EMPLOYEE_EMAIL, EMPLOYEE_PASSWORD, createMockDataStore, type MockDataStore } from './mockData'
 
 const BIZ = MOCK_BUSINESS_ID
 const ADMIN = MOCK_USER_ID
@@ -27,6 +27,9 @@ const RELATION_CONFIG: Record<string, Record<string, { table: string; localKey: 
   },
   employee_payments: {
     profiles: { table: 'profiles', localKey: 'employee_id', foreignKey: 'id', isArray: false },
+  },
+  transactions: {
+    appointments: { table: 'appointments', localKey: 'appointment_id', foreignKey: 'id', isArray: false },
   },
 }
 
@@ -388,6 +391,9 @@ export function createMockClient() {
     }
     if (email === MOCK_EMAIL && password === MOCK_PASSWORD) {
       return makeMockUser(MOCK_USER_ID, MOCK_EMAIL, 'Admin Demo')
+    }
+    if (email === EMPLOYEE_EMAIL && password === EMPLOYEE_PASSWORD) {
+      return makeMockUser(EMPLOYEE_USER_ID, EMPLOYEE_EMAIL, 'Sofía Martínez')
     }
     return null
   }

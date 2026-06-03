@@ -51,7 +51,14 @@ export const createEmployeePayment = async (
   notes: string,
   paymentDate: string,
 ): Promise<void> => {
-  const supabaseUser = mutate.auth?.currentUser
+  let userId: string | null = null
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    userId = session?.user?.id ?? null
+  } catch {
+    // Session not available, proceed without created_by
+  }
+
   const { error } = await mutate
     .from('employee_payments')
     .insert({
@@ -61,8 +68,11 @@ export const createEmployeePayment = async (
       payment_method: paymentMethod,
       notes: notes || null,
       payment_date: paymentDate,
-      created_by: supabaseUser?.id ?? null,
+      created_by: userId,
     })
 
-  if (error) handleDbError(error, 'Error al registrar el pago del empleado')
+  if (error) {
+    handleDbError(error, 'Error al registrar el pago del empleado')
+    throw error
+  }
 }

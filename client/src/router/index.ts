@@ -144,6 +144,12 @@ router.beforeEach(async (to) => {
 
   await authStore.initialize()
 
+  // If auth is still loading (e.g., mid sign-out), redirect to login
+  if (authStore.loading) {
+    if (to.meta.public) return
+    return '/'
+  }
+
   if (to.meta.public && authStore.isAuthenticated) {
     return resolveHomeByRole(authStore.role ?? undefined)
   }

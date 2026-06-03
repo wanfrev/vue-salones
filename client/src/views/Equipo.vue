@@ -236,7 +236,7 @@ const handleEditEmpleado = (empleado: Empleado) => {
 }
 
 const handleViewAgenda = (empleado: Empleado) => {
-  router.push('/admin')
+  router.push('/admin?employee=' + empleado.id)
   info(`Mostrando agenda de ${empleado.name}`)
 }
 

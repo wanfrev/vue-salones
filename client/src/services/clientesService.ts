@@ -77,12 +77,17 @@ export const getClienteById = async (id: string): Promise<Cliente> => {
 }
 
 export const deleteCliente = async (clientId: string): Promise<void> => {
-  const { error } = await supabase
+  const { error } = await mutate
     .from('clients')
     .delete()
     .eq('id', clientId)
 
-  if (error) throw error
+  if (error) {
+    if (error.code === '23503') {
+      throw new Error('No se puede eliminar el cliente porque tiene citas registradas. Para eliminarlo, primero elimina sus citas.')
+    }
+    throw error
+  }
 }
 
 export const searchClients = async (
