@@ -198,8 +198,11 @@
   <StockAdjustModal
     :is-open="adjustModalOpen"
     :item="adjustItem"
+    :locations="locations"
+    :is-loading="adjustMutation.isPending.value"
     v-model:quantity="adjustQuantity"
     v-model:notes="adjustNotes"
+    v-model:location-id="adjustLocationId"
     @close="closeAdjustModal"
     @confirm="confirmAdjust"
   />
@@ -243,6 +246,8 @@ const {
   adjustItem,
   adjustQuantity,
   adjustNotes,
+  adjustLocationId,
+  adjustMutation,
   openAdjustModal,
   closeAdjustModal,
   confirmAdjust,

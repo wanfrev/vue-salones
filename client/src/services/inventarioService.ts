@@ -48,7 +48,8 @@ export const listInventario = async (businessId: string): Promise<InventarioItem
       .eq('business_id', businessId)
       .eq('active', true)
 
-    return (products ?? []).map(p => ({
+    type ProductRow = { id: string; name: string; sku: string | null; unit_cost: number; unit_price: number; reorder_point: number }
+    return ((products ?? []) as ProductRow[]).map(p => ({
       id: '',
       productId: p.id,
       productName: p.name,

@@ -59,7 +59,12 @@ export const saveCliente = async (
     : mutate.from('clients').insert(payload).select('*').single()
 
   const { data: saved, error } = await query
-  if (error) throw error
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error('Ya existe un cliente registrado con este teléfono')
+    }
+    throw error
+  }
 
   return mapClientToCliente(saved as Client)
 }

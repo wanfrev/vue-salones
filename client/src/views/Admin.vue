@@ -112,6 +112,7 @@
     :servicios="serviciosList"
     :empleados="empleadosList"
     @save="handleSaveCita" 
+    @delete="handleDeleteCita"
   />
 </template>
 
@@ -121,7 +122,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { downloadCsv } from '../lib/csv'
-import { agendaKeys, exportCitasToCsv, listCitas } from '../services/agendaService'
+import { exportCitasToCsv, listCitas } from '../services/agendaService'
 import { equipoKeys, listEquipo } from '../services/equipoService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { useBusinessStore } from '../store/business'
@@ -170,6 +171,7 @@ const {
   handleSaveCita,
   handleStatusChange,
   handleEventChange,
+  handleDeleteCita,
 } = useAppointmentMutations({
   businessId,
   createdBy: computed(() => authStore.profile?.id),

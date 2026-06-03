@@ -200,6 +200,15 @@ export const updateAppointmentTime = async (
   if (error) throw mapAgendaWriteError(error, 'reagendar')
 }
 
+export const deleteCita = async (id: string): Promise<void> => {
+  const { error } = await mutate
+    .from('appointments')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}
+
 export const exportCitasToCsv = (citas: Cita[]) => {
   return [
     ['Cliente', 'Servicio', 'Empleado', 'Fecha', 'Hora', 'Duración', 'Precio', 'Estado'].join(','),

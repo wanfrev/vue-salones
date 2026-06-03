@@ -6,15 +6,29 @@
     icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
     size="sm"
     confirm-text="Guardar ajuste"
-    :is-confirm-disabled="quantity === 0"
+    :is-loading="isLoading"
+    :is-confirm-disabled="quantity === 0 || isLoading"
     @close="$emit('close')"
     @confirm="$emit('confirm')"
   >
     <div class="space-y-4">
       <div class="rounded-lg bg-bg-secondary p-3">
         <p class="text-sm font-medium text-text">{{ item?.productName }}</p>
-        <p class="text-xs text-text-muted">{{ item?.locationName }} · Actual: {{ item?.quantity }}</p>
+        <p v-if="item?.locationName" class="text-xs text-text-muted">{{ item.locationName }} · Actual: {{ item.quantity }}</p>
+        <p v-else class="text-xs text-text-muted">Sin existencias · Selecciona una ubicación</p>
       </div>
+
+      <div v-if="!item?.locationName && locations?.length">
+        <label class="block text-sm font-medium text-text-secondary mb-1.5">Ubicación <span class="text-danger">*</span></label>
+        <select
+          v-model="selectedLocationId"
+          class="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/20"
+        >
+          <option value="">Selecciona una ubicación</option>
+          <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
+        </select>
+      </div>
+
       <FormInput
         v-model.number="quantity"
         label="Cantidad a ajustar"
@@ -36,15 +50,18 @@
 <script setup lang="ts">
 import { ModalBase } from '../common'
 import { FormInput } from '../forms'
-import type { InventarioItem } from '../../types/inventario'
+import type { InventarioItem, InventarioLocation } from '../../types/inventario'
 
 defineProps<{
   isOpen: boolean
   item: InventarioItem | null
+  locations?: InventarioLocation[]
+  isLoading?: boolean
 }>()
 
 const quantity = defineModel<number>('quantity', { default: 0 })
 const notes = defineModel<string>('notes', { default: '' })
+const selectedLocationId = defineModel<string>('locationId', { default: '' })
 
 defineEmits<{
   close: []

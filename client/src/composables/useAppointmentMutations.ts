@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
-import { saveCita, updateCitaStatus, updateAppointmentTime } from '../services/agendaService'
+import { saveCita, updateCitaStatus, updateAppointmentTime, deleteCita } from '../services/agendaService'
 import type { CitaFormData } from '../types/cita'
 
 export function useAppointmentMutations(options: {
@@ -53,6 +53,27 @@ export function useAppointmentMutations(options: {
     },
   })
 
+  const deleteCitaMutation = useMutation({
+    mutationFn: (id: string) => deleteCita(id),
+    onSuccess: () => {
+      invalidate()
+      options.modalRef?.value?.close()
+      options.modalRef?.value?.onSaveComplete?.()
+      success('Cita eliminada correctamente')
+    },
+    onError: (err) => {
+      options.modalRef?.value?.onSaveComplete?.()
+      showError(err instanceof Error ? err.message : 'Error al eliminar la cita')
+    },
+  })
+
+  const handleDeleteCita = (id: string) => {
+    const msg = '¿Eliminar esta cita?\n\nEsta acción no se puede deshacer.'
+    if (window.confirm(msg)) {
+      deleteCitaMutation.mutate(id)
+    }
+  }
+
   const handleSaveCita = async (data: CitaFormData & { id?: string; clientPhone?: string }) => {
     await saveCitaMutation.mutateAsync(data)
   }
@@ -71,8 +92,10 @@ export function useAppointmentMutations(options: {
     saveCitaMutation,
     updateStatusMutation,
     updateTimeMutation,
+    deleteCitaMutation,
     handleSaveCita,
     handleStatusChange,
     handleEventChange,
+    handleDeleteCita,
   }
 }

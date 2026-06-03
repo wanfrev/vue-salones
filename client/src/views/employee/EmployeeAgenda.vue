@@ -27,6 +27,7 @@
     :servicios="serviciosList"
     :empleados="empleadosList"
     @save="handleSaveCita"
+    @delete="handleDeleteCita"
   />
 </template>
 
@@ -89,6 +90,7 @@ const {
   handleSaveCita,
   handleStatusChange,
   handleEventChange,
+  handleDeleteCita,
 } = useAppointmentMutations({
   businessId,
   createdBy: computed(() => authStore.profile?.id),

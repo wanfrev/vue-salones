@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from './useAuth'
 import { useNotification } from './useNotification'
 import { adjustInventory, inventarioKeys } from '../services/inventarioService'
+import { validateAdjustQuantity } from '../business/stockRules'
 import type { InventarioItem } from '../types/inventario'
 
 export function useInventoryAdjustment() {
@@ -15,6 +16,7 @@ export function useInventoryAdjustment() {
   const adjustItem = ref<InventarioItem | null>(null)
   const adjustQuantity = ref(0)
   const adjustNotes = ref('')
+  const adjustLocationId = ref('')
 
   const adjustMutation = useMutation({
     mutationFn: (params: { productId: string; locationId: string; quantity: number; notes: string; variantId?: string | null }) =>
@@ -34,6 +36,7 @@ export function useInventoryAdjustment() {
     adjustItem.value = item
     adjustQuantity.value = 0
     adjustNotes.value = ''
+    adjustLocationId.value = item.locationId
     adjustModalOpen.value = true
   }
 
@@ -42,15 +45,26 @@ export function useInventoryAdjustment() {
     adjustItem.value = null
     adjustQuantity.value = 0
     adjustNotes.value = ''
+    adjustLocationId.value = ''
   }
 
   const confirmAdjust = async () => {
     if (!adjustItem.value) return
     const qty = Number(adjustQuantity.value)
-    if (qty === 0) return
+    try {
+      validateAdjustQuantity(qty)
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Cantidad inválida')
+      return
+    }
+    const locationId = adjustLocationId.value || adjustItem.value.locationId
+    if (!locationId) {
+      showError('Selecciona una ubicación')
+      return
+    }
     await adjustMutation.mutateAsync({
       productId: adjustItem.value.productId,
-      locationId: adjustItem.value.locationId,
+      locationId,
       quantity: qty,
       notes: adjustNotes.value,
       variantId: adjustItem.value.variantId,
@@ -62,6 +76,7 @@ export function useInventoryAdjustment() {
     adjustItem,
     adjustQuantity,
     adjustNotes,
+    adjustLocationId,
     adjustMutation,
     openAdjustModal,
     closeAdjustModal,

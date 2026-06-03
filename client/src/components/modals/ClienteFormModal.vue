@@ -5,8 +5,8 @@
     :subtitle="isEditing ? `Editando a ${formData.name}` : `Agrega un nuevo ${terminology.client.toLowerCase()} a tu base de datos`"
     :icon="isEditing ? 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' : 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'"
     size="md"
-    :is-loading="isLoading"
-    :is-confirm-disabled="!isFormValid"
+    :is-loading="isLoading || isSaving"
+    :is-confirm-disabled="!isFormValid || isSaving"
     :confirm-text="`Guardar ${terminology.client}`"
     @close="close"
     @confirm="handleSubmit"
@@ -96,6 +96,7 @@ const MODAL_ID = 'cliente-form-modal'
 
 const props = defineProps<{
   cliente?: Cliente | null
+  isSaving?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -195,11 +196,15 @@ const validateForm = (): boolean => {
   }
 
   if (isPet.value) {
+    const petErrors: Record<string, string> = {}
     if (!nicheValues.pet_name?.trim()) {
-      errors.value.name = `El nombre ${terminology.value.pet?.toLowerCase() || 'de la mascota'} es obligatorio`
+      petErrors.petName = `El nombre ${terminology.value.pet?.toLowerCase() || 'de la mascota'} es obligatorio`
     }
     if (!nicheValues.pet_owner?.trim()) {
-      errors.value.name = 'El nombre del dueño es obligatorio'
+      petErrors.petOwner = 'El nombre del dueño es obligatorio'
+    }
+    if (Object.keys(petErrors).length > 0) {
+      ;(errors.value as any).petFields = petErrors
     }
   }
 
@@ -221,41 +226,34 @@ const confirmDelete = () => {
   }
 }
 
-const handleSubmit = async () => {
+const handleSubmit = () => {
+  if (props.isSaving) return
+
   if (!validateForm()) {
     showError('Por favor corrige los errores en el formulario')
     return
   }
 
-  isLoading.value = true
-
-  try {
-    const nicheMeta: Record<string, unknown> = { ...nicheValues }
-    if (isPet.value) {
-      for (const key of Object.keys(nicheMeta)) {
-        if (!nicheMeta[key]) delete nicheMeta[key]
-      }
+  const nicheMeta: Record<string, unknown> = { ...nicheValues }
+  if (isPet.value) {
+    for (const key of Object.keys(nicheMeta)) {
+      if (!nicheMeta[key]) delete nicheMeta[key]
     }
-
-    const clienteData: ClienteFormData & { id?: string } = {
-      ...formData.value,
-      metadata: {
-        ...formData.value.metadata,
-        ...nicheMeta,
-      },
-    }
-
-    if (modalData.value?.cliente?.id) {
-      clienteData.id = modalData.value.cliente.id
-    }
-
-    emit('save', clienteData)
-  } catch (err) {
-    showError(`Error al guardar el ${terminology.value.client.toLowerCase()}`)
-    console.error(err)
-  } finally {
-    isLoading.value = false
   }
+
+  const clienteData: ClienteFormData & { id?: string } = {
+    ...formData.value,
+    metadata: {
+      ...formData.value.metadata,
+      ...nicheMeta,
+    },
+  }
+
+  if (modalData.value?.cliente?.id) {
+    clienteData.id = modalData.value.cliente.id
+  }
+
+  emit('save', clienteData)
 }
 
 const open = (cliente?: Cliente) => {

@@ -194,6 +194,16 @@
         :rows="2"
         :error="errors.notes"
       />
+
+      <div v-if="isEditing" class="border-t border-border pt-4">
+        <button
+          type="button"
+          class="rounded-lg border border-danger/30 px-4 py-2 text-sm font-semibold text-danger transition-theme hover:bg-danger/10"
+          @click="confirmDelete"
+        >
+          Eliminar {{ t.appointment.toLowerCase() }}
+        </button>
+      </div>
     </form>
   </ModalBase>
 </template>
@@ -219,6 +229,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   save: [cita: CitaFormData & { id?: string }]
+  delete: [citaId: string]
 }>()
 
 const saveInProgress = ref(false)
@@ -327,7 +338,7 @@ const priceOverride = ref<number | null>(null)
 
 const displayPrice = computed(() => priceOverride.value !== null ? String(priceOverride.value) : String(totalPrice.value))
 
-const onPriceInput = (val: string) => {
+const onPriceInput = (val: string | number) => {
   const num = val === '' ? 0 : Number(val)
   priceOverride.value = num
 }
@@ -571,6 +582,12 @@ const handleSubmit = () => {
 
 const onSaveComplete = () => {
   saveInProgress.value = false
+}
+
+const confirmDelete = () => {
+  const id = modalData.value?.cita?.id
+  if (!id) return
+  emit('delete', id)
 }
 
 const open = (cita?: Cita) => {

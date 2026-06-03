@@ -173,6 +173,7 @@
 
   <ClienteFormModal
     ref="clienteModalRef"
+    :is-saving="isSaving"
     @save="handleSaveCliente"
     @delete="handleDeleteCliente"
   />
@@ -216,6 +217,7 @@ const {
   items: clients,
   handleSave: handleSaveCliente,
   handleDelete: handleDeleteCliente,
+  isSaving,
 } = useCrud<Cliente, ClienteFormData>({
   businessId,
   queryKey: (id) => clientesKeys.all(id),
