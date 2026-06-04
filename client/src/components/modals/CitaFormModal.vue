@@ -489,9 +489,11 @@ const normalizePhone = (phone: string): string => {
 }
 
 const isTimeInPast = (date: string, time: string): boolean => {
-  const today = toISODate(new Date())
-  if (date !== today) return false
   const now = new Date()
+  const y = now.getFullYear()
+  const mo = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  if (date !== `${y}-${mo}-${d}`) return false
   const currentMinutes = now.getHours() * 60 + now.getMinutes()
   const [h, m] = time.split(':').map(Number)
   return h * 60 + m < currentMinutes

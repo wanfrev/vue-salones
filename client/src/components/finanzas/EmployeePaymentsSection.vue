@@ -94,7 +94,7 @@
           <div v-if="selectedBalance" class="rounded-lg bg-bg-secondary p-3 space-y-2">
             <div class="flex items-center justify-between text-sm">
               <span class="text-text-muted">Tipo de pago</span>
-              <span class="font-medium text-text">{{ payTypeLabel }}</span>
+              <span class="font-medium text-text">{{ payTypeLabel() }}</span>
             </div>
             <div class="flex items-center justify-between text-sm">
               <span class="text-text-muted">Generado en servicios</span>
