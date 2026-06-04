@@ -15,7 +15,7 @@
       <div class="rounded-lg bg-bg-secondary p-3">
         <p class="text-sm font-medium text-text">{{ item?.productName }}</p>
         <p v-if="item?.variantName" class="text-xs text-text-muted">{{ item.variantName }}</p>
-        <p class="text-xs text-text-muted">{{ item?.locationName }} · Disponible: {{ item?.availableQty }}</p>
+        <p class="text-xs text-text-muted">Disponible: {{ item?.availableQty }}</p>
       </div>
       <FormInput
         v-model.number="saleQuantity"
@@ -78,8 +78,8 @@ const saleUnitPrice = ref(0)
 const saleNotes = ref('')
 
 const saleMutation = useMutation({
-  mutationFn: (params: { productId: string; locationId: string; quantity: number; notes: string; unitPrice: number; variantId?: string | null }) =>
-    sellProduct(businessId!, params.productId, params.locationId, params.quantity, params.notes, params.variantId, params.unitPrice),
+  mutationFn: (params: { productId: string; quantity: number; notes: string; unitPrice: number; variantId?: string | null }) =>
+    sellProduct(businessId!, params.productId, params.quantity, params.notes, params.variantId, params.unitPrice),
   onSuccess: () => {
     emit('saved')
     doClose()
@@ -100,7 +100,6 @@ const handleConfirm = async () => {
   }
   await saleMutation.mutateAsync({
     productId: props.item.productId,
-    locationId: props.item.locationId,
     quantity: saleQuantity.value,
     notes: saleNotes.value,
     unitPrice: saleUnitPrice.value,

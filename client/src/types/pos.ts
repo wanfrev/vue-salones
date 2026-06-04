@@ -8,7 +8,6 @@ export interface POSProductItem {
   quantity: number
   unitPrice: number
   unitCost: number
-  locationId: string
   subtotal: number
 }
 

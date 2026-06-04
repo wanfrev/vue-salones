@@ -16,11 +16,10 @@ export function useInventoryAdjustment() {
   const adjustItem = ref<InventarioItem | null>(null)
   const adjustQuantity = ref(0)
   const adjustNotes = ref('')
-  const adjustLocationId = ref('')
 
   const adjustMutation = useMutation({
-    mutationFn: (params: { productId: string; locationId: string; quantity: number; notes: string; variantId?: string | null }) =>
-      adjustInventory(businessId.value!, params.productId, params.locationId, params.quantity, params.notes, params.variantId),
+    mutationFn: (params: { productId: string; quantity: number; notes: string; variantId?: string | null }) =>
+      adjustInventory(businessId.value!, params.productId, params.quantity, params.notes, params.variantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
       queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(businessId.value) })
@@ -36,7 +35,6 @@ export function useInventoryAdjustment() {
     adjustItem.value = item
     adjustQuantity.value = 0
     adjustNotes.value = ''
-    adjustLocationId.value = item.locationId
     adjustModalOpen.value = true
   }
 
@@ -45,7 +43,6 @@ export function useInventoryAdjustment() {
     adjustItem.value = null
     adjustQuantity.value = 0
     adjustNotes.value = ''
-    adjustLocationId.value = ''
   }
 
   const confirmAdjust = async () => {
@@ -57,14 +54,8 @@ export function useInventoryAdjustment() {
       showError(err instanceof Error ? err.message : 'Cantidad inválida')
       return
     }
-    const locationId = adjustLocationId.value || adjustItem.value.locationId
-    if (!locationId) {
-      showError('Selecciona una ubicación')
-      return
-    }
     await adjustMutation.mutateAsync({
       productId: adjustItem.value.productId,
-      locationId,
       quantity: qty,
       notes: adjustNotes.value,
       variantId: adjustItem.value.variantId,
@@ -76,7 +67,6 @@ export function useInventoryAdjustment() {
     adjustItem,
     adjustQuantity,
     adjustNotes,
-    adjustLocationId,
     adjustMutation,
     openAdjustModal,
     closeAdjustModal,

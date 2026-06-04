@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { posSaleSchema } from '../lib/validation'
+import { getDefaultLocation } from '../business/stockRules'
 import type { PaymentMethod } from '../types/database'
 import type { POSProductItem, PaymentBreakdownItem } from '../types/pos'
 
@@ -16,16 +16,14 @@ export const recordSale = async (params: {
   notes?: string
   exchangeRate: number
   paymentsBreakdown: PaymentBreakdownItem[]
+  businessId: string
 }): Promise<string> => {
-  const parsed = posSaleSchema.safeParse(params)
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues.map(e => e.message).join('. '))
-  }
+  const locationId = await getDefaultLocation(params.businessId)
   const productsJson = (params.products ?? []).map(p => ({
     product_id: p.productId,
     variant_id: p.variantId,
     quantity: p.quantity,
-    location_id: p.locationId,
+    location_id: locationId,
     unit_cost: p.unitCost,
   }))
 
@@ -73,18 +71,6 @@ export const listSaleableProducts = async (businessId: string) => {
     .eq('business_id', businessId)
     .eq('active', true)
     .order('name')
-
-  if (error) throw error
-  return data ?? []
-}
-
-export const listLocationsWithStock = async (businessId: string, productId: string) => {
-  const { data, error } = await supabase
-    .from('inventory_stock')
-    .select('*, inventory_locations!inner(id, name)')
-    .eq('business_id', businessId)
-    .eq('product_id', productId)
-    .gt('quantity', 0)
 
   if (error) throw error
   return data ?? []

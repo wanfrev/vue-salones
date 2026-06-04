@@ -1,6 +1,36 @@
 import { supabase } from '../lib/supabase'
 import { mutate } from '../lib/typedSupabase'
 
+export async function getDefaultLocation(businessId: string): Promise<string> {
+  let { data: loc } = await supabase
+    .from('inventory_locations')
+    .select('id')
+    .eq('business_id', businessId)
+    .eq('is_default', true)
+    .maybeSingle()
+
+  if (!loc) {
+    const { data: firstLoc } = await supabase
+      .from('inventory_locations')
+      .select('id')
+      .eq('business_id', businessId)
+      .limit(1)
+      .maybeSingle()
+    loc = firstLoc
+  }
+
+  if (!loc) {
+    const { data: newLoc } = await mutate
+      .from('inventory_locations')
+      .insert({ business_id: businessId, name: 'Principal', is_default: true })
+      .select('id')
+      .single()
+    loc = newLoc
+  }
+
+  return loc.id
+}
+
 export function validateSaleQuantity(quantity: number, availableQty: number): void {
   if (quantity <= 0) throw new Error('La cantidad debe ser mayor a 0')
   if (quantity > availableQty) throw new Error('Stock insuficiente')

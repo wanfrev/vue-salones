@@ -28,7 +28,6 @@ const posProductItemSchema = z.object({
   productId: z.string().min(1, 'Selecciona un producto'),
   variantId: z.string().nullable(),
   quantity: z.number().positive('La cantidad debe ser mayor a 0'),
-  locationId: z.string().min(1, 'Selecciona una ubicación'),
   unitCost: z.number().min(0, 'El costo no puede ser negativo'),
   productName: z.string().optional(),
   variantName: z.string().nullable().optional(),

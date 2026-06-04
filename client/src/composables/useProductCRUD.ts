@@ -22,7 +22,6 @@ export function useProductCRUD() {
     modalRef: productoModalRef,
     extraInvalidations: [
       (id) => ['inventario', id],
-      (id) => ['inventario-locations', id],
     ],
   })
 

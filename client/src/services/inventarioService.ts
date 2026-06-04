@@ -1,34 +1,17 @@
 import { supabase } from '../lib/supabase'
-import { validateSaleQuantity, movementTypeForAdjust, getStockRecord, updateStockQuantity, insertStockRecord, recordMovement } from '../business/stockRules'
-import type { InventoryLocation, InventoryStock, InventoryMovement } from '../types/database'
-import type { InventarioItem, InventarioLocation, InventarioMovimiento } from '../types/inventario'
+import { getDefaultLocation, validateSaleQuantity, movementTypeForAdjust, getStockRecord, updateStockQuantity, insertStockRecord, recordMovement } from '../business/stockRules'
+import type { InventoryStock, InventoryMovement } from '../types/database'
+import type { InventarioItem, InventarioMovimiento } from '../types/inventario'
 
 export const inventarioKeys = {
   all: (businessId?: string | null) => ['inventario', businessId] as const,
-  locations: (businessId?: string | null) => ['inventario-locations', businessId] as const,
   movements: (businessId?: string | null) => ['inventario-movements', businessId] as const,
-}
-
-export const listInventoryLocations = async (businessId: string): Promise<InventarioLocation[]> => {
-  const { data, error } = await supabase
-    .from('inventory_locations')
-    .select('*')
-    .eq('business_id', businessId)
-    .order('name')
-
-  if (error) throw error
-  return ((data ?? []) as InventoryLocation[]).map(loc => ({
-    id: loc.id,
-    name: loc.name,
-    isDefault: loc.is_default,
-    active: loc.active,
-  }))
 }
 
 export const listInventario = async (businessId: string): Promise<InventarioItem[]> => {
   const { data: stock, error } = await supabase
     .from('inventory_stock')
-    .select('*, products(name, sku, unit_cost, unit_price, reorder_point), inventory_locations!inner(name)')
+    .select('*, products(name, sku, unit_cost, unit_price, reorder_point)')
     .eq('business_id', businessId)
 
   if (error) throw error
@@ -36,12 +19,10 @@ export const listInventario = async (businessId: string): Promise<InventarioItem
   const raw = (stock ?? []) as Array<
     InventoryStock & {
       products?: { name: string; sku: string | null; unit_cost: number; unit_price: number; reorder_point: number } | null
-      inventory_locations?: { name: string } | null
     }
   >
 
-  const stockProductIds = new Set(raw.map(r => r.product_id))
-  if (stockProductIds.size === 0) {
+  if (raw.length === 0) {
     const { data: products } = await supabase
       .from('products')
       .select('id, name, sku, unit_cost, unit_price, reorder_point')
@@ -50,14 +31,12 @@ export const listInventario = async (businessId: string): Promise<InventarioItem
 
     type ProductRow = { id: string; name: string; sku: string | null; unit_cost: number; unit_price: number; reorder_point: number }
     return ((products ?? []) as ProductRow[]).map(p => ({
-      id: '',
+      id: p.id,
       productId: p.id,
       productName: p.name,
       productSku: p.sku ?? '',
       variantId: null,
       variantName: null,
-      locationId: '',
-      locationName: '',
       quantity: 0,
       reservedQty: 0,
       availableQty: 0,
@@ -79,22 +58,59 @@ export const listInventario = async (businessId: string): Promise<InventarioItem
     variantMap.set(v.id, v)
   }
 
-  return raw.map(row => ({
-    id: row.id,
-    productId: row.product_id,
-    productName: row.products?.name ?? '',
-    productSku: row.products?.sku ?? '',
-    variantId: row.variant_id,
-    variantName: row.variant_id ? variantMap.get(row.variant_id)?.name ?? null : null,
-    locationId: row.location_id,
-    locationName: row.inventory_locations?.name ?? '',
-    quantity: Number(row.quantity),
-    reservedQty: Number(row.reserved_qty),
-    availableQty: Number(row.quantity) - Number(row.reserved_qty),
-    reorderPoint: Number(row.products?.reorder_point ?? 0),
-    unitCost: Number(row.products?.unit_cost ?? 0),
-    unitPrice: Number(row.products?.unit_price ?? 0),
-  }))
+  const grouped = new Map<string, {
+    stockIds: string[]
+    productId: string
+    productName: string
+    productSku: string
+    totalQty: number
+    totalReserved: number
+    reorderPoint: number
+    unitCost: number
+    unitPrice: number
+    variants: Set<string>
+  }>()
+
+  for (const row of raw) {
+    const pid = row.product_id
+    if (!grouped.has(pid)) {
+      grouped.set(pid, {
+        stockIds: [],
+        productId: pid,
+        productName: row.products?.name ?? '',
+        productSku: row.products?.sku ?? '',
+        totalQty: 0,
+        totalReserved: 0,
+        reorderPoint: Number(row.products?.reorder_point ?? 0),
+        unitCost: Number(row.products?.unit_cost ?? 0),
+        unitPrice: Number(row.products?.unit_price ?? 0),
+        variants: new Set(),
+      })
+    }
+    const g = grouped.get(pid)!
+    g.stockIds.push(row.id)
+    g.totalQty += Number(row.quantity)
+    g.totalReserved += Number(row.reserved_qty)
+    if (row.variant_id) g.variants.add(row.variant_id)
+  }
+
+  return [...grouped.values()].map(g => {
+    const firstVariantId = g.variants.values().next().value ?? null
+    return {
+      id: g.stockIds[0],
+      productId: g.productId,
+      productName: g.productName,
+      productSku: g.productSku,
+      variantId: firstVariantId,
+      variantName: firstVariantId ? variantMap.get(firstVariantId)?.name ?? null : null,
+      quantity: g.totalQty,
+      reservedQty: g.totalReserved,
+      availableQty: g.totalQty - g.totalReserved,
+      reorderPoint: g.reorderPoint,
+      unitCost: g.unitCost,
+      unitPrice: g.unitPrice,
+    }
+  })
 }
 
 export const listInventoryMovements = async (
@@ -103,7 +119,7 @@ export const listInventoryMovements = async (
 ): Promise<InventarioMovimiento[]> => {
   let query = supabase
     .from('inventory_movements')
-    .select('*, inventory_locations!inner(name), products!inner(name)')
+    .select('*, products!inner(name)')
     .eq('business_id', businessId)
     .order('created_at', { ascending: false })
     .limit(50)
@@ -118,7 +134,6 @@ export const listInventoryMovements = async (
 
   const raw = (data ?? []) as Array<
     InventoryMovement & {
-      inventory_locations?: { name: string } | null
       products?: { name: string } | null
     }
   >
@@ -136,8 +151,6 @@ export const listInventoryMovements = async (
 
   return raw.map(row => ({
     id: row.id,
-    locationId: row.location_id,
-    locationName: row.inventory_locations?.name ?? '',
     productId: row.product_id,
     productName: row.products?.name ?? '',
     variantId: row.variant_id,
@@ -156,11 +169,11 @@ export const listInventoryMovements = async (
 export const adjustInventory = async (
   businessId: string,
   productId: string,
-  locationId: string,
   quantity: number,
   notes: string,
   variantId?: string | null
 ): Promise<void> => {
+  const locationId = await getDefaultLocation(businessId)
   const existing = await getStockRecord(businessId, productId, locationId, variantId)
 
   if (existing?.data) {
@@ -182,12 +195,12 @@ export const adjustInventory = async (
 export const sellProduct = async (
   businessId: string,
   productId: string,
-  locationId: string,
   quantity: number,
   notes: string,
   variantId?: string | null,
   unitPrice?: number,
 ): Promise<void> => {
+  const locationId = await getDefaultLocation(businessId)
   const existing = await getStockRecord(businessId, productId, locationId, variantId)
 
   if (!existing?.data) throw new Error('No hay stock de este producto')

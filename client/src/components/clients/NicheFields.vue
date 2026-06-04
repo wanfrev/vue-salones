@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { FormInput, FormSelect, FormTextarea } from '../forms'
 import type { NicheConfig, NicheFieldConfig } from '../../config/nicheFields'
 
@@ -124,6 +124,15 @@ const emit = defineEmits<{
 }>()
 
 const expandedGroups = ref<Record<string, boolean>>({})
+
+watch(() => props.values, (vals) => {
+  if (!props.config) return
+  for (const field of props.config.fields) {
+    if (field.collapsibleGroup && vals[field.key]) {
+      expandedGroups.value[field.collapsibleGroup] = true
+    }
+  }
+}, { immediate: true })
 
 const update = (key: string, value: string | number | undefined) => {
   emit('update', key, String(value ?? ''))

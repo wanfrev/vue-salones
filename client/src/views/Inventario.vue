@@ -48,15 +48,6 @@
           </svg>
         </div>
       </div>
-      <div class="flex gap-2">
-        <select
-          v-model="locationFilter"
-          class="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary"
-        >
-          <option value="">Todas las ubicaciones</option>
-          <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
-        </select>
-      </div>
     </div>
 
     <div class="rounded-xl border border-border bg-surface overflow-hidden">
@@ -66,7 +57,6 @@
             <tr class="border-b border-border">
               <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Producto</th>
               <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Variante</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Ubicación</th>
               <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Stock</th>
               <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Reservado</th>
               <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Disponible</th>
@@ -83,7 +73,6 @@
                 </div>
               </td>
               <td class="px-4 py-3 text-text-secondary">{{ item.variantName || '—' }}</td>
-              <td class="px-4 py-3 text-text-secondary">{{ item.locationName }}</td>
               <td class="px-4 py-3 text-right">
                 <span :class="['font-medium tabular-nums', item.quantity <= item.reorderPoint ? 'text-danger' : 'text-text']">
                   {{ item.quantity }}
@@ -153,7 +142,6 @@
               <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Tipo</th>
               <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Cantidad</th>
               <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Costo</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Ubicación</th>
               <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Notas</th>
             </tr>
           </thead>
@@ -177,7 +165,6 @@
                 {{ mov.quantity > 0 ? '+' : '' }}{{ mov.quantity }}
               </td>
               <td class="px-4 py-3 text-right text-text">${{ mov.unitCost.toFixed(2) }}</td>
-              <td class="px-4 py-3 text-text-secondary">{{ mov.locationName }}</td>
               <td class="px-4 py-3 text-text-muted max-w-40 truncate">{{ mov.notes || '—' }}</td>
             </tr>
           </tbody>
@@ -198,11 +185,9 @@
   <StockAdjustModal
     :is-open="adjustModalOpen"
     :item="adjustItem"
-    :locations="locations"
     :is-loading="adjustMutation.isPending.value"
     v-model:quantity="adjustQuantity"
     v-model:notes="adjustNotes"
-    v-model:location-id="adjustLocationId"
     @close="closeAdjustModal"
     @confirm="confirmAdjust"
   />
@@ -228,13 +213,12 @@ import { formatDateTime } from '../lib/formatters'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { useInventoryAdjustment } from '../composables/useInventoryAdjustment'
-import { inventarioKeys, listInventario, listInventoryLocations, listInventoryMovements } from '../services/inventarioService'
+import { inventarioKeys, listInventario, listInventoryMovements } from '../services/inventarioService'
 import { productosKeys, saveProducto } from '../services/productosService'
 import StockAdjustModal from '../components/inventario/StockAdjustModal.vue'
 import SellFromInventoryModal from '../components/inventario/SellFromInventoryModal.vue'
 import ProductoFormModal from '../components/modals/ProductoFormModal.vue'
 
-import type { InventarioItem } from '../types/inventario'
 import type { ProductoFormData } from '../types/producto'
 
 const { authStore } = useAuth()
@@ -246,7 +230,6 @@ const {
   adjustItem,
   adjustQuantity,
   adjustNotes,
-  adjustLocationId,
   adjustMutation,
   openAdjustModal,
   closeAdjustModal,
@@ -256,15 +239,8 @@ const {
 const showMovements = ref(false)
 const searchQuery = ref('')
 const movementSearch = ref('')
-const locationFilter = ref('')
 const businessId = computed(() => authStore.businessId)
 const productoModalRef = ref<InstanceType<typeof ProductoFormModal> | null>(null)
-
-const { data: locationsData } = useQuery({
-  queryKey: computed(() => inventarioKeys.locations(businessId.value)),
-  queryFn: () => listInventoryLocations(businessId.value!),
-  enabled: computed(() => !!businessId.value),
-})
 
 const { data: inventarioData } = useQuery({
   queryKey: computed(() => inventarioKeys.all(businessId.value)),
@@ -278,20 +254,13 @@ const { data: movementsData } = useQuery({
   enabled: computed(() => !!businessId.value),
 })
 
-const locations = computed(() => locationsData.value ?? [])
 const inventario = computed(() => inventarioData.value ?? [])
 const movements = computed(() => movementsData.value ?? [])
 
 const filteredInventario = computed(() => {
-  let result = inventario.value
-  if (searchQuery.value) {
-    const q = searchQuery.value.toLowerCase()
-    result = result.filter(i => i.productName.toLowerCase().includes(q) || i.productSku.toLowerCase().includes(q))
-  }
-  if (locationFilter.value) {
-    result = result.filter(i => i.locationId === locationFilter.value)
-  }
-  return result
+  if (!searchQuery.value) return inventario.value
+  const q = searchQuery.value.toLowerCase()
+  return inventario.value.filter(i => i.productName.toLowerCase().includes(q) || i.productSku.toLowerCase().includes(q))
 })
 
 const filteredMovements = computed(() => {
@@ -301,8 +270,6 @@ const filteredMovements = computed(() => {
     m.productName.toLowerCase().includes(q) || m.notes?.toLowerCase().includes(q)
   )
 })
-
-
 
 const formatMovementType = (type: string) => {
   const map: Record<string, string> = {
@@ -317,7 +284,7 @@ const formatMovementType = (type: string) => {
   return map[type] ?? type
 }
 
-// Sale modal state (open/close owned by view, form state inside SellFromInventoryModal)
+// Sale modal state
 const saleModalOpen = ref(false)
 const saleItem = ref<InventarioItem | null>(null)
 
@@ -342,7 +309,6 @@ const saveProductoMutation = useMutation({
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
     queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
-    queryClient.invalidateQueries({ queryKey: inventarioKeys.locations(businessId.value) })
     productoModalRef.value?.close()
     success('Producto guardado correctamente')
   },
