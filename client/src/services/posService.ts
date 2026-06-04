@@ -20,6 +20,34 @@ export const recordSale = async (params: {
 }): Promise<string> => {
   const products = params.products ?? []
   const locationId = products.length > 0 ? await getDefaultLocation(params.businessId) : null
+
+  if (products.length > 0 && locationId) {
+    const productIds = [...new Set(products.map(p => p.productId))]
+    const { data: stockRows, error: stockError } = await supabase
+      .from('inventory_stock')
+      .select('product_id, variant_id, quantity, reserved_qty')
+      .eq('business_id', params.businessId)
+      .eq('location_id', locationId)
+      .in('product_id', productIds)
+
+    if (stockError) throw stockError
+
+    const availableByKey = new Map<string, number>()
+    for (const row of (stockRows ?? []) as Array<{ product_id: string; variant_id: string | null; quantity: number; reserved_qty: number }>) {
+      const key = `${row.product_id}::${row.variant_id ?? 'null'}`
+      const available = Number(row.quantity) - Number(row.reserved_qty)
+      availableByKey.set(key, Math.max(0, available))
+    }
+
+    for (const product of products) {
+      const key = `${product.productId}::${product.variantId ?? 'null'}`
+      const available = availableByKey.get(key) ?? 0
+      if (product.quantity > available) {
+        throw new Error(`Stock insuficiente para ${product.productName}. Disponible: ${available}`)
+      }
+    }
+  }
+
   const productsPayload = products.map(p => ({
     product_id: p.productId,
     variant_id: p.variantId,
@@ -80,5 +108,28 @@ export const listSaleableProducts = async (businessId: string) => {
     .order('name')
 
   if (error) throw error
-  return data ?? []
+
+  const products = data ?? []
+  const productIds = products.map((p: any) => p.id)
+  if (productIds.length === 0) return []
+
+  const { data: stockRows, error: stockError } = await supabase
+    .from('inventory_stock')
+    .select('product_id, quantity, reserved_qty')
+    .eq('business_id', businessId)
+    .in('product_id', productIds)
+
+  if (stockError) throw stockError
+
+  const availableByProduct = new Map<string, number>()
+  for (const row of (stockRows ?? []) as Array<{ product_id: string; quantity: number; reserved_qty: number }>) {
+    const current = availableByProduct.get(row.product_id) ?? 0
+    const available = Number(row.quantity) - Number(row.reserved_qty)
+    availableByProduct.set(row.product_id, current + available)
+  }
+
+  return products.map((product: any) => ({
+    ...product,
+    available_qty: Math.max(0, availableByProduct.get(product.id) ?? 0),
+  }))
 }

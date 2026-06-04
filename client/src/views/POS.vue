@@ -33,13 +33,41 @@
     Error al cargar citas: {{ queryError }}
   </div>
 
-  <POSQuickSell
-    :products="products"
-    :business-id="businessId!"
-    class="mb-4"
-  />
+  <div class="mb-4 rounded-xl border border-border bg-surface p-1">
+    <div class="grid grid-cols-1 gap-1 sm:grid-cols-2">
+      <button
+        @click="activeTab = 'quick'"
+        :class="[
+          'rounded-lg px-4 py-2 text-sm font-semibold transition-theme',
+          activeTab === 'quick'
+            ? 'bg-primary text-text-inverse'
+            : 'text-text-secondary hover:bg-bg-secondary'
+        ]"
+      >
+        Venta rapida
+      </button>
+      <button
+        @click="activeTab = 'appointments'"
+        :class="[
+          'rounded-lg px-4 py-2 text-sm font-semibold transition-theme',
+          activeTab === 'appointments'
+            ? 'bg-primary text-text-inverse'
+            : 'text-text-secondary hover:bg-bg-secondary'
+        ]"
+      >
+        Venta para citas
+      </button>
+    </div>
+  </div>
 
-  <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+  <div v-if="activeTab === 'quick'">
+    <POSQuickSell
+      :products="products"
+      :business-id="businessId!"
+    />
+  </div>
+
+  <div v-else class="grid grid-cols-1 gap-4 lg:grid-cols-3">
     <div class="lg:col-span-2 space-y-4">
       <POSAppointmentSelector
         :appointments="appointments"
@@ -105,11 +133,12 @@ const businessId = computed(() => authStore.businessId)
 
 const cartCtx = usePOSCart()
 const paymentCtx = usePOSPayment()
+const activeTab = ref<'quick' | 'appointments'>('quick')
 
 const selectedAppointment = ref<any>(null)
 const queryError = ref<string | null>(null)
 
-const { data: appointmentsData, isLoading: loadingAppointments } = useQuery({
+const { data: appointmentsData } = useQuery({
   queryKey: computed(() => posKeys.pending(businessId.value)),
   queryFn: async () => {
     try {

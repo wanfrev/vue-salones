@@ -3,6 +3,7 @@ import type { PaymentMethod } from './database'
 export interface POSProductItem {
   productId: string
   productName: string
+  availableQty: number
   variantId: string | null
   variantName: string | null
   quantity: number

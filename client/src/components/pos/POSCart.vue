@@ -19,9 +19,13 @@
         v-for="product in displayedProducts"
         :key="product.id"
         @click="addProduct(product)"
-        class="w-full text-left rounded-lg px-3 py-2 text-sm transition-theme hover:bg-bg-secondary flex items-center justify-between"
+        :disabled="Number(product.available_qty ?? 0) <= 0"
+        class="w-full text-left rounded-lg px-3 py-2 text-sm transition-theme hover:bg-bg-secondary flex items-center justify-between disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <span class="text-text">{{ product.name }}</span>
+        <div>
+          <span class="text-text">{{ product.name }}</span>
+          <p class="text-xs text-text-muted">Disponible: {{ Number(product.available_qty ?? 0) }}</p>
+        </div>
         <span class="text-text-muted whitespace-nowrap">{{ formatDual(product.unit_price) }}</span>
       </button>
       <div v-if="displayedProducts.length === 0" class="py-4 text-center text-sm text-text-muted">

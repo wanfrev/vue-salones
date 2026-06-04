@@ -206,7 +206,9 @@ export const sellProduct = async (
   if (!existing?.data) throw new Error('No hay stock de este producto')
 
   const currentQty = Number(existing.data.quantity)
-  validateSaleQuantity(quantity, currentQty)
+  const reservedQty = Number(existing.data.reserved_qty ?? 0)
+  const availableQty = Math.max(0, currentQty - reservedQty)
+  validateSaleQuantity(quantity, availableQty)
 
   const newQty = currentQty - quantity
   await updateStockQuantity(existing.data.id, newQty)

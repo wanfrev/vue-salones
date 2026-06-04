@@ -52,7 +52,7 @@ export async function getStockRecord(
 ) {
   let query = supabase
     .from('inventory_stock')
-    .select('id, quantity')
+    .select('id, quantity, reserved_qty')
     .eq('business_id', businessId)
     .eq('product_id', productId)
     .eq('location_id', locationId)

@@ -4,7 +4,7 @@
       <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
       </svg>
-      <h3 class="text-base font-semibold text-text">Venta rápida</h3>
+      <h3 class="text-base font-semibold text-text">1. Venta rapida</h3>
     </div>
 
     <div class="relative mb-3">
@@ -26,9 +26,13 @@
         v-for="product in displayedProducts"
         :key="product.id"
         @click="selectProduct(product)"
-        class="w-full text-left rounded-lg px-3 py-2 text-sm transition-theme hover:bg-bg-secondary flex items-center justify-between"
+        :disabled="Number(product.available_qty ?? 0) <= 0"
+        class="w-full text-left rounded-lg px-3 py-2 text-sm transition-theme hover:bg-bg-secondary flex items-center justify-between disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <span class="text-text">{{ product.name }}</span>
+        <div>
+          <span class="text-text">{{ product.name }}</span>
+          <p class="text-xs text-text-muted">Disponible: {{ Number(product.available_qty ?? 0) }}</p>
+        </div>
         <span class="text-text-muted whitespace-nowrap">{{ formatDual(product.unit_price) }}</span>
       </button>
       <div v-if="displayedProducts.length === 0 && search" class="py-4 text-center text-sm text-text-muted">
@@ -37,10 +41,11 @@
     </div>
 
     <div v-else class="space-y-3 rounded-lg bg-bg-secondary p-3">
+      <h4 class="text-xs font-semibold uppercase tracking-wider text-text-muted">2. Resumen de cobro</h4>
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm font-medium text-text">{{ selected.name }}</p>
-          <p class="text-xs text-text-muted">Stock disponible: {{ selected.stockTotal ?? '—' }}</p>
+          <p class="text-xs text-text-muted">Stock disponible: {{ selected.available_qty ?? 0 }}</p>
         </div>
         <button
           @click="cancelSelection"
@@ -87,7 +92,7 @@
 
       <button
         @click="handleSell"
-        :disabled="isSaving || quantity <= 0 || unitPrice <= 0"
+        :disabled="isSaving || quantity <= 0 || unitPrice <= 0 || quantity > Number(selected?.available_qty ?? 0)"
         class="w-full flex items-center justify-center gap-2 rounded-lg bg-success px-3 py-2 text-sm font-bold text-white transition-theme hover:bg-success/90 disabled:opacity-50"
       >
         <svg v-if="isSaving" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -167,6 +172,10 @@ const cancelSelection = () => {
 
 const handleSell = () => {
   if (!selected.value || quantity.value <= 0 || unitPrice.value <= 0) return
+  if (quantity.value > Number(selected.value.available_qty ?? 0)) {
+    showError('La cantidad supera el stock disponible')
+    return
+  }
   sellMutation.mutate()
 }
 </script>
