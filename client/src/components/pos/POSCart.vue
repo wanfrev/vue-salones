@@ -5,7 +5,7 @@
       <input
         v-model="search"
         type="text"
-        placeholder="Buscar producto para agregar..."
+        placeholder="Buscar producto..."
         class="w-full rounded-lg border border-border bg-surface pl-9 pr-3 py-2 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15"
       />
       <div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted">
@@ -16,7 +16,7 @@
     </div>
     <div class="max-h-40 overflow-y-auto space-y-1">
       <button
-        v-for="product in filteredProducts"
+        v-for="product in displayedProducts"
         :key="product.id"
         @click="addProduct(product)"
         class="w-full text-left rounded-lg px-3 py-2 text-sm transition-theme hover:bg-bg-secondary flex items-center justify-between"
@@ -24,8 +24,8 @@
         <span class="text-text">{{ product.name }}</span>
         <span class="text-text-muted whitespace-nowrap">{{ formatDual(product.unit_price) }}</span>
       </button>
-      <div v-if="filteredProducts.length === 0 && search" class="py-4 text-center text-sm text-text-muted">
-        Sin resultados
+      <div v-if="displayedProducts.length === 0" class="py-4 text-center text-sm text-text-muted">
+        {{ search ? 'Sin resultados' : 'No hay productos disponibles' }}
       </div>
     </div>
   </div>
@@ -46,8 +46,8 @@ const emit = defineEmits<{
 const { formatDual } = useCurrency()
 const search = ref('')
 
-const filteredProducts = computed(() => {
-  if (!search.value) return []
+const displayedProducts = computed(() => {
+  if (!search.value) return props.products.slice(0, 8)
   const q = search.value.toLowerCase()
   return props.products.filter((p: any) =>
     p.name.toLowerCase().includes(q)

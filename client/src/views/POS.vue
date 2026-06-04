@@ -11,11 +11,27 @@
         <h1 class="text-xl font-bold text-text lg:text-2xl">Punto de Venta</h1>
         <p class="hidden text-sm text-text-muted sm:block">Registra pagos y ventas de servicios y productos</p>
       </div>
-      <div class="text-xs text-text-muted">
-        Tasa: 1 USD = <strong>{{ rateDisplay }}</strong> Bs
+      <div class="flex items-center gap-3">
+        <button
+          @click="refreshAppointments"
+          class="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+          title="Refrescar citas pendientes"
+        >
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refrescar
+        </button>
+        <div class="text-xs text-text-muted">
+          Tasa: 1 USD = <strong>{{ rateDisplay }}</strong> Bs
+        </div>
       </div>
     </div>
   </header>
+
+  <div v-if="queryError" class="mb-4 rounded-xl border border-danger/30 bg-danger/5 p-3 text-sm text-danger">
+    Error al cargar citas: {{ queryError }}
+  </div>
 
   <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
     <div class="lg:col-span-2 space-y-4">
@@ -59,9 +75,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
+import { useNotification } from '../composables/useNotification'
 import { listPendingAppointments, listSaleableProducts, posKeys } from '../services/posService'
 import { usePOSCart } from '../composables/usePOSCart'
 import { usePOSPayment } from '../composables/usePOSPayment'
@@ -71,16 +88,29 @@ import POSPaymentPanel from '../components/pos/POSPaymentPanel.vue'
 
 const { authStore } = useAuth()
 const { exchangeRate, formatDual } = useCurrency()
+const { error: showError } = useNotification()
+const queryClient = useQueryClient()
 const businessId = computed(() => authStore.businessId)
 
 const cartCtx = usePOSCart()
 const paymentCtx = usePOSPayment()
 
 const selectedAppointment = ref<any>(null)
+const queryError = ref<string | null>(null)
 
-const { data: appointmentsData } = useQuery({
+const { data: appointmentsData, isLoading: loadingAppointments } = useQuery({
   queryKey: computed(() => posKeys.pending(businessId.value)),
-  queryFn: () => listPendingAppointments(businessId.value!),
+  queryFn: async () => {
+    try {
+      queryError.value = null
+      return await listPendingAppointments(businessId.value!)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error desconocido'
+      queryError.value = msg
+      showError(`Error al cargar citas: ${msg}`)
+      return []
+    }
+  },
   enabled: computed(() => !!businessId.value),
 })
 const { data: productsData } = useQuery({
@@ -88,6 +118,10 @@ const { data: productsData } = useQuery({
   queryFn: () => listSaleableProducts(businessId.value!),
   enabled: computed(() => !!businessId.value),
 })
+
+const refreshAppointments = () => {
+  queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
+}
 
 const appointments = computed(() => appointmentsData.value ?? [])
 const products = computed(() => productsData.value ?? [])
@@ -138,6 +172,7 @@ const handleProcessPayment = async () => {
     selectedAppointment.value = null
     cartCtx.clearCart()
     paymentCtx.reset()
+    queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
   }
 }
 </script>
