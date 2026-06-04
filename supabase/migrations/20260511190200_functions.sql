@@ -457,9 +457,9 @@ begin
 
   update public.appointments
   set payment_status = case
-        when v_paid_so_far >= v_service.price then 'paid'
-        when v_paid_so_far > 0                then 'partial'
-        else 'unpaid'
+        when v_paid_so_far >= v_service.price then 'paid'::payment_status
+        when v_paid_so_far > 0                then 'partial'::payment_status
+        else 'unpaid'::payment_status
       end
   where id = p_appointment_id;
 

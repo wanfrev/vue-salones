@@ -51,6 +51,7 @@
     <div class="space-y-4">
       <POSPaymentPanel
         :selected-appointment="selectedAppointment"
+        :cart="cartCtx.cart.value"
         :service-price="Number(selectedAppointment?.services?.price ?? 0)"
         :products-total="cartCtx.productsTotal.value"
         :cart-count="cartCtx.cart.value.length"
@@ -68,6 +69,9 @@
         @remove-split="paymentCtx.removeSplit"
         @update:notes="paymentCtx.paymentNotes.value = $event"
         @process-payment="handleProcessPayment"
+        @increment-qty="cartCtx.incrementQty"
+        @decrement-qty="cartCtx.decrementQty"
+        @remove-item="cartCtx.removeItem"
       />
     </div>
   </div>

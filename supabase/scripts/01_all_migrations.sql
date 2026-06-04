@@ -700,7 +700,7 @@ begin
   values (v_appt.business_id, p_appointment_id, p_amount, v_local_amount, v_employee_amount, v_local_pct, v_employee_pct, p_method, auth.uid(), p_notes)
   returning id into v_tx_id;
   select coalesce(sum(total_amount), 0) into v_paid_so_far from public.transactions where appointment_id = p_appointment_id;
-  update public.appointments set payment_status = case when v_paid_so_far >= v_service.price then 'paid' when v_paid_so_far > 0 then 'partial' else 'unpaid' end
+  update public.appointments set payment_status = case when v_paid_so_far >= v_service.price then 'paid'::payment_status when v_paid_so_far > 0 then 'partial'::payment_status else 'unpaid'::payment_status end
   where id = p_appointment_id;
   return v_tx_id;
 end;
@@ -1158,7 +1158,7 @@ begin
   values (v_appt.business_id, p_appointment_id, p_amount, v_local_amount, v_employee_amount, v_local_pct, v_employee_pct, p_method, v_exchange_rate, p_payments_breakdown, auth.uid(), p_notes)
   returning id into v_tx_id;
   select coalesce(sum(total_amount), 0) into v_paid_so_far from public.transactions where appointment_id = p_appointment_id;
-  update public.appointments set payment_status = case when v_paid_so_far >= v_service.price then 'paid' when v_paid_so_far > 0 then 'partial' else 'unpaid' end
+  update public.appointments set payment_status = case when v_paid_so_far >= v_service.price then 'paid'::payment_status when v_paid_so_far > 0 then 'partial'::payment_status else 'unpaid'::payment_status end
   where id = p_appointment_id;
   return v_tx_id;
 end;
