@@ -57,6 +57,7 @@
       :expenses="expenses"
       :business-id="authStore.businessId"
       @saved="onExpenseSaved"
+      @view-all="goToAllRecords('gastos')"
     />
   </div>
 
@@ -67,16 +68,16 @@
       :terminology="businessStore.terminology"
       :business-id="authStore.businessId"
       @saved="onPaymentSaved"
+      @view-all="goToAllRecords('pagos')"
     />
   </div>
 
   <div class="rounded-xl border border-border bg-surface p-4">
-    <div class="mb-4 flex items-center justify-between">
+    <div class="mb-4">
       <div>
         <h3 class="text-base font-semibold text-text">Transacciones Recientes</h3>
         <p class="text-sm text-text-muted">Últimos pagos registrados</p>
       </div>
-      <button class="text-sm text-primary hover:text-primary-hover transition-theme">Ver todas</button>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full">
@@ -90,7 +91,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
-          <tr v-for="tx in summaryCtx.transactions.value" :key="tx.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+          <tr v-for="tx in visibleTransactions" :key="tx.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
             <td class="py-3 text-text-secondary whitespace-nowrap">{{ tx.date }}</td>
             <td class="py-3 font-medium text-text">{{ tx.description }}</td>
             <td class="py-3">
@@ -115,11 +116,21 @@
         </tbody>
       </table>
     </div>
+    <div v-if="canViewAllTransactions" class="mt-3 flex justify-center">
+      <button
+        type="button"
+        class="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-primary transition-theme hover:bg-bg-secondary"
+        @click="goToAllRecords('transacciones')"
+      >
+        Ver todos
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
@@ -139,6 +150,8 @@ import { employeePaymentKeys } from '../services/employeePaymentsService'
 const { authStore } = useAuth()
 const businessStore = useBusinessStore()
 const { formatUSD, formatVESInline } = useCurrency()
+const route = useRoute()
+const router = useRouter()
 const queryClient = useQueryClient()
 
 const periods = [
@@ -147,6 +160,10 @@ const periods = [
   { label: 'Año', value: 'year' as const },
 ]
 const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
+
+if (route.query.period === 'quarter' || route.query.period === 'year' || route.query.period === 'month') {
+  selectedPeriod.value = route.query.period
+}
 
 const businessId = computed(() => authStore.businessId)
 
@@ -161,6 +178,18 @@ const incomeTotal = summaryCtx.incomeTotal
 const expenseTotal = expensesCtx.expenseTotal
 const netTotal = computed(() => incomeTotal.value - expenseTotal.value)
 const marginTotal = computed(() => (incomeTotal.value > 0 ? (netTotal.value / incomeTotal.value) * 100 : 0))
+
+const visibleTransactions = computed(() => summaryCtx.transactions.value.slice(0, 5))
+
+const canViewAllTransactions = computed(() => summaryCtx.transactions.value.length > 5)
+
+const goToAllRecords = (tipo: 'gastos' | 'pagos' | 'transacciones') => {
+  router.push({
+    name: 'admin-finanzas-registros',
+    params: { tipo },
+    query: { period: selectedPeriod.value },
+  })
+}
 
 const invalidateAll = () => {
   queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value) })

@@ -97,7 +97,8 @@ export function usePOSPayment() {
       success(`Cobro de ${formatDual(grandTotal)} registrado correctamente`)
       return true
     } catch (err) {
-      showError('Error al procesar el pago')
+      const message = err instanceof Error ? err.message : 'Error al procesar el pago'
+      showError(message)
       console.error(err)
       return false
     } finally {

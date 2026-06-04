@@ -12,6 +12,7 @@ import SuperadminBusinessDetailView from '../views/SuperadminBusinessDetail.vue'
 import ClientesView from '../views/Clientes.vue'
 import ClienteHistorialView from '../views/ClienteHistorial.vue'
 import FinanzasView from '../views/Finanzas.vue'
+import FinanzasRegistrosView from '../views/FinanzasRegistros.vue'
 import EquipoView from '../views/Equipo.vue'
 import ServiciosView from '../views/Servicios.vue'
 import ProductosView from '../views/Productos.vue'
@@ -81,6 +82,11 @@ const router = createRouter({
           path: 'finanzas',
           name: 'admin-finanzas',
           component: FinanzasView,
+        },
+        {
+          path: 'finanzas/registros/:tipo',
+          name: 'admin-finanzas-registros',
+          component: FinanzasRegistrosView,
         },
         {
           path: 'equipo',

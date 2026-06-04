@@ -24,7 +24,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
-          <tr v-for="payment in employeePayments" :key="payment.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+          <tr v-for="payment in visibleEmployeePayments" :key="payment.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
             <td class="py-3 font-medium text-text">{{ payment.employee }}</td>
             <td class="py-3 text-text-secondary">{{ payment.service }}</td>
             <td class="py-3 text-right">
@@ -56,7 +56,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-border-subtle">
-            <tr v-for="ep in paymentsMade" :key="ep.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+            <tr v-for="ep in visiblePaymentsMade" :key="ep.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
               <td class="py-2 text-text-secondary whitespace-nowrap">{{ ep.paymentDate }}</td>
               <td class="py-2 font-medium text-text">{{ ep.employeeName }}</td>
               <td class="py-2 text-text-secondary">{{ formatMethod(ep.paymentMethod) }}</td>
@@ -68,6 +68,15 @@
           </tbody>
         </table>
       </div>
+    </div>
+    <div v-if="canViewAllPayments" class="mt-3 flex justify-center border-t border-border-subtle pt-3">
+      <button
+        type="button"
+        class="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-primary transition-theme hover:bg-bg-secondary"
+        @click="emit('view-all')"
+      >
+        Ver todos
+      </button>
     </div>
   </div>
 
@@ -171,7 +180,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { formatMethod } from '../../lib/formatters'
 import { useCurrency } from '../../composables/useCurrency'
@@ -192,6 +201,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'saved': []
+  'view-all': []
 }>()
 
 const { formatUSD, formatVESInline } = useCurrency()
@@ -203,6 +213,12 @@ const paymentError = ref('')
 const paymentForm = ref({ employeeId: '', amount: 0, method: 'cash', date: new Date().toISOString().slice(0, 10), notes: '' })
 const employeeList = ref<{ id: string; name: string }[]>([])
 const selectedBalance = ref<EmployeeBalance | null>(null)
+
+const visibleEmployeePayments = computed(() => props.employeePayments.slice(0, 5))
+
+const visiblePaymentsMade = computed(() => props.paymentsMade.slice(0, 5))
+
+const canViewAllPayments = computed(() => props.employeePayments.length > 5 || props.paymentsMade.length > 5)
 
 function payTypeLabel(): string {
   if (!selectedBalance.value) return '—'

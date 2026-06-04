@@ -18,8 +18,9 @@ export const recordSale = async (params: {
   paymentsBreakdown: PaymentBreakdownItem[]
   businessId: string
 }): Promise<string> => {
-  const locationId = await getDefaultLocation(params.businessId)
-  const productsJson = (params.products ?? []).map(p => ({
+  const products = params.products ?? []
+  const locationId = products.length > 0 ? await getDefaultLocation(params.businessId) : null
+  const productsPayload = products.map(p => ({
     product_id: p.productId,
     variant_id: p.variantId,
     quantity: p.quantity,
@@ -27,15 +28,30 @@ export const recordSale = async (params: {
     unit_cost: p.unitCost,
   }))
 
-  const { data, error } = await supabase.rpc('record_sale', {
+  const rpcPayload = {
     p_appointment_id: params.appointmentId,
     p_amount: params.amount,
     p_method: params.method,
-    p_products: JSON.stringify(productsJson),
+    p_products: productsPayload,
     p_notes: params.notes ?? null,
     p_exchange_rate: params.exchangeRate,
-    p_payments_breakdown: JSON.stringify(params.paymentsBreakdown),
-  })
+    p_payments_breakdown: params.paymentsBreakdown,
+  }
+
+  const { data, error } = await supabase.rpc('record_sale', rpcPayload)
+
+  if (error && error.code === 'PGRST202') {
+    // Backward compatibility for DBs that still expose the legacy 5-arg signature.
+    const legacy = await supabase.rpc('record_sale', {
+      p_appointment_id: params.appointmentId,
+      p_amount: params.amount,
+      p_method: params.method,
+      p_products: productsPayload,
+      p_notes: params.notes ?? null,
+    })
+    if (legacy.error) throw legacy.error
+    return legacy.data as string
+  }
 
   if (error) throw error
   return data as string

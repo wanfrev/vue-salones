@@ -24,7 +24,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
-          <tr v-for="expense in expenses" :key="expense.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+          <tr v-for="expense in visibleExpenses" :key="expense.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
             <td class="py-3 text-text-secondary">{{ expense.date }}</td>
             <td class="py-3 font-medium text-text">{{ expense.name }}</td>
             <td class="py-3">
@@ -46,6 +46,15 @@
           </tr>
         </tbody>
       </table>
+    </div>
+    <div v-if="canViewAllExpenses" class="mt-3 flex justify-center">
+      <button
+        type="button"
+        class="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-primary transition-theme hover:bg-bg-secondary"
+        @click="emit('view-all')"
+      >
+        Ver todos
+      </button>
     </div>
   </div>
 
@@ -111,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useCurrency } from '../../composables/useCurrency'
 import { useNotification } from '../../composables/useNotification'
 import { saveExpense, type ExpenseRow, type ExpenseFormData } from '../../services/expensesService'
@@ -123,6 +132,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'saved': []
+  'view-all': []
 }>()
 
 const { formatUSD } = useCurrency()
@@ -150,6 +160,10 @@ const openEdit = (expense: ExpenseRow) => {
   showModal.value = true
 }
 const close = () => { showModal.value = false; resetForm() }
+
+const visibleExpenses = computed(() => props.expenses.slice(0, 5))
+
+const canViewAllExpenses = computed(() => props.expenses.length > 5)
 
 const handleSave = async () => {
   if (!props.businessId) return

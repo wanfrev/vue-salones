@@ -280,7 +280,7 @@ function useFinancialSummary(
     return result
   })
 
-  const transactions = computed(() => unifiedTransactions.value.slice(0, 10))
+  const transactions = computed(() => unifiedTransactions.value)
 
   const employeePayments = computed<PaymentRow[]>(() =>
     rawTransactions.value.map(row => ({
@@ -339,6 +339,7 @@ function useFinancialSummary(
   return {
     summaryBuckets,
     transactions,
+    allTransactions: unifiedTransactions,
     transactionsAll,
     incomeTotal,
     servicesRevenue,
