@@ -97,3 +97,12 @@ export const deleteProducto = async (id: string): Promise<void> => {
 
   if (error) throw error
 }
+
+export const deleteProductoPermanently = async (id: string): Promise<void> => {
+  const { error } = await mutate
+    .from('products')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}

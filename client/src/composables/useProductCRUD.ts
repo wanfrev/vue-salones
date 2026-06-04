@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import { useCrud } from './useCrud'
 import { useAuth } from './useAuth'
 import { useCurrency } from './useCurrency'
-import { listProductos, productosKeys, saveProducto, deleteProducto } from '../services/productosService'
+import { listProductos, productosKeys, saveProducto, deleteProducto, deleteProductoPermanently } from '../services/productosService'
 import type { Producto, ProductoFormData } from '../types/producto'
 
 export function useProductCRUD() {
@@ -71,6 +71,27 @@ export function useProductCRUD() {
     isDeleteModalOpen.value = false
   }
 
+  const isPermanentDeleteModalOpen = ref(false)
+  const productoToDeletePermanently = ref<Producto | null>(null)
+
+  const openPermanentDeleteModal = (producto: Producto) => {
+    productoToDeletePermanently.value = producto
+    isPermanentDeleteModalOpen.value = true
+  }
+
+  const closePermanentDeleteModal = () => {
+    isPermanentDeleteModalOpen.value = false
+    productoToDeletePermanently.value = null
+  }
+
+  const confirmPermanentDelete = async () => {
+    if (!productoToDeletePermanently.value) return
+    await deleteProductoPermanently(productoToDeletePermanently.value.id)
+    productoToDeletePermanently.value = null
+    isPermanentDeleteModalOpen.value = false
+    crud.invalidateAll()
+  }
+
   return {
     productoModalRef,
     productos: crud.items,
@@ -89,6 +110,11 @@ export function useProductCRUD() {
     openDeleteModal,
     closeDeleteModal,
     confirmDelete,
+    isPermanentDeleteModalOpen,
+    productoToDeletePermanently,
+    openPermanentDeleteModal,
+    closePermanentDeleteModal,
+    confirmPermanentDelete,
     formatUSD,
     formatVESInline,
   }

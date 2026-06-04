@@ -92,5 +92,6 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
     handleSave,
     handleDelete,
     isSaving: computed(() => saveMutation.isPending.value),
+    invalidateAll,
   }
 }

@@ -84,12 +84,42 @@
         <form class="space-y-4" @submit.prevent="handleSavePayment">
           <div>
             <label class="mb-1 block text-sm font-medium text-text">{{ terminology.employee || 'Empleado' }}</label>
-            <select v-model="paymentForm.employeeId" required
+            <select v-model="paymentForm.employeeId" required @change="onEmployeeChange"
               class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
               <option value="" disabled>Seleccionar {{ (terminology.employee || 'empleado').toLowerCase() }}</option>
               <option v-for="emp in employeeList" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
             </select>
           </div>
+
+          <div v-if="selectedBalance" class="rounded-lg bg-bg-secondary p-3 space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-text-muted">Tipo de pago</span>
+              <span class="font-medium text-text">{{ payTypeLabel }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-text-muted">Generado en servicios</span>
+              <span class="font-medium text-success">{{ formatUSD(selectedBalance.totalEarned) }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-text-muted">Pagado hasta ahora</span>
+              <span class="font-medium text-danger">{{ formatUSD(selectedBalance.totalPaid) }}</span>
+            </div>
+            <div class="flex items-center justify-between border-t border-border pt-2">
+              <span class="text-sm font-semibold text-text">Saldo pendiente</span>
+              <span class="text-base font-bold" :class="selectedBalance.pendingBalance > 0 ? 'text-primary' : 'text-text-muted'">
+                {{ formatUSD(selectedBalance.pendingBalance) }}
+              </span>
+            </div>
+            <button
+              v-if="selectedBalance.pendingBalance > 0"
+              type="button"
+              @click="paymentForm.amount = selectedBalance.pendingBalance"
+              class="w-full mt-1 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-primary/10"
+            >
+              Pagar saldo pendiente
+            </button>
+          </div>
+
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="mb-1 block text-sm font-medium text-text">Monto ($)</label>
@@ -142,7 +172,7 @@ import { formatMethod } from '../../lib/formatters'
 import { useCurrency } from '../../composables/useCurrency'
 import { useNotification } from '../../composables/useNotification'
 import { supabase } from '../../lib/supabase'
-import { createEmployeePayment, type EmployeePaymentRecord } from '../../services/employeePaymentsService'
+import { createEmployeePayment, getEmployeeBalance, type EmployeeBalance, type EmployeePaymentRecord } from '../../services/employeePaymentsService'
 
 interface PaymentRow {
   id: string; employee: string; service: string; amount: number; percentage: number; earnings: number
@@ -166,9 +196,20 @@ const savingPayment = ref(false)
 const paymentError = ref('')
 const paymentForm = ref({ employeeId: '', amount: 0, method: 'cash', date: new Date().toISOString().slice(0, 10), notes: '' })
 const employeeList = ref<{ id: string; name: string }[]>([])
+const selectedBalance = ref<EmployeeBalance | null>(null)
+
+function payTypeLabel(): string {
+  if (!selectedBalance.value) return '—'
+  const b = selectedBalance.value
+  if (b.payType === 'salary') return `Sueldo base ($${b.baseSalary})`
+  if (b.payType === 'mixed') return `Sueldo + % ($${b.baseSalary} + ${b.payPercentage}%)`
+  if (b.payType === 'percentage') return `${b.payPercentage}% por servicio`
+  return 'Por servicio'
+}
 
 const openPaymentModal = async () => {
   paymentForm.value = { employeeId: '', amount: 0, method: 'cash', date: new Date().toISOString().slice(0, 10), notes: '' }
+  selectedBalance.value = null
   paymentError.value = ''
   showPaymentModal.value = true
   if (employeeList.value.length === 0 && props.businessId) {
@@ -179,7 +220,19 @@ const openPaymentModal = async () => {
   }
 }
 
-const closePaymentModal = () => { showPaymentModal.value = false; paymentError.value = '' }
+const closePaymentModal = () => { showPaymentModal.value = false; paymentError.value = ''; selectedBalance.value = null }
+
+const onEmployeeChange = async () => {
+  if (!props.businessId || !paymentForm.value.employeeId) {
+    selectedBalance.value = null
+    return
+  }
+  try {
+    selectedBalance.value = await getEmployeeBalance(props.businessId, paymentForm.value.employeeId)
+  } catch {
+    selectedBalance.value = null
+  }
+}
 
 const handleSavePayment = async () => {
   if (!props.businessId) return
@@ -198,6 +251,4 @@ const handleSavePayment = async () => {
     savingPayment.value = false
   }
 }
-
-
 </script>

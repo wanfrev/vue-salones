@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { mutate } from '../lib/typedSupabase'
 import { handleDbError } from '../lib/errors'
-import type { EmployeePayment } from '../types/database'
+import type { EmployeePayment, Profile } from '../types/database'
 
 export const employeePaymentKeys = {
   all: (businessId?: string | null) => ['employee-payments', businessId] as const,
@@ -74,5 +74,70 @@ export const createEmployeePayment = async (
   if (error) {
     handleDbError(error, 'Error al registrar el pago del empleado')
     throw error
+  }
+}
+
+export interface EmployeeBalance {
+  employeeId: string
+  employeeName: string
+  payType: 'salary' | 'percentage' | 'mixed' | null
+  payPercentage: number
+  baseSalary: number
+  totalEarned: number
+  totalPaid: number
+  pendingBalance: number
+}
+
+export const getEmployeeBalance = async (
+  businessId: string,
+  employeeId: string
+): Promise<EmployeeBalance> => {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, full_name, pay_type, pay_percentage, base_salary')
+    .eq('id', employeeId)
+    .single()
+
+  if (!profile) throw new Error('Empleado no encontrado')
+
+  const { data: appointments } = await supabase
+    .from('appointments')
+    .select('id')
+    .eq('business_id', businessId)
+    .eq('employee_id', employeeId)
+
+  const appointmentIds = (appointments ?? []).map((a: any) => a.id)
+
+  let totalEarned = 0
+  if (appointmentIds.length > 0) {
+    const { data: txData } = await supabase
+      .from('transactions')
+      .select('employee_amount')
+      .eq('business_id', businessId)
+      .in('appointment_id', appointmentIds)
+
+    const rawTx = (txData ?? []) as Array<{ employee_amount: number }>
+    totalEarned = rawTx.reduce((sum, t) => sum + Number(t.employee_amount), 0)
+  }
+
+  const { data: paymentsData } = await supabase
+    .from('employee_payments')
+    .select('amount')
+    .eq('business_id', businessId)
+    .eq('employee_id', employeeId)
+
+  const rawP = (paymentsData ?? []) as Array<{ amount: number }>
+  const totalPaid = rawP.reduce((sum, p) => sum + Number(p.amount), 0)
+
+  const p = profile as any
+  return {
+    employeeId: p.id,
+    employeeName: p.full_name,
+    payType: p.pay_type ?? null,
+    payPercentage: Number(p.pay_percentage ?? 0),
+    baseSalary: Number(p.base_salary ?? 0),
+    totalEarned,
+    totalPaid,
+    pendingBalance: Math.max(0, totalEarned - totalPaid),
   }
 }

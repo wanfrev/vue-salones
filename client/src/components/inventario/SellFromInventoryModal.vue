@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
 import { ModalBase } from '../common'
 import { FormInput } from '../forms'
@@ -106,6 +106,14 @@ const handleConfirm = async () => {
     variantId: props.item.variantId,
   })
 }
+
+watch(() => props.item, (item) => {
+  if (item) {
+    saleQuantity.value = 0
+    saleUnitPrice.value = item.unitPrice
+    saleNotes.value = ''
+  }
+})
 
 const doClose = () => {
   saleQuantity.value = 0
