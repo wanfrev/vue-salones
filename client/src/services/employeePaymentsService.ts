@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { mutate } from '../lib/typedSupabase'
 import { handleDbError } from '../lib/errors'
-import type { EmployeePayment, Profile } from '../types/database'
+import type { EmployeePayment } from '../types/database'
 
 export const employeePaymentKeys = {
   all: (businessId?: string | null) => ['employee-payments', businessId] as const,
@@ -64,7 +64,7 @@ export const createEmployeePayment = async (
     // Session not available
   }
 
-  const { data, error } = await mutate
+  const { error } = await mutate
     .from('employee_payments')
     .insert({
       business_id: businessId,

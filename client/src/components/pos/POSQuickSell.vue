@@ -4,7 +4,7 @@
       <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
       </svg>
-      <h3 class="text-base font-semibold text-text">1. Venta rapida</h3>
+      <h3 class="text-base font-semibold text-text">1. Venta de productos</h3>
     </div>
 
     <div class="relative mb-3">
@@ -183,7 +183,6 @@ import { useCurrency } from '../../composables/useCurrency'
 import { useNotification } from '../../composables/useNotification'
 import { posKeys } from '../../services/posService'
 import { sellProduct, inventarioKeys } from '../../services/inventarioService'
-import { posKeys } from '../../services/posService'
 import type { PaymentMethod } from '../../types/database'
 import type { PaymentBreakdownItem } from '../../types/pos'
 

@@ -44,7 +44,7 @@
             : 'text-text-secondary hover:bg-bg-secondary'
         ]"
       >
-        Venta rapida
+        Venta de productos
       </button>
       <button
         @click="activeTab = 'appointments'"
@@ -55,7 +55,7 @@
             : 'text-text-secondary hover:bg-bg-secondary'
         ]"
       >
-        Venta para citas
+        Cobro de Servicios
       </button>
     </div>
   </div>

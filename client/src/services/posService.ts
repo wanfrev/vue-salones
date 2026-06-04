@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { getDefaultLocation } from '../business/stockRules'
-import type { PaymentMethod, Product } from '../types/database'
+import type { PaymentMethod } from '../types/database'
 import type { POSProductItem, PaymentBreakdownItem } from '../types/pos'
 
 export const posKeys = {
@@ -100,7 +100,7 @@ export const listPendingAppointments = async (businessId: string) => {
 }
 
 export const listSaleableProducts = async (businessId: string) => {
-  const { data: products, error } = await supabase
+  const { data, error } = await supabase
     .from('products')
     .select('*')
     .eq('business_id', businessId)
@@ -109,7 +109,6 @@ export const listSaleableProducts = async (businessId: string) => {
 
   if (error) throw error
 
-<<<<<<< Updated upstream
   const products = data ?? []
   const productIds = products.map((p: any) => p.id)
   if (productIds.length === 0) return []
@@ -132,24 +131,5 @@ export const listSaleableProducts = async (businessId: string) => {
   return products.map((product: any) => ({
     ...product,
     available_qty: Math.max(0, availableByProduct.get(product.id) ?? 0),
-=======
-  const productIds = ((products ?? []) as Product[]).map(p => p.id)
-  if (productIds.length === 0) return []
-
-  const { data: stock } = await supabase
-    .from('inventory_stock')
-    .select('product_id, quantity')
-    .eq('business_id', businessId)
-    .in('product_id', productIds)
-
-  const stockMap = new Map<string, number>()
-  for (const s of (stock ?? []) as Array<{ product_id: string; quantity: number }>) {
-    stockMap.set(s.product_id, (stockMap.get(s.product_id) ?? 0) + Number(s.quantity))
-  }
-
-  return (products as Product[]).map(p => ({
-    ...p,
-    stockTotal: stockMap.get(p.id) ?? 0,
->>>>>>> Stashed changes
   }))
 }
