@@ -41,20 +41,22 @@
         placeholder="Opcional"
         prefix-icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
       />
-      <div v-if="saleQuantity > 0 && saleUnitPrice > 0" class="rounded-lg bg-bg-secondary p-3 text-center">
+      <div v-if="saleTotalUsd > 0" class="rounded-lg bg-bg-secondary p-3 text-center">
         <p class="text-sm text-text-muted">Total de la venta</p>
-        <p class="text-xl font-bold text-text">${{ (saleQuantity * saleUnitPrice).toFixed(2) }}</p>
+        <p class="text-xl font-bold text-text">{{ formatUSD(saleTotalUsd) }}</p>
+        <p class="mt-1 text-sm font-medium text-text-secondary">{{ formatVES(saleTotalUsd) }}</p>
       </div>
     </div>
   </ModalBase>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
 import { ModalBase } from '../common'
 import { FormInput } from '../forms'
 import { useAuth } from '../../composables/useAuth'
+import { useCurrency } from '../../composables/useCurrency'
 import { useNotification } from '../../composables/useNotification'
 import { sellProduct } from '../../services/inventarioService'
 import type { InventarioItem } from '../../types/inventario'
@@ -70,12 +72,17 @@ const emit = defineEmits<{
 }>()
 
 const { authStore } = useAuth()
+const { formatUSD, formatVES } = useCurrency()
 const { success, error: showError } = useNotification()
 const businessId = authStore.businessId
 
 const saleQuantity = ref(0)
 const saleUnitPrice = ref(0)
 const saleNotes = ref('')
+const saleTotalUsd = computed(() => {
+  if (saleQuantity.value <= 0 || saleUnitPrice.value <= 0) return 0
+  return saleQuantity.value * saleUnitPrice.value
+})
 
 const saleMutation = useMutation({
   mutationFn: (params: { productId: string; quantity: number; notes: string; unitPrice: number; variantId?: string | null }) =>
