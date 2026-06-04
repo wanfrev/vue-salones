@@ -92,11 +92,11 @@
             <td class="px-4 py-3 text-xs text-slate-500">{{ producto.categoryName || '—' }}</td>
             <td class="px-4 py-3 text-right">
               <span class="text-text">${{ producto.unitCost.toFixed(2) }}</span>
-              <span class="inline-block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitCost) }}</span>
+              <span class="block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitCost) }}</span>
             </td>
             <td class="px-4 py-3 text-right font-medium">
               <span class="text-text">${{ producto.unitPrice.toFixed(2) }}</span>
-              <span class="inline-block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitPrice) }}</span>
+              <span class="block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitPrice) }}</span>
             </td>
             <td class="px-4 py-3 text-right">
               <span :class="[
