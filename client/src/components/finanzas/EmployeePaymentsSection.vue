@@ -82,6 +82,10 @@
           <p class="text-sm text-text-muted">Registra un adelanto, sueldo o comisión pagada</p>
         </div>
         <form class="space-y-4" @submit.prevent="handleSavePayment">
+          <div v-if="paymentError" class="rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
+            <p class="font-medium">Error al registrar el pago</p>
+            <p class="mt-0.5">{{ paymentError }}</p>
+          </div>
           <div>
             <label class="mb-1 block text-sm font-medium text-text">{{ terminology.employee || 'Empleado' }}</label>
             <select v-model="paymentForm.employeeId" required @change="onEmployeeChange"
@@ -150,7 +154,7 @@
               class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
               placeholder="Ej: Comisión servicios, adelanto..." />
           </div>
-          <p v-if="paymentError" class="text-sm text-danger">{{ paymentError }}</p>
+          <p v-if="paymentError" class="hidden">{{ paymentError }}</p>
           <div class="flex items-center justify-end gap-3">
             <button type="button"
               class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
@@ -235,18 +239,31 @@ const onEmployeeChange = async () => {
 }
 
 const handleSavePayment = async () => {
-  if (!props.businessId) return
+  if (!props.businessId) {
+    paymentError.value = 'No hay negocio activo'
+    return
+  }
   if (!paymentForm.value.employeeId) { paymentError.value = 'Selecciona un empleado'; return }
   if (paymentForm.value.amount <= 0) { paymentError.value = 'El monto debe ser mayor a 0'; return }
   savingPayment.value = true
   paymentError.value = ''
   try {
-    await createEmployeePayment(props.businessId, paymentForm.value.employeeId, paymentForm.value.amount, paymentForm.value.method, paymentForm.value.notes, paymentForm.value.date)
+    const result = await createEmployeePayment(
+      props.businessId,
+      paymentForm.value.employeeId,
+      paymentForm.value.amount,
+      paymentForm.value.method,
+      paymentForm.value.notes,
+      paymentForm.value.date,
+    )
+    console.log('[EmployeePayment] guardado OK', result)
     success('Pago registrado correctamente')
     closePaymentModal()
     emit('saved')
-  } catch (err) {
-    paymentError.value = err instanceof Error ? err.message : 'Error al registrar el pago'
+  } catch (err: any) {
+    console.error('[EmployeePayment] error al guardar:', err)
+    const msg = err?.message ?? (typeof err === 'string' ? err : null) ?? 'Error al registrar el pago'
+    paymentError.value = msg
   } finally {
     savingPayment.value = false
   }

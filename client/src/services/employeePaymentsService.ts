@@ -51,15 +51,20 @@ export const createEmployeePayment = async (
   notes: string,
   paymentDate: string,
 ): Promise<void> => {
+  if (!businessId) throw new Error('Falta el negocio (businessId)')
+  if (!employeeId) throw new Error('Selecciona un empleado')
+  if (!amount || amount <= 0) throw new Error('El monto debe ser mayor a 0')
+  if (!paymentDate) throw new Error('Selecciona una fecha')
+
   let userId: string | null = null
   try {
     const { data: { session } } = await supabase.auth.getSession()
     userId = session?.user?.id ?? null
   } catch {
-    // Session not available, proceed without created_by
+    // Session not available
   }
 
-  const { error } = await mutate
+  const { data, error } = await mutate
     .from('employee_payments')
     .insert({
       business_id: businessId,
@@ -70,10 +75,11 @@ export const createEmployeePayment = async (
       payment_date: paymentDate,
       created_by: userId,
     })
+    .select()
 
   if (error) {
+    console.error('[createEmployeePayment] supabase error:', error)
     handleDbError(error, 'Error al registrar el pago del empleado')
-    throw error
   }
 }
 
