@@ -172,11 +172,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useQueryClient } from '@tanstack/vue-query'
 import { formatMethod } from '../../lib/formatters'
 import { useCurrency } from '../../composables/useCurrency'
 import { useNotification } from '../../composables/useNotification'
 import { supabase } from '../../lib/supabase'
-import { createEmployeePayment, getEmployeeBalance, type EmployeeBalance, type EmployeePaymentRecord } from '../../services/employeePaymentsService'
+import { createEmployeePayment, getEmployeeBalance, employeePaymentKeys, type EmployeeBalance, type EmployeePaymentRecord } from '../../services/employeePaymentsService'
 
 interface PaymentRow {
   id: string; employee: string; service: string; amount: number; percentage: number; earnings: number
@@ -195,6 +196,7 @@ const emit = defineEmits<{
 
 const { formatUSD, formatVESInline } = useCurrency()
 const { success } = useNotification()
+const queryClient = useQueryClient()
 const showPaymentModal = ref(false)
 const savingPayment = ref(false)
 const paymentError = ref('')
@@ -260,6 +262,11 @@ const handleSavePayment = async () => {
     success('Pago registrado correctamente')
     closePaymentModal()
     emit('saved')
+    if (props.businessId) {
+      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(props.businessId) })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary', props.businessId] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', props.businessId] })
+    }
   } catch (err: any) {
     console.error('[EmployeePayment] error al guardar:', err)
     const msg = err?.message ?? (typeof err === 'string' ? err : null) ?? 'Error al registrar el pago'
