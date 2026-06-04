@@ -784,7 +784,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   font-size: 0.75rem;
   font-weight: 600;
   transition: all 0.15s ease;
-  overflow: visible;
+  overflow: hidden;
   position: relative;
 }
 
@@ -815,6 +815,9 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .agenda-event-inner.agenda-month-view {
@@ -835,6 +838,8 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   margin: -0.08rem -0.15rem;
   border-radius: 0.2rem;
   transition: background 0.12s ease;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .agenda-event-top:hover {
@@ -858,6 +863,8 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
 .agenda-event-status {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .agenda-event-title {
@@ -865,6 +872,11 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
   line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 @media (min-width: 640px) {
@@ -878,6 +890,9 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   font-weight: 500;
   color: rgba(255, 255, 255, 0.86);
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .agenda-event-group-badge {
@@ -896,6 +911,9 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .agenda-status-dropdown {
