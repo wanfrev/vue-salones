@@ -3,6 +3,7 @@ import { useCrud } from './useCrud'
 import { useAuth } from './useAuth'
 import { useCurrency } from './useCurrency'
 import { listProductos, productosKeys, saveProducto, deleteProducto, deleteProductoPermanently } from '../services/productosService'
+import { posKeys } from '../services/posService'
 import type { Producto, ProductoFormData } from '../types/producto'
 
 export function useProductCRUD() {
@@ -22,6 +23,7 @@ export function useProductCRUD() {
     modalRef: productoModalRef,
     extraInvalidations: [
       (id) => ['inventario', id],
+      (id) => posKeys.products(id),
     ],
   })
 
