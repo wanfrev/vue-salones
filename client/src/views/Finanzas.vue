@@ -44,6 +44,108 @@
     :margin="marginTotal"
   />
 
+  <!-- Nueva sección: Ingresos desglosados -->
+  <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div class="rounded-xl border border-border bg-surface p-4">
+      <div class="mb-2">
+        <h3 class="text-base font-semibold text-text">Ingresos por Cobros de Citas</h3>
+        <p class="text-sm text-text-muted">Total cobrado por servicios (periodo seleccionado)</p>
+      </div>
+      <div class="text-2xl font-bold text-success">{{ formatUSD(appointmentChargesTotal) }}</div>
+      <div class="text-xs text-text-muted">Bs {{ formatVESInline(appointmentChargesTotal) }}</div>
+
+      <div class="mt-4">
+        <h4 class="mb-2 text-sm font-medium text-text">Detalle de cobros</h4>
+        <div v-if="appointmentIncomeRows.length" class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border-subtle">
+                <th class="py-2 text-left text-xs text-text-muted">Fecha</th>
+                <th class="py-2 text-left text-xs text-text-muted">Cliente</th>
+                <th class="py-2 text-left text-xs text-text-muted">Empleado</th>
+                <th class="py-2 text-left text-xs text-text-muted">Servicio</th>
+                <th class="py-2 text-left text-xs text-text-muted">Método</th>
+                <th class="py-2 text-right text-xs text-text-muted">Monto</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-subtle">
+              <tr v-for="item in appointmentIncomeRows" :key="item.id" class="text-xs">
+                <td class="py-2 whitespace-nowrap text-text-secondary">{{ item.date }}</td>
+                <td class="py-2 text-text">{{ item.client }}</td>
+                <td class="py-2 text-text">{{ item.employee }}</td>
+                <td class="py-2 text-text">{{ item.service }}</td>
+                <td class="py-2 text-text-muted">{{ item.method }}</td>
+                <td class="py-2 text-right font-medium text-success">{{ formatUSD(item.amount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p v-else class="text-xs text-text-muted">No hay cobros de citas en este periodo.</p>
+        <div class="mt-3 flex justify-end">
+          <button
+            type="button"
+            class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-bg-secondary"
+            @click="goToAllRecords('cobros')"
+          >
+            Ver todos
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-border bg-surface p-4">
+      <div class="mb-2">
+        <h3 class="text-base font-semibold text-text">Ventas de Productos</h3>
+        <p class="text-sm text-text-muted">Ingresos por venta de productos (periodo seleccionado)</p>
+      </div>
+      <div class="text-2xl font-bold text-success">{{ formatUSD(productSalesTotal) }}</div>
+      <div class="text-xs text-text-muted">Bs {{ formatVESInline(productSalesTotal) }}</div>
+
+      <div v-if="productSalesBreakdown.length" class="mt-3">
+        <h4 class="text-sm font-medium text-text mb-2">Productos principales</h4>
+        <ul class="space-y-1 text-sm text-text-muted">
+          <li v-for="(p, idx) in productSalesBreakdown.slice(0,3)" :key="p.name">{{ idx+1 }}. {{ p.name }} — {{ formatUSD(p.amount) }}</li>
+        </ul>
+      </div>
+
+      <div class="mt-4">
+        <h4 class="mb-2 text-sm font-medium text-text">Detalle de ventas de productos</h4>
+        <div v-if="productSalesRows.length" class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border-subtle">
+                <th class="py-2 text-left text-xs text-text-muted">Fecha</th>
+                <th class="py-2 text-left text-xs text-text-muted">Producto</th>
+                <th class="py-2 text-right text-xs text-text-muted">Cantidad</th>
+                <th class="py-2 text-right text-xs text-text-muted">Precio</th>
+                <th class="py-2 text-right text-xs text-text-muted">Total</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-subtle">
+              <tr v-for="row in productSalesRows" :key="row.id" class="text-xs">
+                <td class="py-2 whitespace-nowrap text-text-secondary">{{ row.date }}</td>
+                <td class="py-2 text-text">{{ row.product }}</td>
+                <td class="py-2 text-right text-text">{{ row.quantity }}</td>
+                <td class="py-2 text-right text-text">{{ formatUSD(row.unitPrice) }}</td>
+                <td class="py-2 text-right font-medium text-success">{{ formatUSD(row.total) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p v-else class="text-xs text-text-muted">No hay ventas de productos en este periodo.</p>
+        <div class="mt-3 flex justify-end">
+          <button
+            type="button"
+            class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-bg-secondary"
+            @click="goToAllRecords('ventas-productos')"
+          >
+            Ver todos
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="mb-4">
     <ExpensesSection
       :expenses="expenses"
@@ -118,6 +220,7 @@
       </button>
     </div>
   </div>
+
 </template>
 
 <script setup lang="ts">
@@ -174,7 +277,7 @@ const visibleTransactions = computed(() => summaryCtx.transactions.value.slice(0
 
 const canViewAllTransactions = computed(() => summaryCtx.transactions.value.length > 5)
 
-const goToAllRecords = (tipo: 'gastos' | 'pagos' | 'transacciones') => {
+const goToAllRecords = (tipo: 'gastos' | 'pagos' | 'transacciones' | 'cobros' | 'ventas-productos') => {
   router.push({
     name: 'admin-finanzas-registros',
     params: { tipo },
@@ -193,4 +296,17 @@ const onExpenseSaved = () => invalidateAll()
 const onPaymentSaved = () => {
   queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
 }
+
+// Desglose de ingresos: cobros de citas vs ventas de productos
+// Sumamos las transacciones unificadas cuyo tipo es 'ingreso' (pagos de citas)
+const appointmentChargesTotal = computed(() =>
+  summaryCtx.transactions.value
+    .filter(tx => tx.type === 'ingreso')
+    .reduce((acc, tx) => acc + Number(tx.amount ?? 0), 0)
+)
+
+const productSalesTotal = summaryCtx.productSalesTotal
+const productSalesBreakdown = summaryCtx.productSalesBreakdown
+const appointmentIncomeRows = computed(() => summaryCtx.appointmentIncomeDetails.value.slice(0, 8))
+const productSalesRows = computed(() => summaryCtx.productSalesDetails.value.slice(0, 8))
 </script>

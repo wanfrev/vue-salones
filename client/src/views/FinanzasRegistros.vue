@@ -104,6 +104,66 @@
       </div>
     </div>
 
+    <div v-else-if="tipo === 'cobros'" class="rounded-xl border border-border bg-surface p-4">
+      <h2 class="mb-3 text-base font-semibold text-text">Cobros de citas del periodo</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-border-subtle">
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Cliente</th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Empleado</th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Servicio</th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
+              <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border-subtle">
+            <tr v-for="row in summaryCtx.appointmentIncomeDetails.value" :key="row.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+              <td class="py-3 text-text-secondary whitespace-nowrap">{{ row.date }}</td>
+              <td class="py-3 font-medium text-text">{{ row.client }}</td>
+              <td class="py-3 text-text">{{ row.employee }}</td>
+              <td class="py-3 text-text-secondary">{{ row.service }}</td>
+              <td class="py-3 text-text-secondary">{{ row.method }}</td>
+              <td class="py-3 text-right font-medium text-success">{{ formatUSD(row.amount) }}</td>
+            </tr>
+            <tr v-if="summaryCtx.appointmentIncomeDetails.value.length === 0">
+              <td colspan="6" class="py-6 text-center text-sm text-text-muted">No hay cobros de citas en este periodo.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div v-else-if="tipo === 'ventas-productos'" class="rounded-xl border border-border bg-surface p-4">
+      <h2 class="mb-3 text-base font-semibold text-text">Ventas de productos del periodo</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-border-subtle">
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Producto</th>
+              <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Cantidad</th>
+              <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Precio unitario</th>
+              <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Total</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border-subtle">
+            <tr v-for="row in summaryCtx.productSalesDetails.value" :key="row.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+              <td class="py-3 text-text-secondary whitespace-nowrap">{{ row.date }}</td>
+              <td class="py-3 font-medium text-text">{{ row.product }}</td>
+              <td class="py-3 text-right text-text">{{ row.quantity }}</td>
+              <td class="py-3 text-right text-text">{{ formatUSD(row.unitPrice) }}</td>
+              <td class="py-3 text-right font-medium text-success">{{ formatUSD(row.total) }}</td>
+            </tr>
+            <tr v-if="summaryCtx.productSalesDetails.value.length === 0">
+              <td colspan="5" class="py-6 text-center text-sm text-text-muted">No hay ventas de productos en este periodo.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div v-else class="rounded-xl border border-border bg-surface p-4">
       <h2 class="mb-3 text-base font-semibold text-text">Transacciones del periodo</h2>
       <div class="overflow-x-auto">
@@ -158,7 +218,7 @@ import { useEmployeePayments } from '../composables/useEmployeePayments'
 import { formatMethod } from '../lib/formatters'
 
 type PeriodValue = 'month' | 'quarter' | 'year'
-type TipoRegistros = 'gastos' | 'pagos' | 'transacciones'
+type TipoRegistros = 'gastos' | 'pagos' | 'transacciones' | 'cobros' | 'ventas-productos'
 
 const route = useRoute()
 const router = useRouter()
@@ -183,7 +243,7 @@ watch(
 
 const tipo = computed<TipoRegistros>(() => {
   const raw = route.params.tipo
-  if (raw === 'gastos' || raw === 'pagos' || raw === 'transacciones') return raw
+  if (raw === 'gastos' || raw === 'pagos' || raw === 'transacciones' || raw === 'cobros' || raw === 'ventas-productos') return raw
   return 'transacciones'
 })
 
@@ -195,6 +255,8 @@ const paymentsCtx = useEmployeePayments(businessId)
 const title = computed(() => {
   if (tipo.value === 'gastos') return 'Todos los gastos'
   if (tipo.value === 'pagos') return 'Todos los pagos a empleados'
+  if (tipo.value === 'cobros') return 'Todos los cobros de citas'
+  if (tipo.value === 'ventas-productos') return 'Todas las ventas de productos'
   return 'Todas las transacciones'
 })
 

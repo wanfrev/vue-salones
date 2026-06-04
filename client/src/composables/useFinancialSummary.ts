@@ -25,9 +25,19 @@ type TransactionRow = {
   id: string
   date: string
   client: string
+  employee: string
   service: string
   method: string
   amount: number
+}
+
+export type ProductSaleDetail = {
+  id: string
+  date: string
+  product: string
+  quantity: number
+  unitPrice: number
+  total: number
 }
 
 type PaymentRow = {
@@ -152,6 +162,7 @@ function useFinancialSummary(
         .select(`
           id,
           paid_at,
+          created_at,
           total_amount,
           method,
           employee_percentage,
@@ -161,13 +172,14 @@ function useFinancialSummary(
             employee_id,
             clients ( full_name ),
             services ( name ),
-            profiles ( full_name )
+            employee_profile:profiles!appointments_employee_id_fkey ( full_name )
           )
         `)
         .eq('business_id', businessId.value!)
-        .gte('paid_at', cfg.start.toISOString())
-        .lte('paid_at', cfg.end.toISOString())
-        .order('paid_at', { ascending: false })
+        // Use created_at as fallback because some payments may not set paid_at
+        .gte('created_at', cfg.start.toISOString())
+        .lte('created_at', cfg.end.toISOString())
+        .order('created_at', { ascending: false })
 
       if (error) throw error
 
@@ -176,7 +188,7 @@ function useFinancialSummary(
           appointments?: {
             clients?: { full_name: string | null } | null
             services?: { name: string | null } | null
-            profiles?: { full_name: string | null } | null
+            employee_profile?: { full_name: string | null } | null
           } | null
         }
       >
@@ -224,16 +236,76 @@ function useFinancialSummary(
     enabled: computed(() => !!businessId.value),
   })
 
+  // Product sales (inventory movements with movement_type = 'sale') for the same period
+  const { data: rawInventoryMovements } = useQuery({
+    queryKey: computed(() => ['finanzas-product-sales', businessId.value, selectedPeriod.value]),
+    queryFn: async () => {
+      const cfg = periodConfig.value
+      const { data, error } = await supabase
+        .from('inventory_movements')
+        .select('product_id, variant_id, movement_type, quantity, unit_cost, created_at, products ( name )')
+        .eq('business_id', businessId.value!)
+        .eq('movement_type', 'sale')
+        .gte('created_at', cfg.start.toISOString())
+        .lte('created_at', cfg.end.toISOString())
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return (data ?? []) as Array<any>
+    },
+    enabled: computed(() => !!businessId.value),
+  })
+
   const transactionsAll = computed<TransactionRow[]>(() =>
     rawTransactions.value.map(row => ({
       id: row.id,
-      date: formatDate(row.paid_at),
+      date: formatDate(row.paid_at ?? row.created_at),
       client: row.appointments?.clients?.full_name ?? '—',
+      employee: row.appointments?.employee_profile?.full_name ?? '—',
       service: row.appointments?.services?.name ?? '—',
       method: formatMethod(row.method),
       amount: row.total_amount,
     }))
   )
+
+  const appointmentIncomeDetails = computed(() => transactionsAll.value)
+
+  // Compute product sales totals from inventory movements (movement_type = 'sale')
+  const productSalesTotal = computed(() => {
+    const rows = rawInventoryMovements.value ?? []
+    return rows.reduce((acc: number, r: any) => {
+      const qty = Math.abs(Number(r.quantity ?? 0))
+      const price = Number(r.unit_cost ?? 0)
+      return acc + qty * price
+    }, 0)
+  })
+
+  const productSalesBreakdown = computed(() => {
+    const rows = rawInventoryMovements.value ?? []
+    const map = new Map<string, number>()
+    for (const r of rows) {
+      const name = r.products?.name ?? 'Sin producto'
+      const amount = Math.abs(Number(r.quantity ?? 0)) * Number(r.unit_cost ?? 0)
+      map.set(name, (map.get(name) ?? 0) + amount)
+    }
+    return [...map.entries()].map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount)
+  })
+
+  const productSalesDetails = computed<ProductSaleDetail[]>(() => {
+    const rows = rawInventoryMovements.value ?? []
+    return rows.map((r: any, idx: number) => {
+      const quantity = Math.abs(Number(r.quantity ?? 0))
+      const unitPrice = Number(r.unit_cost ?? 0)
+      return {
+        id: `${r.product_id ?? 'product'}-${r.created_at ?? idx}-${idx}`,
+        date: formatDate(r.created_at),
+        product: r.products?.name ?? 'Sin producto',
+        quantity,
+        unitPrice,
+        total: quantity * unitPrice,
+      }
+    })
+  })
 
   const unifiedTransactions = computed<UnifiedTransaction[]>(() => {
     const result: UnifiedTransaction[] = []
@@ -242,7 +314,7 @@ function useFinancialSummary(
     for (const tx of rawTransactions.value) {
       result.push({
         id: tx.id,
-        date: formatDate(tx.paid_at),
+        date: formatDate(tx.paid_at ?? tx.created_at),
         description: (tx.appointments?.clients?.full_name ?? '—') + ' · ' + (tx.appointments?.services?.name ?? '—'),
         method: formatMethod(tx.method),
         amount: tx.total_amount,
@@ -285,7 +357,7 @@ function useFinancialSummary(
   const employeePayments = computed<PaymentRow[]>(() =>
     rawTransactions.value.map(row => ({
       id: row.id,
-      employee: row.appointments?.profiles?.full_name ?? '—',
+      employee: row.appointments?.employee_profile?.full_name ?? '—',
       service: row.appointments?.services?.name ?? '—',
       amount: row.total_amount,
       percentage: row.employee_percentage ?? 0,
@@ -345,6 +417,10 @@ function useFinancialSummary(
     servicesRevenue,
     chartData,
     employeePayments,
+    appointmentIncomeDetails,
+    productSalesTotal,
+    productSalesBreakdown,
+    productSalesDetails,
     isLoading,
   }
 }
