@@ -45,14 +45,6 @@
   />
 
   <div class="mb-4">
-    <FinancialCharts
-      :chart-data="summaryCtx.chartData.value"
-      :services-revenue="summaryCtx.servicesRevenue.value"
-      :income-total="incomeTotal"
-    />
-  </div>
-
-  <div class="mb-4">
     <ExpensesSection
       :expenses="expenses"
       :business-id="authStore.businessId"
@@ -141,7 +133,6 @@ import { useEmployeePayments } from '../composables/useEmployeePayments'
 import { useExchangeRate } from '../composables/useExchangeRate'
 import ExchangeRateCard from '../components/finanzas/ExchangeRateCard.vue'
 import KpiCards from '../components/finanzas/KpiCards.vue'
-import FinancialCharts from '../components/finanzas/FinancialCharts.vue'
 import ExpensesSection from '../components/finanzas/ExpensesSection.vue'
 import EmployeePaymentsSection from '../components/finanzas/EmployeePaymentsSection.vue'
 import { expensesKeys } from '../services/expensesService'
