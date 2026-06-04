@@ -20,22 +20,22 @@ export interface EmployeePaymentRecord {
 export const listEmployeePayments = async (businessId: string): Promise<EmployeePaymentRecord[]> => {
   const { data, error } = await supabase
     .from('employee_payments')
-    .select('*, profiles!inner(full_name)')
+    .select('id, employee_id, amount, payment_method, notes, payment_date, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
     .eq('business_id', businessId)
     .order('payment_date', { ascending: false })
 
   if (error) handleDbError(error, 'Error al cargar pagos de empleados')
 
   const raw = (data ?? []) as Array<
-    EmployeePayment & {
-      profiles?: { full_name: string } | null
+    Pick<EmployeePayment, 'id' | 'employee_id' | 'amount' | 'payment_method' | 'notes' | 'payment_date'> & {
+      employee_profile?: { full_name: string } | null
     }
   >
 
   return raw.map(row => ({
     id: row.id,
     employeeId: row.employee_id,
-    employeeName: row.profiles?.full_name ?? '—',
+    employeeName: row.employee_profile?.full_name ?? '—',
     amount: Number(row.amount),
     paymentMethod: row.payment_method,
     notes: row.notes,

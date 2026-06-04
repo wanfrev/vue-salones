@@ -266,6 +266,7 @@ const handleSavePayment = async () => {
       queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(props.businessId) })
       queryClient.invalidateQueries({ queryKey: ['financial-summary', props.businessId] })
       queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', props.businessId] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments', props.businessId] })
     }
   } catch (err: any) {
     console.error('[EmployeePayment] error al guardar:', err)

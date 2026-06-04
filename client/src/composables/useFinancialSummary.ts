@@ -195,13 +195,13 @@ function useFinancialSummary(
       const cfg = periodConfig.value
       const { data, error } = await supabase
         .from('employee_payments')
-        .select('id, amount, payment_method, payment_date, profiles!inner(full_name)')
+        .select('id, amount, payment_method, payment_date, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
         .eq('business_id', businessId.value!)
         .gte('payment_date', cfg.start.toISOString().slice(0, 10))
         .lte('payment_date', cfg.end.toISOString().slice(0, 10))
         .order('payment_date', { ascending: false })
       if (error) throw error
-      return (data ?? []) as Array<EmployeePayment & { profiles?: { full_name: string } | null }>
+      return (data ?? []) as Array<EmployeePayment & { employee_profile?: { full_name: string } | null }>
     },
     enabled: computed(() => !!businessId.value),
   })
@@ -256,7 +256,7 @@ function useFinancialSummary(
       result.push({
         id: 'ep-' + ep.id,
         date: formatDate(ep.payment_date),
-        description: 'Pago a ' + (ep.profiles?.full_name ?? 'empleado'),
+        description: 'Pago a ' + (ep.employee_profile?.full_name ?? 'empleado'),
         method: formatMethod(ep.payment_method),
         amount: ep.amount,
         type: 'nomina',
