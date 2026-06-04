@@ -91,12 +91,7 @@
                   >
                     Ajustar
                   </button>
-                  <button
-                    @click="openSaleModal(item)"
-                    class="rounded-lg px-2 py-1 text-xs font-medium text-success transition-theme hover:bg-success/10"
-                  >
-                    Vender
-                  </button>
+
                 </div>
               </td>
             </tr>
@@ -192,13 +187,6 @@
     @confirm="confirmAdjust"
   />
 
-  <SellFromInventoryModal
-    :is-open="saleModalOpen"
-    :item="saleItem"
-    @close="closeSaleModal"
-    @saved="onSaleSaved"
-  />
-
   <ProductoFormModal
     ref="productoModalRef"
     :is-saving="saveProductoMutation.isPending.value"
@@ -216,7 +204,6 @@ import { useInventoryAdjustment } from '../composables/useInventoryAdjustment'
 import { inventarioKeys, listInventario, listInventoryMovements } from '../services/inventarioService'
 import { productosKeys, saveProducto } from '../services/productosService'
 import StockAdjustModal from '../components/inventario/StockAdjustModal.vue'
-import SellFromInventoryModal from '../components/inventario/SellFromInventoryModal.vue'
 import ProductoFormModal from '../components/modals/ProductoFormModal.vue'
 
 import type { ProductoFormData } from '../types/producto'
@@ -282,25 +269,6 @@ const formatMovementType = (type: string) => {
     consumption: 'Consumo',
   }
   return map[type] ?? type
-}
-
-// Sale modal state
-const saleModalOpen = ref(false)
-const saleItem = ref<InventarioItem | null>(null)
-
-const openSaleModal = (item: InventarioItem) => {
-  saleItem.value = item
-  saleModalOpen.value = true
-}
-
-const closeSaleModal = () => {
-  saleModalOpen.value = false
-  saleItem.value = null
-}
-
-const onSaleSaved = () => {
-  queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
-  queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(businessId.value) })
 }
 
 // Producto form modal

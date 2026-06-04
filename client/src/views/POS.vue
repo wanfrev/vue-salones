@@ -33,6 +33,12 @@
     Error al cargar citas: {{ queryError }}
   </div>
 
+  <POSQuickSell
+    :products="products"
+    :business-id="businessId!"
+    class="mb-4"
+  />
+
   <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
     <div class="lg:col-span-2 space-y-4">
       <POSAppointmentSelector
@@ -89,6 +95,7 @@ import { usePOSPayment } from '../composables/usePOSPayment'
 import POSAppointmentSelector from '../components/pos/POSAppointmentSelector.vue'
 import POSCart from '../components/pos/POSCart.vue'
 import POSPaymentPanel from '../components/pos/POSPaymentPanel.vue'
+import POSQuickSell from '../components/pos/POSQuickSell.vue'
 
 const { authStore } = useAuth()
 const { exchangeRate, formatDual } = useCurrency()
