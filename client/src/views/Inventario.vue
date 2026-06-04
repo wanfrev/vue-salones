@@ -203,6 +203,7 @@ import { useNotification } from '../composables/useNotification'
 import { useInventoryAdjustment } from '../composables/useInventoryAdjustment'
 import { inventarioKeys, listInventario, listInventoryMovements } from '../services/inventarioService'
 import { productosKeys, saveProducto } from '../services/productosService'
+import { posKeys } from '../services/posService'
 import StockAdjustModal from '../components/inventario/StockAdjustModal.vue'
 import ProductoFormModal from '../components/modals/ProductoFormModal.vue'
 
@@ -277,6 +278,7 @@ const saveProductoMutation = useMutation({
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
     queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
+    queryClient.invalidateQueries({ queryKey: posKeys.products(businessId.value) })
     productoModalRef.value?.close()
     success('Producto guardado correctamente')
   },

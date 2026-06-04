@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from './useAuth'
 import { useNotification } from './useNotification'
 import { adjustInventory, inventarioKeys } from '../services/inventarioService'
+import { posKeys } from '../services/posService'
 import { validateAdjustQuantity } from '../business/stockRules'
 import type { InventarioItem } from '../types/inventario'
 
@@ -23,6 +24,7 @@ export function useInventoryAdjustment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
       queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(businessId.value) })
+      queryClient.invalidateQueries({ queryKey: posKeys.products(businessId.value) })
       closeAdjustModal()
       success('Stock ajustado correctamente')
     },

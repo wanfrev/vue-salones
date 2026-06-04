@@ -110,6 +110,7 @@ import { ref, computed } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useCurrency } from '../../composables/useCurrency'
 import { useNotification } from '../../composables/useNotification'
+import { posKeys } from '../../services/posService'
 import { sellProduct, inventarioKeys } from '../../services/inventarioService'
 
 const props = defineProps<{
@@ -145,6 +146,7 @@ const sellMutation = useMutation({
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: inventarioKeys.all(props.businessId) })
     queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(props.businessId) })
+    queryClient.invalidateQueries({ queryKey: posKeys.products(props.businessId) })
     success('Venta registrada correctamente')
     cancelSelection()
   },
