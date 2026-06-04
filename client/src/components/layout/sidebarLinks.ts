@@ -10,7 +10,6 @@ import {
   Package,
   Archive,
   ShoppingCart,
-  Settings,
 } from 'lucide-vue-next'
 import type { Component } from 'vue'
 
@@ -51,13 +50,6 @@ export const sidebarSections: SidebarSection[] = [
     adminOnly: true,
     links: [
       { to: '/admin/pos', label: 'Punto de Venta', icon: ShoppingCart, adminOnly: true, badge: 'Nuevo' },
-    ],
-  },
-  {
-    title: 'Configuración',
-    adminOnly: true,
-    links: [
-      { to: '/ajustes', label: 'Ajustes', icon: Settings, adminOnly: true },
     ],
   },
 ]
