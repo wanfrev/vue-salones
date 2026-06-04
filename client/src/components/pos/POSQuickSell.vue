@@ -41,8 +41,8 @@
     </div>
 
     <div v-else class="space-y-3 rounded-lg bg-bg-secondary p-3">
-      <h4 class="text-xs font-semibold uppercase tracking-wider text-text-muted">2. Resumen de cobro</h4>
-      <div class="flex items-center justify-between">
+      <h4 class="text-xs font-semibold uppercase tracking-wider text-text-muted">Resumen de cobro</h4>
+      <div class="flex items-center justify-between text-sm">
         <div>
           <p class="text-sm font-medium text-text">{{ selected.name }}</p>
           <p class="text-xs text-text-muted">Stock disponible: {{ selected.available_qty ?? 0 }}</p>
@@ -76,30 +76,101 @@
         </div>
       </div>
 
-      <div>
-        <label class="block text-xs font-medium text-text-muted mb-1">Notas</label>
-        <input
-          v-model="notes"
-          type="text" placeholder="Opcional"
-          class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary"
-        />
+      <div class="border-t border-border-subtle pt-3 space-y-2">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-text-muted">Producto</span>
+          <span class="font-medium text-text">{{ formatDual(total) }}</span>
+        </div>
+        <div class="flex items-center justify-between border-t border-border pt-2">
+          <span class="text-base font-bold text-text">Total</span>
+          <span class="text-lg font-bold text-primary">{{ formatDual(total) }}</span>
+        </div>
       </div>
 
-      <div v-if="total > 0" class="text-center">
-        <p class="text-sm text-text-muted">Total venta</p>
-        <p class="text-lg font-bold text-text">{{ formatDual(total) }}</p>
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-text">Método de pago</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            v-for="pm in paymentMethods"
+            :key="pm.value"
+            @click="selectMethod(pm.value)"
+            :class="[
+              'rounded-lg border p-2 text-sm font-medium transition-theme text-center',
+              paymentMethod === pm.value
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border text-text-secondary hover:bg-bg-secondary'
+            ]"
+          >
+            {{ pm.label }}
+          </button>
+        </div>
+      </div>
+
+      <div v-if="paymentMethod === 'mixed'" class="space-y-2 border-t border-border-subtle pt-3">
+        <label class="block text-sm font-medium text-text">Distribución del pago</label>
+        <div v-for="(split, idx) in paymentsBreakdown" :key="idx" class="flex items-center gap-2">
+          <select
+            v-model="split.method"
+            class="flex-1 rounded-lg border border-border bg-surface px-2 py-2 text-xs text-text outline-none focus:border-primary"
+          >
+            <option v-for="m in mixedMethods" :key="m.value" :value="m.value">{{ m.label }}</option>
+          </select>
+          <select
+            v-model="split.currency"
+            class="w-16 rounded-lg border border-border bg-surface px-1 py-2 text-xs text-text outline-none focus:border-primary"
+          >
+            <option value="USD">USD</option>
+            <option value="VES">Bs</option>
+          </select>
+          <div class="relative flex-1">
+            <input
+              v-model.number="split.inputAmount"
+              type="number"
+              step="0.01"
+              min="0"
+              class="w-full rounded-lg border border-border bg-surface px-2 py-2 text-xs text-text outline-none placeholder:text-text-muted focus:border-primary"
+            />
+          </div>
+          <button
+            v-if="paymentsBreakdown.length > 1"
+            @click="removeSplit(idx)"
+            class="rounded p-1 text-text-muted hover:text-danger hover:bg-danger/10"
+          >
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <button @click="addSplit" class="text-primary hover:text-primary-hover transition-theme font-medium">
+            + Agregar método
+          </button>
+          <span :class="splitRemaining === 0 ? 'text-success' : 'text-warning'">
+            Restante: {{ formatDual(splitRemaining) }}
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-text-muted mb-1">Notas</label>
+        <textarea
+          v-model="notes"
+          rows="2"
+          placeholder="Notas del pago (opcional)"
+          class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-primary"
+        ></textarea>
       </div>
 
       <button
         @click="handleSell"
-        :disabled="isSaving || quantity <= 0 || unitPrice <= 0 || quantity > Number(selected?.available_qty ?? 0)"
-        class="w-full flex items-center justify-center gap-2 rounded-lg bg-success px-3 py-2 text-sm font-bold text-white transition-theme hover:bg-success/90 disabled:opacity-50"
+        :disabled="isSaving || !canSell"
+        class="w-full flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-text-inverse transition-theme hover:bg-primary-hover disabled:opacity-50"
       >
         <svg v-if="isSaving" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
         </svg>
-        {{ isSaving ? 'Vendiendo...' : `Vender ${formatDual(total)}` }}
+        {{ isSaving ? 'Procesando...' : `Cobrar ${formatDual(total)}` }}
       </button>
     </div>
   </div>
@@ -111,13 +182,16 @@ import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useCurrency } from '../../composables/useCurrency'
 import { useNotification } from '../../composables/useNotification'
 import { sellProduct, inventarioKeys } from '../../services/inventarioService'
+import { posKeys } from '../../services/posService'
+import type { PaymentMethod } from '../../types/database'
+import type { PaymentBreakdownItem } from '../../types/pos'
 
 const props = defineProps<{
   products: any[]
   businessId: string
 }>()
 
-const { formatDual } = useCurrency()
+const { formatDual, exchangeRate } = useCurrency()
 const { success, error: showError } = useNotification()
 const queryClient = useQueryClient()
 
@@ -126,6 +200,20 @@ const selected = ref<any>(null)
 const quantity = ref(1)
 const unitPrice = ref(0)
 const notes = ref('')
+const paymentMethod = ref<PaymentMethod>('cash')
+const paymentsBreakdown = ref<PaymentBreakdownItem[]>([])
+
+const paymentMethods = [
+  { label: 'Efectivo', value: 'cash' as PaymentMethod },
+  { label: 'Tarjeta', value: 'card' as PaymentMethod },
+  { label: 'Transferencia', value: 'transfer' as PaymentMethod },
+  { label: 'Zelle', value: 'zelle' as PaymentMethod },
+  { label: 'Pago Móvil', value: 'pago_movil' as PaymentMethod },
+  { label: 'Mixto', value: 'mixed' as PaymentMethod },
+  { label: 'Otro', value: 'other' as PaymentMethod },
+]
+
+const mixedMethods = paymentMethods.filter(m => m.value !== 'mixed')
 
 const displayedProducts = computed(() => {
   const q = search.value.toLowerCase()
@@ -139,12 +227,39 @@ const total = computed(() =>
   quantity.value > 0 && unitPrice.value > 0 ? quantity.value * unitPrice.value : 0
 )
 
+const splitRemaining = computed(() => {
+  if (paymentMethod.value !== 'mixed') return 0
+  const paid = paymentsBreakdown.value.reduce((sum, split) => {
+    const usd = split.currency === 'VES'
+      ? (split.inputAmount || 0) / exchangeRate.value
+      : (split.inputAmount || 0)
+    return sum + usd
+  }, 0)
+  return Math.max(0, total.value - paid)
+})
+
+const canSell = computed(() => {
+  if (!selected.value || total.value <= 0) return false
+  if (quantity.value > Number(selected.value.available_qty ?? 0)) return false
+  if (paymentMethod.value !== 'mixed') return true
+
+  if (paymentsBreakdown.value.length === 0) return false
+  const paid = paymentsBreakdown.value.reduce((sum, split) => {
+    const usd = split.currency === 'VES'
+      ? (split.inputAmount || 0) / exchangeRate.value
+      : (split.inputAmount || 0)
+    return sum + usd
+  }, 0)
+  return Math.abs(paid - total.value) < 0.01
+})
+
 const sellMutation = useMutation({
   mutationFn: () =>
     sellProduct(props.businessId, selected.value!.id, quantity.value, notes.value, null, unitPrice.value),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: inventarioKeys.all(props.businessId) })
     queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(props.businessId) })
+    queryClient.invalidateQueries({ queryKey: posKeys.products(props.businessId) })
     success('Venta registrada correctamente')
     cancelSelection()
   },
@@ -154,6 +269,23 @@ const sellMutation = useMutation({
 })
 
 const isSaving = sellMutation.isPending
+
+const selectMethod = (method: PaymentMethod) => {
+  paymentMethod.value = method
+  if (method === 'mixed') {
+    paymentsBreakdown.value = [{ method: 'cash', inputAmount: 0, currency: 'USD', amount: 0 }]
+  } else {
+    paymentsBreakdown.value = []
+  }
+}
+
+const addSplit = () => {
+  paymentsBreakdown.value.push({ method: 'cash', inputAmount: 0, currency: 'USD', amount: 0 })
+}
+
+const removeSplit = (idx: number) => {
+  paymentsBreakdown.value.splice(idx, 1)
+}
 
 const selectProduct = (product: any) => {
   selected.value = product
@@ -168,10 +300,12 @@ const cancelSelection = () => {
   quantity.value = 1
   unitPrice.value = 0
   notes.value = ''
+  paymentMethod.value = 'cash'
+  paymentsBreakdown.value = []
 }
 
 const handleSell = () => {
-  if (!selected.value || quantity.value <= 0 || unitPrice.value <= 0) return
+  if (!canSell.value) return
   if (quantity.value > Number(selected.value.available_qty ?? 0)) {
     showError('La cantidad supera el stock disponible')
     return

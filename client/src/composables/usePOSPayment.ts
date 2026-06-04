@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from './useAuth'
 import { useNotification } from './useNotification'
-import { recordSale } from '../services/posService'
+import { recordSale, posKeys } from '../services/posService'
 import type { PaymentMethod } from '../types/database'
 import type { POSProductItem, PaymentBreakdownItem } from '../types/pos'
 
@@ -58,6 +58,7 @@ export function usePOSPayment() {
     }) => recordSale({ ...params, businessId: businessId.value! }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
+      queryClient.invalidateQueries({ queryKey: posKeys.products(businessId.value) })
       queryClient.invalidateQueries({ queryKey: ['inventario'] })
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
       queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
