@@ -44,16 +44,7 @@ export const recordSale = async (params: {
 export const listPendingAppointments = async (businessId: string) => {
   const { data, error } = await supabase
     .from('appointments')
-    .select(`
-      id,
-      start_time,
-      end_time,
-      status,
-      payment_status,
-      clients ( id, full_name, phone ),
-      services ( id, name, duration_minutes, price ),
-      profiles ( id, full_name )
-    `)
+    .select('*, clients(id, full_name, phone), services(id, name, duration_minutes, price), profiles!appointments_employee_id_fkey(id, full_name)')
     .eq('business_id', businessId)
     .in('status', ['confirmed', 'completed', 'pending'])
     .neq('payment_status', 'paid')

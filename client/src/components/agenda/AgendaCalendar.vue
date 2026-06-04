@@ -416,8 +416,9 @@ const calendarOptions = computed<CalendarOptions>(() => ({
       }
     }
 
-    statusBadge.addEventListener('click', (e) => {
+    statusBadge.addEventListener('mousedown', (e) => {
       e.stopPropagation()
+      e.preventDefault()
       openDropdown()
     })
 

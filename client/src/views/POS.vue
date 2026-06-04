@@ -105,7 +105,7 @@ const { data: appointmentsData, isLoading: loadingAppointments } = useQuery({
       queryError.value = null
       return await listPendingAppointments(businessId.value!)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error desconocido'
+      const msg = (err as any)?.message ?? (err as any)?.error_description ?? String(err)
       queryError.value = msg
       showError(`Error al cargar citas: ${msg}`)
       return []
