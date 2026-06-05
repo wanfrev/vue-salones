@@ -37,6 +37,7 @@ export const sidebarSections: SidebarSection[] = [
       { to: '/dashboard/historial', label: 'Historial', icon: Clock, employeeOnly: true },
       { to: '/dashboard/comisiones', label: 'Comisiones', icon: DollarSign, employeeOnly: true },
       { to: '/dashboard/recibo', label: 'Recibo', icon: Receipt, employeeOnly: true },
+      { to: '/dashboard/clientes', label: 'Clientes', labelKey: 'client', icon: Users, employeeOnly: true },
       { to: '/admin/clientes', label: 'Clientes', labelKey: 'client', icon: Users, adminOnly: true },
       { to: '/admin/finanzas', label: 'Finanzas', icon: BarChart3, adminOnly: true, badge: 'Nuevo' },
       { to: '/admin/equipo', label: 'Equipo', labelKey: 'employee', icon: Briefcase, adminOnly: true },

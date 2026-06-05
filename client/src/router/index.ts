@@ -4,6 +4,8 @@ import EmployeeAgenda from '../views/employee/EmployeeAgenda.vue'
 import EmployeeHistorial from '../views/employee/EmployeeHistorial.vue'
 import EmployeeComisiones from '../views/employee/EmployeeComisiones.vue'
 import EmployeeRecibo from '../views/employee/EmployeeRecibo.vue'
+import EmployeeClientes from '../views/employee/EmployeeClientes.vue'
+import EmployeeClienteHistorial from '../views/employee/EmployeeClienteHistorial.vue'
 import AdminLayout from '../components/layout/AdminLayout.vue'
 import AdminView from '../views/Admin.vue'
 import SuperadminView from '../views/Superadmin.vue'
@@ -56,6 +58,18 @@ const router = createRouter({
       path: '/dashboard/recibo',
       name: 'employee-recibo',
       component: EmployeeRecibo,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/dashboard/clientes',
+      name: 'employee-clientes',
+      component: EmployeeClientes,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/dashboard/clientes/:id',
+      name: 'employee-cliente-historial',
+      component: EmployeeClienteHistorial,
       meta: { requiresAuth: true },
     },
     {

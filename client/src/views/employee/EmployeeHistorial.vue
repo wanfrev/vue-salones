@@ -27,7 +27,9 @@
               <th class="px-4 py-3 text-left font-medium text-text-muted">Fecha</th>
               <th class="px-4 py-3 text-left font-medium text-text-muted">Cliente</th>
               <th class="px-4 py-3 text-left font-medium text-text-muted">Servicio</th>
-              <th class="px-4 py-3 text-right font-medium text-text-muted">Precio</th>
+              <th class="px-4 py-3 text-right font-medium text-text-muted">Precio servicio</th>
+              <th class="px-4 py-3 text-center font-medium text-text-muted">Comisión</th>
+              <th class="px-4 py-3 text-right font-medium text-text-muted">Ganancia</th>
               <th class="px-4 py-3 text-center font-medium text-text-muted">Estado</th>
             </tr>
           </thead>
@@ -39,7 +41,15 @@
               </td>
               <td class="px-4 py-3 font-medium text-text">{{ appt.clientName }}</td>
               <td class="px-4 py-3 text-text-secondary">{{ appt.serviceName }}</td>
-              <td class="px-4 py-3 text-right font-medium text-text">${{ appt.servicePrice }}</td>
+              <td class="px-4 py-3 text-right text-text">${{ appt.servicePrice }}</td>
+              <td class="px-4 py-3 text-center text-text-secondary">
+                <template v-if="payInfo?.type === 'salary'">—</template>
+                <template v-else>{{ appt.percentage }}%</template>
+              </td>
+              <td class="px-4 py-3 text-right font-semibold" :class="appt.earnings > 0 ? 'text-success' : 'text-text-secondary'">
+                <template v-if="payInfo?.type === 'salary'">Sueldo base</template>
+                <template v-else>${{ appt.earnings.toFixed(2) }}</template>
+              </td>
               <td class="px-4 py-3 text-center">
                 <span
                   :class="[
@@ -54,6 +64,17 @@
           </tbody>
         </table>
       </div>
+
+      <div v-if="payInfo" class="rounded-lg border border-border bg-bg-secondary p-3 text-sm text-text-muted">
+        <span class="font-medium text-text">Tipo de pago:</span>
+        {{ payInfo.typeLabel }}
+        <template v-if="payInfo.type !== 'salary'">
+          · <span class="font-medium text-text">Comisión:</span> {{ payInfo.percentage }}%
+        </template>
+        <template v-if="payInfo.baseSalary > 0">
+          · <span class="font-medium text-text">Sueldo base:</span> ${{ payInfo.baseSalary.toFixed(2) }}
+        </template>
+      </div>
     </div>
   </AppLayout>
 </template>
@@ -64,18 +85,50 @@ import { useQuery } from '@tanstack/vue-query'
 import { getStatusLabel, getStatusColor } from '../../lib/formatters'
 import { useAuthStore } from '../../store/auth'
 import { dashboardKeys, listEmployeeAppointments } from '../../services/employeeDashboardService'
+import type { EmployeeAppointmentRecord } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 
 const authStore = useAuthStore()
 const businessId = computed(() => authStore.businessId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
 
+const payInfo = computed(() => {
+  const profile = authStore.profile
+  if (!profile) return null
+  const type = (profile as any).pay_type ?? 'percentage'
+  const percentage = Number((profile as any).pay_percentage ?? 50)
+  const baseSalary = Number((profile as any).base_salary ?? 0)
+  const typeLabel = type === 'salary' ? 'Sueldo base' : type === 'mixed' ? 'Sueldo + %' : 'Porcentaje'
+  return { type, percentage, baseSalary, typeLabel }
+})
+
 const { data: historyData, isLoading: loadingHistory } = useQuery({
   queryKey: dashboardKeys.history(businessId.value, employeeId.value),
   queryFn: () => listEmployeeAppointments(businessId.value!, employeeId.value!),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
-const historyAppointments = computed(() => historyData.value ?? [])
 
+type HistoryRow = EmployeeAppointmentRecord & {
+  percentage: number
+  earnings: number
+}
 
+const historyAppointments = computed<HistoryRow[]>(() => {
+  const raw = historyData.value ?? []
+  const info = payInfo.value
+  if (!info || info.type === 'salary') {
+    return raw.map(r => ({
+      ...r,
+      percentage: 0,
+      earnings: 0,
+    }))
+  }
+  const isPaidOrCompleted = (status: string) =>
+    ['completed', 'paid'].includes(status)
+  return raw.map(r => ({
+    ...r,
+    percentage: info.percentage,
+    earnings: isPaidOrCompleted(r.status) ? r.servicePrice * (info.percentage / 100) : 0,
+  }))
+})
 </script>

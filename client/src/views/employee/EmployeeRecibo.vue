@@ -16,7 +16,10 @@
           <div>
             <p class="font-semibold text-text text-lg">{{ authStore.profile?.full_name }}</p>
             <p v-if="payInfo" class="text-sm text-text-muted">
-              {{ payInfo.typeLabel }} · {{ payInfo.percentage }}% comisión
+              {{ payInfo.typeLabel }}
+              <template v-if="payInfo.type === 'percentage'"> · {{ payInfo.percentage }}% comisión</template>
+              <template v-else-if="payInfo.type === 'mixed'"> · {{ payInfo.percentage }}% comisión + ${{ payInfo.baseSalary.toFixed(2) }} base</template>
+              <template v-else-if="payInfo.type === 'salary'"> · ${{ payInfo.baseSalary.toFixed(2) }} mensual</template>
             </p>
           </div>
         </div>
@@ -29,7 +32,7 @@
         </div>
 
         <template v-else>
-          <!-- Summary -->
+          <!-- Summary Cards -->
           <div class="grid grid-cols-2 gap-4 mb-6">
             <div class="rounded-lg bg-bg-secondary p-3">
               <p class="text-xs text-text-muted uppercase tracking-wider">Servicios</p>
@@ -41,15 +44,48 @@
             </div>
           </div>
 
-          <!-- Earnings Breakdown -->
+          <!-- Earnings Breakdown Table -->
+          <div v-if="earnings.length > 0" class="mb-6">
+            <div class="border-b border-border pb-2 mb-3">
+              <h3 class="text-sm font-semibold text-text">Desglose de ganancias</h3>
+            </div>
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-border">
+                  <th class="py-2 pr-2 text-left font-medium text-text-muted">Servicio</th>
+                  <th class="py-2 px-2 text-right font-medium text-text-muted">Total</th>
+                  <th class="py-2 px-2 text-center font-medium text-text-muted">%</th>
+                  <th class="py-2 pl-2 text-right font-medium text-text-muted">Ganancia</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border">
+                <tr v-for="row in earnings" :key="row.id">
+                  <td class="py-2 pr-2 text-text">{{ row.serviceName }}</td>
+                  <td class="py-2 px-2 text-right text-text-secondary">${{ row.totalAmount }}</td>
+                  <td class="py-2 px-2 text-center text-text-secondary">{{ row.employeePercentage }}%</td>
+                  <td class="py-2 pl-2 text-right font-semibold text-success">${{ row.employeeEarnings.toFixed(2) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Totals -->
           <div class="space-y-2 mb-6">
             <div class="flex justify-between py-2 text-sm">
               <span class="text-text-muted">Total facturado en servicios</span>
               <span class="font-medium text-text">${{ totalBilled }}</span>
             </div>
-            <div class="flex justify-between py-2 text-sm">
+            <div v-if="payInfo && payInfo.baseSalary > 0" class="flex justify-between py-2 text-sm">
+              <span class="text-text-muted">Sueldo base</span>
+              <span class="font-medium text-text">${{ payInfo.baseSalary.toFixed(2) }}</span>
+            </div>
+            <div v-if="payInfo && payInfo.type !== 'salary'" class="flex justify-between py-2 text-sm">
               <span class="text-text-muted">Comisión del empleado</span>
-              <span class="font-medium text-text">{{ payInfo?.percentage || 0 }}%</span>
+              <span class="font-medium text-text">{{ payInfo.percentage }}%</span>
+            </div>
+            <div v-if="payInfo && payInfo.type === 'percentage' && earnings.length > 0" class="flex justify-between py-2 text-sm">
+              <span class="text-text-muted">Ganancia por comisión</span>
+              <span class="font-medium text-text">${{ totalVariableEarned }}</span>
             </div>
             <div class="border-t border-border pt-3 flex justify-between">
               <span class="font-semibold text-text text-base">Total a cobrar</span>
@@ -93,7 +129,7 @@ import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuthStore } from '../../store/auth'
 import { useBusinessStore } from '../../store/business'
-import { getInitials, formatMethod, formatDate, formatNumber } from '../../lib/formatters'
+import { getInitials, formatMethod, formatDate } from '../../lib/formatters'
 import { dashboardKeys, listEmployeeTransactions, listEmployeePayments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 
@@ -108,8 +144,9 @@ const payInfo = computed(() => {
   if (!profile) return null
   const type = (profile as any).pay_type ?? 'percentage'
   const percentage = Number((profile as any).pay_percentage ?? 50)
+  const baseSalary = Number((profile as any).base_salary ?? 0)
   const typeLabel = type === 'salary' ? 'Sueldo base' : type === 'mixed' ? 'Sueldo + %' : 'Porcentaje'
-  return { type, percentage, typeLabel }
+  return { type, percentage, baseSalary, typeLabel }
 })
 
 const initials = computed(() => getInitials(authStore.profile?.full_name))
@@ -122,11 +159,24 @@ const { data: earningsData, isLoading: loadingEarnings } = useQuery({
 const earnings = computed(() => earningsData.value ?? [])
 
 const totalBilled = computed(() =>
-  formatNumber(earnings.value.reduce((sum, r) => sum + r.totalAmount, 0))
+  earnings.value.reduce((sum, r) => sum + r.totalAmount, 0).toFixed(2)
 )
-const totalEarned = computed(() =>
+
+const totalVariableEarned = computed(() =>
   earnings.value.reduce((sum, r) => sum + r.employeeEarnings, 0).toFixed(2)
 )
+
+const totalEarned = computed(() => {
+  const info = payInfo.value
+  let total = 0
+  for (const r of earnings.value) {
+    total += r.employeeEarnings
+  }
+  if (info && (info.type === 'salary' || info.type === 'mixed')) {
+    total += info.baseSalary
+  }
+  return total.toFixed(2)
+})
 
 const { data: paymentsData } = useQuery({
   queryKey: dashboardKeys.payments(businessId.value, employeeId.value),

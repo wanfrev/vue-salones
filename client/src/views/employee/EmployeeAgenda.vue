@@ -44,6 +44,7 @@ import AppLayout from '../../components/layout/AppLayout.vue'
 import AgendaCalendar from '../../components/agenda/AgendaCalendar.vue'
 import { toISODate, dateToHHmm } from '../../lib/formatters'
 import { CitaFormModal } from '../../components/modals'
+import type { Cita } from '../../types/cita'
 
 const authStore = useAuthStore()
 const businessStore = useBusinessStore()
@@ -84,7 +85,11 @@ const handleSlotSelect = ({ start }: { start: Date }) => {
   citaModalRef.value?.open({ id: '', clientName: '', service: '', employee: '', date, time, duration: 30, price: 0, status: 'confirmed' })
 }
 
-const handleEventClick = () => {}
+const handleEventClick = (event: { id: string; title: string; start: Date; end: Date; citaData?: Cita }) => {
+  if (event.citaData) {
+    citaModalRef.value?.open(event.citaData)
+  }
+}
 
 const {
   handleSaveCita,
