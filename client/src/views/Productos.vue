@@ -61,7 +61,94 @@
     </div>
   </div>
 
-  <div class="rounded-xl border border-border bg-surface overflow-hidden">
+  <div class="lg:hidden space-y-3 mb-4">
+    <div
+      v-for="producto in filteredProductos"
+      :key="producto.id"
+      class="rounded-xl border border-border bg-surface p-4 space-y-3"
+    >
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="font-medium text-text truncate">{{ producto.name }}</div>
+            <div class="text-xs text-slate-500 font-mono truncate">{{ producto.sku || '—' }}</div>
+          </div>
+        </div>
+        <span
+          :class="[
+            'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
+            producto.status === 'Activo' ? 'bg-success/10 text-success' : 'bg-bg-secondary text-text-muted'
+          ]"
+        >{{ producto.status }}</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <div class="text-xs text-text-muted mb-0.5">Categoría</div>
+          <div class="text-text text-xs">{{ producto.categoryName || '—' }}</div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-text-muted mb-0.5">Stock</div>
+          <div>
+            <span
+              :class="[
+                'font-medium tabular-nums',
+                producto.stockTotal <= producto.reorderPoint ? 'text-danger' : 'text-text'
+              ]"
+            >{{ producto.stockTotal }}</span>
+            <span class="text-xs text-slate-400"> {{ producto.unit }}</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs text-text-muted mb-0.5">Costo</div>
+          <div class="text-text">${{ producto.unitCost.toFixed(2) }}</div>
+          <div class="text-xs text-slate-400">Bs {{ formatVESInline(producto.unitCost) }}</div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-text-muted mb-0.5">Precio</div>
+          <div class="text-text font-medium">${{ producto.unitPrice.toFixed(2) }}</div>
+          <div class="text-xs text-slate-400">Bs {{ formatVESInline(producto.unitPrice) }}</div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-1 pt-1 border-t border-border-subtle">
+        <button
+          @click.stop="productoModalRef?.open(producto)"
+          class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
+          title="Editar producto"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </button>
+        <button
+          @click.stop="openDeleteModal(producto)"
+          class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-warning"
+          title="Desactivar producto"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+          </svg>
+        </button>
+        <button
+          @click.stop="openPermanentDeleteModal(producto)"
+          class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-danger"
+          title="Eliminar permanentemente"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hidden lg:block rounded-xl border border-border bg-surface overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
@@ -146,7 +233,7 @@
         </tbody>
       </table>
     </div>
-    <div v-if="filteredProductos.length === 0" class="py-12 text-center">
+    <div v-if="filteredProductos.length === 0" class="hidden lg:block py-12 text-center">
       <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
         <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />

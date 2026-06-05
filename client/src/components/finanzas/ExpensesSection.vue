@@ -12,7 +12,31 @@
         <span class="hidden sm:inline">Registrar gasto</span>
       </button>
     </div>
-    <div class="overflow-x-auto">
+    <div class="lg:hidden space-y-2 mb-3">
+      <div v-for="expense in visibleExpenses" :key="expense.id" class="rounded-lg border border-border-subtle bg-bg-secondary p-3">
+        <div class="flex items-start justify-between mb-1.5">
+          <div>
+            <div class="text-xs text-text-muted">{{ expense.date }}</div>
+            <div class="font-medium text-text text-sm">{{ expense.name }}</div>
+          </div>
+          <span :class="[
+            'rounded-full px-2 py-0.5 text-xs shrink-0',
+            expense.category === 'Fijos' ? 'bg-info/10 text-info' :
+            expense.category === 'Insumos' ? 'bg-warning/10 text-warning' :
+            'bg-primary/10 text-primary'
+          ]">{{ expense.category }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="font-medium text-text">{{ formatUSD(expense.amount) }}</span>
+          <button @click="openEdit(expense)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary" title="Editar gasto">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="overflow-x-auto hidden lg:block">
       <table class="w-full">
         <thead>
           <tr class="border-b border-border-subtle">

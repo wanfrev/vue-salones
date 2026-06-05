@@ -50,7 +50,46 @@
       </div>
     </div>
 
-    <div class="rounded-xl border border-border bg-surface overflow-hidden">
+    <div class="lg:hidden space-y-3 mb-4">
+      <div v-for="item in filteredInventario" :key="item.id" class="rounded-xl border border-border bg-surface p-4">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <p class="font-medium text-text">{{ item.productName }}</p>
+            <p class="text-xs text-text-muted font-mono">{{ item.productSku || '—' }}</p>
+          </div>
+          <span class="text-sm text-text-secondary">{{ item.variantName || '—' }}</span>
+        </div>
+        <div class="grid grid-cols-3 gap-3 mb-3 text-sm">
+          <div>
+            <p class="text-xs text-text-muted mb-0.5">Stock</p>
+            <p class="font-medium tabular-nums" :class="item.quantity <= item.reorderPoint ? 'text-danger' : 'text-text'">{{ item.quantity }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-text-muted mb-0.5">Reservado</p>
+            <p class="tabular-nums text-text-muted">{{ item.reservedQty }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-text-muted mb-0.5">Disponible</p>
+            <p class="font-medium tabular-nums" :class="item.availableQty > 0 ? 'text-success' : 'text-danger'">{{ item.availableQty }}</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-text">${{ (item.quantity * item.unitCost).toFixed(2) }}</p>
+          <button @click.stop="openAdjustModal(item)" class="rounded-lg bg-bg-secondary px-3 py-1.5 text-xs font-medium text-text-secondary transition-theme hover:bg-border-subtle">Ajustar</button>
+        </div>
+      </div>
+      <div v-if="filteredInventario.length === 0" class="py-12 text-center">
+        <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
+          <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <h3 class="mt-4 text-lg font-medium text-text">Sin existencias</h3>
+        <p class="mt-1 text-sm text-text-muted">No hay productos registrados en el inventario.</p>
+      </div>
+    </div>
+
+    <div class="hidden lg:block rounded-xl border border-border bg-surface overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>
@@ -127,7 +166,41 @@
       </div>
     </div>
 
-    <div class="rounded-xl border border-border bg-surface overflow-hidden">
+    <div class="lg:hidden space-y-3 mb-4">
+      <div v-for="mov in filteredMovements" :key="mov.id" class="rounded-xl border border-border bg-surface p-4">
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <p class="text-xs text-text-muted">{{ formatDateTime(mov.createdAt) }}</p>
+            <p class="font-medium text-text">{{ mov.productName }} <span v-if="mov.variantName" class="text-xs text-text-muted">({{ mov.variantName }})</span></p>
+          </div>
+          <span :class="[
+            'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
+            mov.movementType === 'purchase' ? 'bg-success/10 text-success' :
+            mov.movementType === 'sale' ? 'bg-primary/10 text-primary' :
+            mov.movementType === 'adjustment' ? 'bg-warning/10 text-warning' :
+            'bg-info/10 text-info'
+          ]">{{ formatMovementType(mov.movementType) }}</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <div class="flex items-center gap-4">
+            <span class="font-medium tabular-nums" :class="mov.quantity < 0 ? 'text-danger' : 'text-success'">{{ mov.quantity > 0 ? '+' : '' }}{{ mov.quantity }}</span>
+            <span class="text-text-muted">Costo: <span class="text-text">${{ mov.unitCost.toFixed(2) }}</span></span>
+          </div>
+          <span class="text-xs text-text-muted truncate max-w-28 text-right">{{ mov.notes || '—' }}</span>
+        </div>
+      </div>
+      <div v-if="filteredMovements.length === 0" class="py-12 text-center">
+        <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
+          <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+          </svg>
+        </div>
+        <h3 class="mt-4 text-lg font-medium text-text">Sin movimientos</h3>
+        <p class="mt-1 text-sm text-text-muted">No hay movimientos registrados.</p>
+      </div>
+    </div>
+
+    <div class="hidden lg:block rounded-xl border border-border bg-surface overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>

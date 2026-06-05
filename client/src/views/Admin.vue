@@ -96,15 +96,7 @@
           </div>
         </section>
 
-        <!-- Agenda Calendar Component -->
-         <section class="h-[calc(100vh-260px)] min-h-[400px] sm:h-[calc(100vh-280px)] lg:h-[calc(100vh-220px)]">
-            <AgendaCalendar
-            @event-click="handleEventClick"
-            @status-change="handleStatusChange"
-            @event-change="handleEventChange"
-            @slot-select="handleSlotSelect"
-          />
-         </section>
+
 
   <!-- Modals -->
   <CitaFormModal 
@@ -127,8 +119,7 @@ import { equipoKeys, listEquipo } from '../services/equipoService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { useBusinessStore } from '../store/business'
 import { useAppointmentMutations } from '../composables/useAppointmentMutations'
-import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
-import { toISODate, dateToHHmm } from '../lib/formatters'
+import { toISODate } from '../lib/formatters'
 import { CitaFormModal } from '../components/modals'
 import type { Cita } from '../types/cita'
 
@@ -169,8 +160,6 @@ const { data: empleadosData } = useQuery({
 
 const {
   handleSaveCita,
-  handleStatusChange,
-  handleEventChange,
   handleDeleteCita,
 } = useAppointmentMutations({
   businessId,
@@ -215,21 +204,6 @@ const empleadosList = computed(() => (empleadosData.value ?? []).map(employee =>
 
 const handleNewCita = () => {
   citaModalRef.value?.open()
-}
-
-const handleSlotSelect = ({ start }: { start: Date }) => {
-  const date = toISODate(start)
-  const time = dateToHHmm(start)
-  citaModalRef.value?.open({ id: '', clientName: '', service: '', employee: '', date, time, duration: 30, price: 0, status: 'confirmed' })
-}
-
-const handleEventClick = (event: { id: string; title: string; start: Date; end: Date; citaData?: Cita }) => {
-  const cita = citas.value.find(c => c.id === event.id)
-  if (cita) {
-    citaModalRef.value?.open(cita)
-  } else if (event.citaData) {
-    citaModalRef.value?.open(event.citaData)
-  }
 }
 
 const handleExport = () => {

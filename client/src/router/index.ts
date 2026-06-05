@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/Login.vue'
 import EmployeeAgenda from '../views/employee/EmployeeAgenda.vue'
+import EmployeeCalendario from '../views/employee/EmployeeCalendario.vue'
 import EmployeeHistorial from '../views/employee/EmployeeHistorial.vue'
 import EmployeeComisiones from '../views/employee/EmployeeComisiones.vue'
 import EmployeeRecibo from '../views/employee/EmployeeRecibo.vue'
@@ -8,6 +9,7 @@ import EmployeeClientes from '../views/employee/EmployeeClientes.vue'
 import EmployeeClienteHistorial from '../views/employee/EmployeeClienteHistorial.vue'
 import AdminLayout from '../components/layout/AdminLayout.vue'
 import AdminView from '../views/Admin.vue'
+import CalendarioView from '../views/Calendario.vue'
 import SuperadminView from '../views/Superadmin.vue'
 import SuperadminBusinessAdminsView from '../views/SuperadminBusinessAdmins.vue'
 import SuperadminBusinessDetailView from '../views/SuperadminBusinessDetail.vue'
@@ -40,6 +42,12 @@ const router = createRouter({
       path: '/dashboard/agenda',
       name: 'employee-agenda',
       component: EmployeeAgenda,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/dashboard/calendario',
+      name: 'employee-calendario',
+      component: EmployeeCalendario,
       meta: { requiresAuth: true },
     },
     {
@@ -81,6 +89,11 @@ const router = createRouter({
           path: '',
           name: 'admin',
           component: AdminView,
+        },
+        {
+          path: 'calendario',
+          name: 'admin-calendario',
+          component: CalendarioView,
         },
         {
           path: 'clientes',

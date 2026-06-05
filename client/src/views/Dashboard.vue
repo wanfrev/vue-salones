@@ -1,16 +1,6 @@
 <template>
   <AppLayout>
     <template #header-actions>
-      <button
-        v-if="activeTab === 'agenda'"
-        @click="handleNewCita"
-        class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
-      >
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-        <span>Nueva {{ t.appointment?.toLowerCase() || 'cita' }}</span>
-      </button>
     </template>
 
     <!-- Tabs -->
@@ -31,15 +21,6 @@
           {{ tab.label }}
         </button>
       </nav>
-    </div>
-
-    <!-- Tab: Agenda -->
-    <div v-if="activeTab === 'agenda'" class="h-[calc(100vh-280px)] min-h-[500px]">
-      <AgendaCalendar
-        @event-click="handleEventClick"
-        @status-change="handleStatusChange"
-        @event-change="handleEventChange"
-      />
     </div>
 
     <!-- Tab: Historial -->
@@ -102,7 +83,7 @@
     <!-- Tab: Comisiones -->
     <div v-if="activeTab === 'comisiones'" class="space-y-6">
       <!-- Summary Cards -->
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <div class="rounded-xl border border-border bg-surface p-4">
           <p class="text-xs font-medium uppercase tracking-wider text-text-muted">Servicios realizados</p>
           <p class="mt-1 text-2xl font-bold text-text">{{ earnings.length }}</p>
@@ -274,12 +255,6 @@
     </div>
   </AppLayout>
 
-  <CitaFormModal
-    ref="citaModalRef"
-    :servicios="serviciosList"
-    :empleados="empleadosList"
-    @save="handleSaveCita"
-  />
 </template>
 
 <script setup lang="ts">
@@ -288,29 +263,22 @@ import { useQuery } from '@tanstack/vue-query'
 import { useNotification } from '../composables/useNotification'
 import { useAuthStore } from '../store/auth'
 import { useBusinessStore } from '../store/business'
-import { useAppointmentMutations } from '../composables/useAppointmentMutations'
-import { listServicios, serviciosKeys } from '../services/serviciosService'
-import { listEquipo, equipoKeys } from '../services/equipoService'
 import { getInitials, getStatusLabel, getStatusColor, formatMethod, formatDate, formatNumber } from '../lib/formatters'
 import { listEmployeeAppointments, listEmployeeTransactions, listEmployeePayments, dashboardKeys } from '../services/employeeDashboardService'
 import AppLayout from '../components/layout/AppLayout.vue'
-import AgendaCalendar from '../components/agenda/AgendaCalendar.vue'
-import { CitaFormModal } from '../components/modals'
 
 const authStore = useAuthStore()
 const businessStore = useBusinessStore()
 useNotification()
 
-const t = computed(() => businessStore.terminology)
 const businessId = computed(() => authStore.businessId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
 const businessName = computed(() => businessStore.business?.name ?? '')
 
-type TabId = 'agenda' | 'historial' | 'comisiones' | 'recibo'
-const activeTab = ref<TabId>('agenda')
+type TabId = 'historial' | 'comisiones' | 'recibo'
+const activeTab = ref<TabId>('historial')
 
 const tabs = [
-  { id: 'agenda' as const, label: 'Mi Agenda', icon: '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>' },
   { id: 'historial' as const, label: 'Mi Historial', icon: '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>' },
   { id: 'comisiones' as const, label: 'Mis Comisiones', icon: '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>' },
   { id: 'recibo' as const, label: 'Mi Recibo', icon: '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>' },
@@ -360,47 +328,6 @@ const payments = computed(() => paymentsData.value ?? [])
 
 // Initials
 const initials = computed(() => getInitials(authStore.profile?.full_name))
-
-// CitaFormModal
-const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
-
-const { data: serviciosData } = useQuery({
-  queryKey: computed(() => serviciosKeys.all(businessId.value)),
-  queryFn: () => listServicios(businessId.value!),
-  enabled: computed(() => !!businessId.value),
-})
-
-const { data: empleadosData } = useQuery({
-  queryKey: computed(() => equipoKeys.all(businessId.value)),
-  queryFn: () => listEquipo(businessId.value!),
-  enabled: computed(() => !!businessId.value),
-})
-
-const serviciosList = computed(() => (serviciosData.value ?? []).map(s => ({
-  id: s.id, name: s.name, price: s.price, duration: s.duration,
-})))
-
-const empleadosList = computed(() => (empleadosData.value ?? []).map(e => ({
-  id: e.id, name: e.name,
-})))
-
-const handleNewCita = () => {
-  citaModalRef.value?.open()
-}
-
-const handleEventClick = (_event: { id: string; title: string; start: Date; end: Date }) => {
-  // Employees can view details but not edit through modal
-}
-
-const {
-  handleSaveCita,
-  handleStatusChange,
-  handleEventChange,
-} = useAppointmentMutations({
-  businessId,
-  createdBy: computed(() => authStore.profile?.id),
-  modalRef: citaModalRef,
-})
 
 // Print receipt
 const windowPrint = () => {

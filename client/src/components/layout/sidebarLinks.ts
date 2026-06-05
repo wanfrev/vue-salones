@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  Calendar,
   Clock,
   DollarSign,
   Receipt,
@@ -32,6 +33,8 @@ export interface SidebarSection {
 export const sidebarSections: SidebarSection[] = [
   {
     links: [
+      { to: '/admin/calendario', label: 'Calendario', icon: Calendar, adminOnly: true },
+      { to: '/dashboard/calendario', label: 'Calendario', icon: Calendar, employeeOnly: true },
       { to: '/admin', label: 'Agenda', icon: CalendarDays, adminOnly: true },
       { to: '/dashboard/agenda', label: 'Agenda', icon: CalendarDays, employeeOnly: true },
       { to: '/dashboard/historial', label: 'Historial', icon: Clock, employeeOnly: true },

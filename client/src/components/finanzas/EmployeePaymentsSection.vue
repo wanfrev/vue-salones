@@ -12,7 +12,26 @@
         <span class="hidden sm:inline">Registrar pago</span>
       </button>
     </div>
-    <div class="overflow-x-auto">
+    <div class="lg:hidden space-y-2 mb-3">
+      <div v-for="payment in visibleEmployeePayments" :key="payment.id" class="rounded-lg border border-border-subtle bg-bg-secondary p-3">
+        <div class="font-medium text-text text-sm mb-1">{{ payment.employee }}</div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs text-text-muted">{{ payment.service }}</span>
+          <span class="text-xs text-text-secondary">{{ payment.percentage }}%</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="font-medium text-text text-sm">{{ formatUSD(payment.earnings) }}</div>
+            <div class="text-xs text-text-muted">Bs {{ formatVESInline(payment.earnings) }}</div>
+          </div>
+          <div class="text-right">
+            <div class="text-text text-sm">{{ formatUSD(payment.amount) }}</div>
+            <div class="text-xs text-text-muted">Bs {{ formatVESInline(payment.amount) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="overflow-x-auto hidden lg:block">
       <table class="w-full">
         <thead>
           <tr class="border-b border-border-subtle">
@@ -45,7 +64,25 @@
         <h4 class="text-base font-semibold text-text">Pago de nómina</h4>
         <span class="text-xs text-text-muted">{{ paymentsMade.length }} pago(s)</span>
       </div>
-      <div class="overflow-x-auto">
+      <div class="lg:hidden space-y-2 mb-3">
+        <div v-for="ep in visiblePaymentsMade" :key="ep.id" class="rounded-lg border border-border-subtle bg-bg-secondary p-3">
+          <div class="flex items-start justify-between mb-1">
+            <div>
+              <div class="text-xs text-text-muted">{{ ep.paymentDate }}</div>
+              <div class="font-medium text-text text-sm">{{ ep.employeeName }}</div>
+            </div>
+            <span class="text-xs text-text-muted shrink-0">{{ formatMethod(ep.paymentMethod) }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-text-muted">Monto</span>
+            <div class="text-right">
+              <div class="font-medium text-danger text-sm">{{ formatUSD(ep.amount) }}</div>
+              <div class="text-xs text-text-muted">Bs {{ formatVESInline(ep.amount) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="overflow-x-auto hidden lg:block">
         <table class="w-full">
           <thead>
             <tr class="border-b border-border-subtle">

@@ -70,7 +70,50 @@
     </div>
   </div>
 
-  <div class="overflow-hidden rounded-lg border border-border bg-surface sm:rounded-xl">
+  <!-- Mobile: Client Cards -->
+  <div class="lg:hidden space-y-3 mb-4">
+    <div
+      v-for="client in paginatedData"
+      :key="client.id"
+      class="rounded-xl border border-border bg-surface p-4 transition-theme"
+      @click="handleViewAgenda(client)"
+    >
+      <div class="flex items-start gap-3">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+          {{ getInitials(client.name) }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-text truncate">{{ client.name }}</p>
+          <p class="text-xs text-text-muted">{{ client.phone }}</p>
+          <p class="text-xs text-text-muted">Última visita: {{ client.lastVisit }}</p>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-sm font-bold tabular-nums text-text">${{ client.totalSpent }}</p>
+          <p class="text-xs text-text-muted">{{ client.totalAppointments }} {{ (businessStore.terminology.appointment || 'cita').toLowerCase() }}s</p>
+        </div>
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button
+          @click.stop="clienteModalRef?.open(client)"
+          class="flex-1 rounded-lg border border-border py-2.5 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+        >
+          Editar
+        </button>
+        <button
+          @click.stop="handleWhatsApp(client)"
+          class="flex-1 rounded-lg border border-border py-2.5 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+        >
+          WhatsApp
+        </button>
+      </div>
+    </div>
+    <div v-if="filteredClients.length === 0" class="py-12 text-center">
+      <p class="text-sm text-text-muted">No se encontraron clientes.</p>
+    </div>
+  </div>
+
+  <!-- Desktop: Client Table -->
+  <div class="hidden lg:block overflow-hidden rounded-lg border border-border bg-surface sm:rounded-xl">
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
@@ -135,8 +178,9 @@
         </tbody>
       </table>
     </div>
+  </div>
 
-    <div class="flex items-center justify-between border-t border-border px-4 py-2.5">
+    <div class="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-2.5">
       <div class="text-sm text-text-muted">
         {{ paginationStart }}-{{ paginationEnd }} de {{ filteredClients.length }}
       </div>
@@ -169,7 +213,6 @@
         </button>
       </div>
     </div>
-  </div>
 
   <ClienteFormModal
     ref="clienteModalRef"

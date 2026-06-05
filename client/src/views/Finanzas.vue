@@ -190,7 +190,33 @@
         <p class="text-sm text-text-muted">Últimos pagos registrados</p>
       </div>
     </div>
-    <div class="overflow-x-auto">
+    <div class="lg:hidden space-y-2">
+      <div v-for="tx in visibleTransactions" :key="tx.id" class="rounded-lg border border-border-subtle bg-bg-secondary p-3">
+        <div class="flex items-start justify-between mb-1.5">
+          <div>
+            <div class="text-xs text-text-muted">{{ tx.date }}</div>
+            <div class="font-medium text-text text-sm">{{ tx.description }}</div>
+          </div>
+          <span :class="['rounded-full px-2 py-0.5 text-xs font-semibold shrink-0',
+            tx.type === 'ingreso' ? 'bg-success/10 text-success' :
+            tx.type === 'nomina' ? 'bg-warning/10 text-warning' :
+            'bg-danger/10 text-danger'
+          ]">
+            {{ tx.type === 'ingreso' ? 'Ingreso' : tx.type === 'nomina' ? 'Nómina' : 'Gasto' }}
+          </span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-text-muted">{{ tx.method }}</span>
+          <div class="text-right">
+            <div class="font-medium text-sm" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
+              {{ tx.type === 'ingreso' ? '' : '-' }}{{ formatUSD(tx.amount) }}
+            </div>
+            <div class="text-xs text-text-muted">Bs {{ formatVESInline(tx.amount) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="overflow-x-auto hidden lg:block">
       <table class="w-full">
         <thead>
           <tr class="border-b border-border-subtle">

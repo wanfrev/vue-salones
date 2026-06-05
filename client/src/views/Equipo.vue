@@ -140,7 +140,34 @@
       <h3 class="text-base font-semibold text-text">Horarios del Equipo - Hoy</h3>
       <p class="text-sm text-text-muted">Entrada, salida y disponibilidad</p>
     </div>
-    <div class="overflow-x-auto">
+    <div class="space-y-3 lg:hidden">
+      <div
+        v-for="schedule in teamSchedule"
+        :key="schedule.id"
+        class="flex flex-col gap-2 rounded-lg border border-border bg-bg-secondary/30 p-3 text-sm"
+      >
+        <div class="flex items-center justify-between">
+          <span class="font-medium text-text">{{ schedule.name }}</span>
+          <span
+            :class="[
+              'inline-flex h-2.5 w-2.5 rounded-full',
+              schedule.available ? 'bg-success' : 'bg-danger'
+            ]"
+          ></span>
+        </div>
+        <div class="flex flex-wrap gap-x-4 gap-y-1 text-text-secondary">
+          <span>Entrada: {{ schedule.start }}</span>
+          <span>Salida: {{ schedule.end }}</span>
+          <span>Descanso: {{ schedule.break }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-text-muted">
+          <span class="inline-flex items-center justify-center rounded-full bg-primary/10 px-2.5 py-1 font-medium text-primary">
+            {{ schedule.appointments }} {{ businessStore.terminology.appointment || 'Cita' }}{{ schedule.appointments !== 1 ? 's' : '' }}
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="overflow-x-auto hidden lg:block">
       <table class="w-full">
         <thead>
           <tr class="border-b border-border-subtle">

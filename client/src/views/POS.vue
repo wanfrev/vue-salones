@@ -67,52 +67,134 @@
     />
   </div>
 
-  <div v-else class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-    <div class="lg:col-span-2 space-y-4">
-      <POSAppointmentSelector
-        :appointments="appointments"
-        :selected-id="selectedAppointment?.id ?? null"
-        @select="onSelectAppointment"
-      />
+  <div v-else>
+    <!-- Desktop grid -->
+    <div class="hidden lg:grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div class="lg:col-span-2 space-y-4">
+        <POSAppointmentSelector
+          :appointments="appointments"
+          :selected-id="selectedAppointment?.id ?? null"
+          @select="onSelectAppointment"
+        />
 
-      <POSCart
-        v-if="selectedAppointment"
-        :products="products"
-        @add-product="cartCtx.addProduct"
-      />
+        <POSCart
+          v-if="selectedAppointment"
+          :products="products"
+          @add-product="cartCtx.addProduct"
+        />
+      </div>
+
+      <div class="space-y-4">
+        <POSPaymentPanel
+          :selected-appointment="selectedAppointment"
+          :cart="cartCtx.cart.value"
+          :service-price="Number(selectedAppointment?.services?.price ?? 0)"
+          :products-total="cartCtx.productsTotal.value"
+          :cart-count="cartCtx.cart.value.length"
+          :grand-total="grandTotal"
+          :payment-method="paymentCtx.paymentMethod.value"
+          :payment-methods="paymentCtx.paymentMethods"
+          :mixed-methods="paymentCtx.mixedMethods"
+          :payments-breakdown="paymentCtx.paymentsBreakdown.value"
+          :split-remaining="splitRemaining"
+          :is-processing="paymentCtx.isProcessing.value"
+          :can-pay="canPay"
+          :notes="paymentCtx.paymentNotes.value"
+          @select-method="paymentCtx.selectMethod"
+          @add-split="paymentCtx.addSplit"
+          @remove-split="paymentCtx.removeSplit"
+          @update:notes="paymentCtx.paymentNotes.value = $event"
+          @process-payment="handleProcessPayment"
+          @increment-qty="cartCtx.incrementQty"
+          @decrement-qty="cartCtx.decrementQty"
+          @remove-item="cartCtx.removeItem"
+        />
+      </div>
     </div>
 
-    <div class="space-y-4">
-      <POSPaymentPanel
-        :selected-appointment="selectedAppointment"
-        :cart="cartCtx.cart.value"
-        :service-price="Number(selectedAppointment?.services?.price ?? 0)"
-        :products-total="cartCtx.productsTotal.value"
-        :cart-count="cartCtx.cart.value.length"
-        :grand-total="grandTotal"
-        :payment-method="paymentCtx.paymentMethod.value"
-        :payment-methods="paymentCtx.paymentMethods"
-        :mixed-methods="paymentCtx.mixedMethods"
-        :payments-breakdown="paymentCtx.paymentsBreakdown.value"
-        :split-remaining="splitRemaining"
-        :is-processing="paymentCtx.isProcessing.value"
-        :can-pay="canPay"
-        :notes="paymentCtx.paymentNotes.value"
-        @select-method="paymentCtx.selectMethod"
-        @add-split="paymentCtx.addSplit"
-        @remove-split="paymentCtx.removeSplit"
-        @update:notes="paymentCtx.paymentNotes.value = $event"
-        @process-payment="handleProcessPayment"
-        @increment-qty="cartCtx.incrementQty"
-        @decrement-qty="cartCtx.decrementQty"
-        @remove-item="cartCtx.removeItem"
-      />
+    <!-- Mobile stacked layout -->
+    <div class="lg:hidden">
+      <div class="space-y-4 pb-24">
+        <POSAppointmentSelector
+          :appointments="appointments"
+          :selected-id="selectedAppointment?.id ?? null"
+          @select="onSelectAppointment"
+        />
+
+        <POSCart
+          v-if="selectedAppointment"
+          :products="products"
+          @add-product="cartCtx.addProduct"
+        />
+      </div>
+
+      <!-- Mobile floating bottom bar -->
+      <div
+        v-if="selectedAppointment && !isPaymentModalOpen"
+        class="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface px-4 py-3 shadow-2xl lg:hidden"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm text-text-muted">Total</span>
+          <span class="text-lg font-bold text-primary">{{ formatDual(grandTotal) }}</span>
+        </div>
+        <button
+          @click="isPaymentModalOpen = true"
+          class="w-full rounded-xl bg-primary py-3 text-sm font-bold text-text-inverse transition-theme hover:bg-primary-hover"
+        >
+          Proceder al cobro
+        </button>
+      </div>
     </div>
+
+    <!-- Mobile full-screen payment modal -->
+    <Teleport to="body">
+      <div
+        v-if="isPaymentModalOpen"
+        class="fixed inset-0 z-50 flex flex-col bg-surface lg:hidden"
+      >
+        <div class="flex items-center justify-between border-b border-border px-4 py-4">
+          <h3 class="text-lg font-semibold text-text">Cobro</h3>
+          <button
+            @click="isPaymentModalOpen = false"
+            class="rounded-lg p-2 text-text-muted hover:bg-bg-secondary transition-theme"
+          >
+            <X class="h-5 w-5" />
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto px-4 py-4">
+          <POSPaymentPanel
+            :selected-appointment="selectedAppointment"
+            :cart="cartCtx.cart.value"
+            :service-price="Number(selectedAppointment?.services?.price ?? 0)"
+            :products-total="cartCtx.productsTotal.value"
+            :cart-count="cartCtx.cart.value.length"
+            :grand-total="grandTotal"
+            :payment-method="paymentCtx.paymentMethod.value"
+            :payment-methods="paymentCtx.paymentMethods"
+            :mixed-methods="paymentCtx.mixedMethods"
+            :payments-breakdown="paymentCtx.paymentsBreakdown.value"
+            :split-remaining="splitRemaining"
+            :is-processing="paymentCtx.isProcessing.value"
+            :can-pay="canPay"
+            :notes="paymentCtx.paymentNotes.value"
+            @select-method="paymentCtx.selectMethod"
+            @add-split="paymentCtx.addSplit"
+            @remove-split="paymentCtx.removeSplit"
+            @update:notes="paymentCtx.paymentNotes.value = $event"
+            @process-payment="handleProcessPayment"
+            @increment-qty="cartCtx.incrementQty"
+            @decrement-qty="cartCtx.decrementQty"
+            @remove-item="cartCtx.removeItem"
+          />
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { X } from 'lucide-vue-next'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
@@ -134,6 +216,7 @@ const businessId = computed(() => authStore.businessId)
 const cartCtx = usePOSCart()
 const paymentCtx = usePOSPayment()
 const activeTab = ref<'quick' | 'appointments'>('quick')
+const isPaymentModalOpen = ref(false)
 
 const selectedAppointment = ref<any>(null)
 const queryError = ref<string | null>(null)
@@ -212,6 +295,7 @@ const handleProcessPayment = async () => {
     selectedAppointment.value = null
     cartCtx.clearCart()
     paymentCtx.reset()
+    isPaymentModalOpen.value = false
     queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
   }
 }

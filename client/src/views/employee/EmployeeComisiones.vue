@@ -2,7 +2,7 @@
   <AppLayout>
     <div class="space-y-6">
       <!-- Summary Cards -->
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <div class="rounded-xl border border-border bg-surface p-4">
           <p class="text-xs font-medium uppercase tracking-wider text-text-muted">Servicios realizados</p>
           <p class="mt-1 text-2xl font-bold text-text">{{ earnings.length }}</p>

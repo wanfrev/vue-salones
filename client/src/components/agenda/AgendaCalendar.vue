@@ -69,6 +69,24 @@
       </div>
     </div>
 
+    <!-- Mobile: Date Selector Carousel -->
+    <div class="lg:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide">
+      <div class="flex gap-1.5 min-w-max pb-3">
+        <button
+          v-for="day in weekDays"
+          :key="day.date"
+          @click="selectedDate = day.date"
+          class="flex flex-col items-center rounded-xl px-3 py-2 min-w-[54px] transition-theme"
+          :class="day.date === selectedDate
+            ? 'bg-primary text-text-inverse shadow-sm shadow-primary/25'
+            : 'bg-surface border border-border text-text-secondary'"
+        >
+          <span class="text-[10px] font-semibold uppercase tracking-wide">{{ day.label }}</span>
+          <span class="text-base font-bold mt-0.5 leading-tight">{{ day.number }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Calendario -->
     <div class="flex-1 overflow-hidden rounded-lg border border-border bg-surface shadow-sm sm:rounded-xl">
       <FullCalendar ref="calendarRef" :options="calendarOptions" class="h-full" />
@@ -77,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watch, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import FullCalendar from '@fullcalendar/vue3'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -93,6 +111,7 @@ import type { Cita } from '../../types/cita'
 const route = useRoute()
 const authStore = useAuthStore()
 const isAdmin = computed(() => isAdminPanelRole(authStore.role ?? undefined))
+const calendarRef = ref<InstanceType<typeof FullCalendar> | null>(null)
 const emit = defineEmits<{
   eventClick: [event: {
     id: string
@@ -105,7 +124,7 @@ const emit = defineEmits<{
   statusChange: [payload: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }]
   eventChange: [payload: { id: string; start: string; end: string }]
   slotSelect: [payload: { start: Date; end: Date }]
-}>()
+} >()
 
 const {
   selectedEmployeeId,
@@ -117,6 +136,50 @@ const {
   appointments,
 } = useAgenda()
 
+// Mobile detection
+const isMobile = ref(window.innerWidth < 1024)
+const onResize = () => { isMobile.value = window.innerWidth < 1024 }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
+
+// Mobile date selector
+const selectedDate = ref(toISODate(new Date()))
+
+const weekDays = computed(() => {
+  const selected = new Date(selectedDate.value + 'T12:00:00')
+  const startOfWeek = new Date(selected)
+  startOfWeek.setDate(selected.getDate() - selected.getDay())
+  const days = []
+  const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+  const todayStr = toISODate(new Date())
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(startOfWeek)
+    date.setDate(startOfWeek.getDate() + i)
+    const dateStr = toISODate(date)
+    days.push({
+      date: dateStr,
+      label: dayNames[date.getDay()],
+      number: date.getDate(),
+      isToday: dateStr === todayStr,
+    })
+  }
+  return days
+})
+
+watch(isMobile, (mobile) => {
+  const api = calendarRef.value?.getApi()
+  if (api) {
+    api.changeView(mobile ? 'timeGridDay' : 'timeGridWeek')
+  }
+})
+
+watch(selectedDate, (date) => {
+  const api = calendarRef.value?.getApi()
+  if (api) {
+    api.gotoDate(date)
+  }
+})
+
 onMounted(() => {
   if (!isAdmin.value && authStore.profile?.id) {
     selectedEmployeeId.value = authStore.profile.id
@@ -124,6 +187,13 @@ onMounted(() => {
   const employeeParam = route.query.employee as string | undefined
   if (employeeParam) {
     selectedEmployeeId.value = employeeParam
+  }
+  if (isMobile.value) {
+    const api = calendarRef.value?.getApi()
+    if (api) {
+      const now = new Date()
+      api.scrollToTime({ hours: now.getHours(), minutes: now.getMinutes() })
+    }
   }
 })
 
@@ -214,8 +284,12 @@ const calendarEvents = computed<EventInput[]>(() => {
 
 const calendarOptions = computed<CalendarOptions>(() => ({
   plugins: [timeGridPlugin, dayGridPlugin, interactionPlugin],
-  initialView: 'timeGridWeek',
-  headerToolbar: {
+  initialView: isMobile.value ? 'timeGridDay' : 'timeGridWeek',
+  headerToolbar: isMobile.value ? {
+    left: 'prev,next',
+    center: 'title',
+    right: 'today'
+  } : {
     left: 'prev,next today',
     center: 'title',
     right: 'dayGridMonth,timeGridWeek,timeGridDay'
@@ -1195,5 +1269,15 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
 .dark .fc-daygrid-day-number {
   color: var(--color-text);
+}
+
+@media (max-width: 1023px) {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 </style>
