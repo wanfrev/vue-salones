@@ -50,34 +50,58 @@ export function normalizeAppointmentStatus(appt: { status: string; payment_statu
   return appt.status
 }
 
-const DATE_FORMATS: Record<string, Intl.DateTimeFormatOptions> = {
-  short: { day: '2-digit', month: 'short', year: 'numeric' },
-  long: { day: '2-digit', month: 'long', year: 'numeric' },
-  shortTime: { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' },
-  month: { month: 'short' },
+const DATE_FORMATS = {
+  short: 'short',
+  long: 'long',
+  shortTime: 'shortTime',
+  month: 'month',
+} as const
+
+function toLocalDate(value: string | Date): Date {
+  if (value instanceof Date) return value
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/
+  const match = value.match(dateOnly)
+  if (match) {
+    const [, year, month, day] = match
+    return new Date(Number(year), Number(month) - 1, Number(day))
+  }
+  return new Date(value)
+}
+
+function formatDdMmYy(date: Date): string {
+  const dd = String(date.getDate()).padStart(2, '0')
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const yy = String(date.getFullYear()).slice(-2)
+  return `${dd}-${mm}-${yy}`
 }
 
 export function formatDate(date: string | Date, format: keyof typeof DATE_FORMATS = 'short'): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+  const d = toLocalDate(date)
   if (Number.isNaN(d.getTime())) return String(date)
-  return d.toLocaleDateString('es-ES', DATE_FORMATS[format])
+  if (format === 'month') {
+    return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getFullYear()).slice(-2)}`
+  }
+  return formatDdMmYy(d)
 }
 
 export function formatTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+  const d = toLocalDate(date)
   if (Number.isNaN(d.getTime())) return String(date)
   return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
 }
 
 export function formatDateTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+  const d = toLocalDate(date)
   if (Number.isNaN(d.getTime())) return String(date)
   return `${formatDate(d, 'short')} ${formatTime(d)}`
 }
 
 export function toISODate(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date
-  return d.toISOString().split('T')[0]
+  const d = toLocalDate(date)
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
 }
 
 export function sanitizePhone(phone: string): string {

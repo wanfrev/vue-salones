@@ -180,9 +180,10 @@ const {
 
 const todayLabel = computed(() => {
   const now = new Date()
-  const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }
-  const label = now.toLocaleDateString('es-ES', options)
-  return label.charAt(0).toUpperCase() + label.slice(1)
+  const dd = String(now.getDate()).padStart(2, '0')
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const yy = String(now.getFullYear()).slice(-2)
+  return `${dd}-${mm}-${yy}`
 })
 
 const stats = computed(() => {

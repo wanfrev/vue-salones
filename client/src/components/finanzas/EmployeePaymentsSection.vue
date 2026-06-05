@@ -42,7 +42,7 @@
     </div>
     <div v-if="paymentsMade.length > 0" class="mt-4 border-t border-border-subtle pt-4">
       <div class="mb-3 flex items-center justify-between">
-        <h4 class="text-sm font-semibold text-text">Pagos realizados</h4>
+        <h4 class="text-base font-semibold text-text">Pago de nómina</h4>
         <span class="text-xs text-text-muted">{{ paymentsMade.length }} pago(s)</span>
       </div>
       <div class="overflow-x-auto">

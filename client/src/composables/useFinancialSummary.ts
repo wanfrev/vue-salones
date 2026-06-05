@@ -49,6 +49,31 @@ type PaymentRow = {
   earnings: number
 }
 
+type EmployeeCompProfile = {
+  pay_type?: 'salary' | 'percentage' | 'mixed' | null
+  pay_percentage?: number | null
+  base_salary?: number | null
+}
+
+const computeServiceEarnings = (
+  totalAmount: number,
+  profile?: EmployeeCompProfile | null,
+  fallbackPercentage?: number | null
+) => {
+  const payType = profile?.pay_type ?? 'percentage'
+  const configuredPercentage = Number(profile?.pay_percentage ?? fallbackPercentage ?? 0)
+
+  if (payType === 'salary') {
+    return { percentage: 0, earnings: 0 }
+  }
+
+  const normalizedPercentage = Math.max(0, configuredPercentage)
+  return {
+    percentage: normalizedPercentage,
+    earnings: totalAmount * (normalizedPercentage / 100),
+  }
+}
+
 export type ServiceRevenue = {
   name: string
   amount: number
@@ -67,13 +92,29 @@ type PeriodConfig = {
   end: Date
 }
 
-const resolvePeriod = (value: 'month' | 'quarter' | 'year'): PeriodConfig => {
+const resolvePeriod = (value: 'month' | 'quarter' | 'year', monthKey?: string): PeriodConfig => {
+  const parseMonthKey = (key?: string) => {
+    if (!key) return null
+    const match = key.match(/^(\d{4})-(\d{2})$/)
+    if (!match) return null
+    const year = Number(match[1])
+    const month = Number(match[2]) - 1
+    if (Number.isNaN(year) || Number.isNaN(month) || month < 0 || month > 11) return null
+    return { year, month }
+  }
+
   const today = new Date()
   if (value === 'month') {
+    const parsed = parseMonthKey(monthKey)
+    const monthDate = parsed ? new Date(parsed.year, parsed.month, 1) : today
+    const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
+    const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)
+    const isCurrentMonth = monthStart.getFullYear() === today.getFullYear() && monthStart.getMonth() === today.getMonth()
+
     return {
       bucket: 'day',
-      start: new Date(today.getFullYear(), today.getMonth(), 1),
-      end: today,
+      start: monthStart,
+      end: isCurrentMonth ? today : monthEnd,
     }
   }
   if (value === 'quarter') {
@@ -102,9 +143,10 @@ const normalizeBucketKey = (date: Date, bucket: 'day' | 'week' | 'month') => {
 }
 
 const formatBucketLabel = (date: Date, bucket: 'day' | 'week' | 'month') => {
-  if (bucket === 'month') return date.toLocaleDateString('es-ES', { month: 'short' })
-  if (bucket === 'week') return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
-  return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+  if (bucket === 'month') {
+    return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getFullYear()).slice(-2)}`
+  }
+  return formatDate(date)
 }
 
 
@@ -122,11 +164,12 @@ function useFinancialSummary(
   businessId: import('vue').Ref<string | null>,
   selectedPeriod: import('vue').Ref<'month' | 'quarter' | 'year'>,
   expenses: import('vue').Ref<{ date: string; amount: number }[]>,
+  selectedMonth?: import('vue').Ref<string>,
 ) {
-  const periodConfig = computed(() => resolvePeriod(selectedPeriod.value))
+  const periodConfig = computed(() => resolvePeriod(selectedPeriod.value, selectedMonth?.value))
 
   const summaryQueryKey = computed(() =>
-    ['financial-summary', businessId.value, selectedPeriod.value] as const
+    ['financial-summary', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null] as const
   )
 
   const { data: summaryData, isLoading: isSummaryLoading } = useQuery({
@@ -150,7 +193,7 @@ function useFinancialSummary(
   const summaryBuckets = computed(() => summaryData.value ?? [])
 
   const transactionsQueryKey = computed(() =>
-    ['finanzas-transactions', businessId.value, selectedPeriod.value] as const
+    ['finanzas-transactions', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null] as const
   )
 
   const { data: transactionsData, isLoading: isTransactionsLoading } = useQuery({
@@ -172,7 +215,7 @@ function useFinancialSummary(
             employee_id,
             clients ( full_name ),
             services ( name ),
-            employee_profile:profiles!appointments_employee_id_fkey ( full_name )
+            employee_profile:profiles!appointments_employee_id_fkey ( full_name, pay_type, pay_percentage, base_salary )
           )
         `)
         .eq('business_id', businessId.value!)
@@ -188,7 +231,12 @@ function useFinancialSummary(
           appointments?: {
             clients?: { full_name: string | null } | null
             services?: { name: string | null } | null
-            employee_profile?: { full_name: string | null } | null
+            employee_profile?: {
+              full_name: string | null
+              pay_type?: 'salary' | 'percentage' | 'mixed' | null
+              pay_percentage?: number | null
+              base_salary?: number | null
+            } | null
           } | null
         }
       >
@@ -202,7 +250,7 @@ function useFinancialSummary(
 
   // Employee payments query for same period
   const { data: rawEmployeePayments } = useQuery({
-    queryKey: computed(() => ['finanzas-employee-payments', businessId.value, selectedPeriod.value]),
+    queryKey: computed(() => ['finanzas-employee-payments', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null]),
     queryFn: async () => {
       const cfg = periodConfig.value
       const { data, error } = await supabase
@@ -220,7 +268,7 @@ function useFinancialSummary(
 
   // Expenses query for same period
   const { data: rawExpenses } = useQuery({
-    queryKey: computed(() => ['finanzas-expenses', businessId.value, selectedPeriod.value]),
+    queryKey: computed(() => ['finanzas-expenses', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null]),
     queryFn: async () => {
       const cfg = periodConfig.value
       const { data, error } = await supabase
@@ -238,7 +286,7 @@ function useFinancialSummary(
 
   // Product sales (inventory movements with movement_type = 'sale') for the same period
   const { data: rawInventoryMovements } = useQuery({
-    queryKey: computed(() => ['finanzas-product-sales', businessId.value, selectedPeriod.value]),
+    queryKey: computed(() => ['finanzas-product-sales', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null]),
     queryFn: async () => {
       const cfg = periodConfig.value
       const { data, error } = await supabase
@@ -308,7 +356,7 @@ function useFinancialSummary(
   })
 
   const unifiedTransactions = computed<UnifiedTransaction[]>(() => {
-    const result: UnifiedTransaction[] = []
+    const result: Array<UnifiedTransaction & { sortDate: string }> = []
 
     // Appointment payments (income)
     for (const tx of rawTransactions.value) {
@@ -319,6 +367,7 @@ function useFinancialSummary(
         method: formatMethod(tx.method),
         amount: tx.total_amount,
         type: 'ingreso',
+        sortDate: tx.paid_at ?? tx.created_at,
       })
     }
 
@@ -332,6 +381,7 @@ function useFinancialSummary(
         method: formatMethod(ep.payment_method),
         amount: ep.amount,
         type: 'nomina',
+        sortDate: ep.payment_date,
       })
     }
 
@@ -345,24 +395,33 @@ function useFinancialSummary(
         method: '—',
         amount: ex.amount,
         type: 'gasto',
+        sortDate: ex.expense_date,
       })
     }
 
-    result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    return result
+    result.sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime())
+    return result.map(({ sortDate: _sortDate, ...tx }) => tx)
   })
 
   const transactions = computed(() => unifiedTransactions.value)
 
   const employeePayments = computed<PaymentRow[]>(() =>
-    rawTransactions.value.map(row => ({
-      id: row.id,
-      employee: row.appointments?.employee_profile?.full_name ?? '—',
-      service: row.appointments?.services?.name ?? '—',
-      amount: row.total_amount,
-      percentage: row.employee_percentage ?? 0,
-      earnings: row.total_amount * ((row.employee_percentage ?? 0) / 100),
-    }))
+    rawTransactions.value.map(row => {
+      const calc = computeServiceEarnings(
+        Number(row.total_amount ?? 0),
+        row.appointments?.employee_profile,
+        row.employee_percentage,
+      )
+
+      return {
+        id: row.id,
+        employee: row.appointments?.employee_profile?.full_name ?? '—',
+        service: row.appointments?.services?.name ?? '—',
+        amount: row.total_amount,
+        percentage: calc.percentage,
+        earnings: calc.earnings,
+      }
+    })
   )
 
   const incomeTotal = computed(() =>

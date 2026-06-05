@@ -228,6 +228,7 @@ const { formatUSD } = useCurrency()
 const terminology = businessStore.terminology
 
 const selectedPeriod = ref<PeriodValue>('month')
+const selectedMonth = ref<string>(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`)
 
 watch(
   () => route.query.period,
@@ -241,6 +242,16 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => route.query.month,
+  (value) => {
+    if (typeof value === 'string' && /^\d{4}-\d{2}$/.test(value)) {
+      selectedMonth.value = value
+    }
+  },
+  { immediate: true },
+)
+
 const tipo = computed<TipoRegistros>(() => {
   const raw = route.params.tipo
   if (raw === 'gastos' || raw === 'pagos' || raw === 'transacciones' || raw === 'cobros' || raw === 'ventas-productos') return raw
@@ -248,9 +259,47 @@ const tipo = computed<TipoRegistros>(() => {
 })
 
 const businessId = computed(() => authStore.businessId)
-const expensesCtx = useExpenses(businessId, selectedPeriod)
-const summaryCtx = useFinancialSummary(businessId, selectedPeriod, expensesCtx.expenses)
-const paymentsCtx = useEmployeePayments(businessId)
+
+const periodDates = computed(() => {
+  const monthMatch = selectedMonth.value.match(/^(\d{4})-(\d{2})$/)
+  const today = new Date()
+
+  const toYmd = (d: Date) => {
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
+
+  if (selectedPeriod.value === 'month' && monthMatch) {
+    const year = Number(monthMatch[1])
+    const monthIndex = Number(monthMatch[2]) - 1
+    const start = new Date(year, monthIndex, 1)
+    const endOfMonth = new Date(year, monthIndex + 1, 0)
+    const isCurrentMonth = year === today.getFullYear() && monthIndex === today.getMonth()
+    return {
+      start: toYmd(start),
+      end: toYmd(isCurrentMonth ? today : endOfMonth),
+    }
+  }
+
+  if (selectedPeriod.value === 'quarter') {
+    const quarterStart = Math.floor(today.getMonth() / 3) * 3
+    return {
+      start: toYmd(new Date(today.getFullYear(), quarterStart, 1)),
+      end: toYmd(today),
+    }
+  }
+
+  return {
+    start: toYmd(new Date(today.getFullYear(), 0, 1)),
+    end: toYmd(today),
+  }
+})
+
+const expensesCtx = useExpenses(businessId, selectedPeriod, selectedMonth)
+const summaryCtx = useFinancialSummary(businessId, selectedPeriod, expensesCtx.expenses, selectedMonth)
+const paymentsCtx = useEmployeePayments(businessId, periodDates)
 
 const title = computed(() => {
   if (tipo.value === 'gastos') return 'Todos los gastos'
@@ -263,13 +312,13 @@ const title = computed(() => {
 const periodLabel = computed(() => {
   if (selectedPeriod.value === 'quarter') return 'trimestral'
   if (selectedPeriod.value === 'year') return 'anual'
-  return 'mensual'
+  return `mensual (${selectedMonth.value})`
 })
 
 const goBack = () => {
   router.push({
     name: 'admin-finanzas',
-    query: { period: selectedPeriod.value },
+    query: { period: selectedPeriod.value, month: selectedMonth.value },
   })
 }
 </script>

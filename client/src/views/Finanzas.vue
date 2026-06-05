@@ -10,13 +10,30 @@
         </div>
         <h1 class="text-xl font-bold text-text lg:text-2xl">Dashboard Financiero</h1>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2 justify-end">
         <div class="flex rounded-xl border border-border bg-surface p-1">
           <button v-for="period in periods" :key="period.value"
             @click="selectedPeriod = period.value"
             :class="['rounded-lg px-3 py-1.5 text-xs font-medium transition-theme',
               selectedPeriod === period.value ? 'bg-primary text-text-inverse' : 'text-text-secondary hover:bg-bg-secondary'
             ]">{{ period.label }}</button>
+        </div>
+        <div class="flex items-center gap-2 rounded-xl border border-border bg-surface px-2 py-1.5">
+          <label for="month-picker" class="text-xs font-medium text-text-muted">Mes</label>
+          <input
+            id="month-picker"
+            v-model="selectedMonth"
+            type="month"
+            class="rounded-md border border-border bg-surface px-2 py-1 text-xs text-text outline-none transition-theme focus:border-primary"
+            @change="selectedPeriod = 'month'"
+          />
+          <button
+            type="button"
+            class="rounded-md border border-border px-2 py-1 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+            @click="resetToCurrentMonth"
+          >
+            Mes actual
+          </button>
         </div>
         <button class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:text-text">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -45,8 +62,8 @@
   />
 
   <!-- Nueva sección: Ingresos desglosados -->
-  <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-    <div class="rounded-xl border border-border bg-surface p-4">
+  <div class="mb-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2">
+    <div class="flex h-full flex-col rounded-xl border border-border bg-surface p-4">
       <div class="mb-2">
         <h3 class="text-base font-semibold text-text">Ingresos por Cobros de Citas</h3>
         <p class="text-sm text-text-muted">Total cobrado por servicios (periodo seleccionado)</p>
@@ -54,34 +71,34 @@
       <div class="text-2xl font-bold text-success">{{ formatUSD(appointmentChargesTotal) }}</div>
       <div class="text-xs text-text-muted">Bs {{ formatVESInline(appointmentChargesTotal) }}</div>
 
-      <div class="mt-4">
+      <div class="mt-4 flex flex-1 flex-col">
         <h4 class="mb-2 text-sm font-medium text-text">Detalle de cobros</h4>
         <div v-if="appointmentIncomeRows.length" class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-border-subtle">
-                <th class="py-2 text-left text-xs text-text-muted">Fecha</th>
-                <th class="py-2 text-left text-xs text-text-muted">Cliente</th>
-                <th class="py-2 text-left text-xs text-text-muted">Empleado</th>
-                <th class="py-2 text-left text-xs text-text-muted">Servicio</th>
-                <th class="py-2 text-left text-xs text-text-muted">Método</th>
-                <th class="py-2 text-right text-xs text-text-muted">Monto</th>
+                <th class="px-2 py-2 text-left text-xs text-text-muted">Fecha</th>
+                <th class="px-2 py-2 text-left text-xs text-text-muted">Cliente</th>
+                <th class="px-2 py-2 text-left text-xs text-text-muted">Empleado</th>
+                <th class="px-2 py-2 text-left text-xs text-text-muted">Servicio</th>
+                <th class="px-2 py-2 text-left text-xs text-text-muted">Método</th>
+                <th class="px-2 py-2 text-right text-xs text-text-muted">Monto</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border-subtle">
               <tr v-for="item in appointmentIncomeRows" :key="item.id" class="text-xs">
-                <td class="py-2 whitespace-nowrap text-text-secondary">{{ item.date }}</td>
-                <td class="py-2 text-text">{{ item.client }}</td>
-                <td class="py-2 text-text">{{ item.employee }}</td>
-                <td class="py-2 text-text">{{ item.service }}</td>
-                <td class="py-2 text-text-muted">{{ item.method }}</td>
-                <td class="py-2 text-right font-medium text-success">{{ formatUSD(item.amount) }}</td>
+                <td class="px-2 py-2 whitespace-nowrap text-text-secondary">{{ item.date }}</td>
+                <td class="px-2 py-2 text-text">{{ item.client }}</td>
+                <td class="px-2 py-2 text-text">{{ item.employee }}</td>
+                <td class="px-2 py-2 text-text">{{ item.service }}</td>
+                <td class="px-2 py-2 text-text-muted">{{ item.method }}</td>
+                <td class="px-2 py-2 text-right font-medium text-success">{{ formatUSD(item.amount) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
         <p v-else class="text-xs text-text-muted">No hay cobros de citas en este periodo.</p>
-        <div class="mt-3 flex justify-end">
+        <div class="mt-auto pt-3 flex justify-end">
           <button
             type="button"
             class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-bg-secondary"
@@ -93,7 +110,7 @@
       </div>
     </div>
 
-    <div class="rounded-xl border border-border bg-surface p-4">
+    <div class="flex h-full flex-col rounded-xl border border-border bg-surface p-4">
       <div class="mb-2">
         <h3 class="text-base font-semibold text-text">Ventas de Productos</h3>
         <p class="text-sm text-text-muted">Ingresos por venta de productos (periodo seleccionado)</p>
@@ -108,32 +125,32 @@
         </ul>
       </div>
 
-      <div class="mt-4">
+      <div class="mt-4 flex flex-1 flex-col">
         <h4 class="mb-2 text-sm font-medium text-text">Detalle de ventas de productos</h4>
         <div v-if="productSalesRows.length" class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-border-subtle">
-                <th class="py-2 text-left text-xs text-text-muted">Fecha</th>
-                <th class="py-2 text-left text-xs text-text-muted">Producto</th>
-                <th class="py-2 text-right text-xs text-text-muted">Cantidad</th>
-                <th class="py-2 text-right text-xs text-text-muted">Precio</th>
-                <th class="py-2 text-right text-xs text-text-muted">Total</th>
+                <th class="px-2 py-2 text-left text-xs text-text-muted">Fecha</th>
+                <th class="px-2 py-2 text-left text-xs text-text-muted">Producto</th>
+                <th class="px-2 py-2 text-right text-xs text-text-muted">Cantidad</th>
+                <th class="px-2 py-2 text-right text-xs text-text-muted">Precio</th>
+                <th class="px-2 py-2 text-right text-xs text-text-muted">Total</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border-subtle">
               <tr v-for="row in productSalesRows" :key="row.id" class="text-xs">
-                <td class="py-2 whitespace-nowrap text-text-secondary">{{ row.date }}</td>
-                <td class="py-2 text-text">{{ row.product }}</td>
-                <td class="py-2 text-right text-text">{{ row.quantity }}</td>
-                <td class="py-2 text-right text-text">{{ formatUSD(row.unitPrice) }}</td>
-                <td class="py-2 text-right font-medium text-success">{{ formatUSD(row.total) }}</td>
+                <td class="px-2 py-2 whitespace-nowrap text-text-secondary">{{ row.date }}</td>
+                <td class="px-2 py-2 text-text">{{ row.product }}</td>
+                <td class="px-2 py-2 text-right text-text">{{ row.quantity }}</td>
+                <td class="px-2 py-2 text-right text-text">{{ formatUSD(row.unitPrice) }}</td>
+                <td class="px-2 py-2 text-right font-medium text-success">{{ formatUSD(row.total) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
         <p v-else class="text-xs text-text-muted">No hay ventas de productos en este periodo.</p>
-        <div class="mt-3 flex justify-end">
+        <div class="mt-auto pt-3 flex justify-end">
           <button
             type="button"
             class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-bg-secondary"
@@ -177,18 +194,18 @@
       <table class="w-full">
         <thead>
           <tr class="border-b border-border-subtle">
-            <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
-            <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Descripción</th>
-            <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Tipo</th>
-            <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
-            <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
+            <th class="px-2 pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
+            <th class="px-2 pb-3 text-left text-xs font-semibold uppercase text-text-muted">Descripción</th>
+            <th class="px-2 pb-3 text-left text-xs font-semibold uppercase text-text-muted">Tipo</th>
+            <th class="px-2 pb-3 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
+            <th class="px-2 pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
           <tr v-for="tx in visibleTransactions" :key="tx.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
-            <td class="py-3 text-text-secondary whitespace-nowrap">{{ tx.date }}</td>
-            <td class="py-3 font-medium text-text">{{ tx.description }}</td>
-            <td class="py-3">
+            <td class="px-2 py-3 text-text-secondary whitespace-nowrap">{{ tx.date }}</td>
+            <td class="px-2 py-3 font-medium text-text">{{ tx.description }}</td>
+            <td class="px-2 py-3">
               <span :class="['rounded-full px-2 py-0.5 text-xs font-semibold',
                 tx.type === 'ingreso' ? 'bg-success/10 text-success' :
                 tx.type === 'nomina' ? 'bg-warning/10 text-warning' :
@@ -197,10 +214,10 @@
                 {{ tx.type === 'ingreso' ? 'Ingreso' : tx.type === 'nomina' ? 'Nómina' : 'Gasto' }}
               </span>
             </td>
-            <td class="py-3">
+            <td class="px-2 py-3">
               <span class="text-xs text-text-muted">{{ tx.method }}</span>
             </td>
-            <td class="py-3 text-right">
+            <td class="px-2 py-3 text-right">
               <div class="font-medium" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
                 {{ tx.type === 'ingreso' ? '' : '-' }}{{ formatUSD(tx.amount) }}
               </div>
@@ -255,17 +272,65 @@ const periods = [
 ]
 const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
 
+const currentMonthKey = () => {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
+const selectedMonth = ref<string>(currentMonthKey())
+
 if (route.query.period === 'quarter' || route.query.period === 'year' || route.query.period === 'month') {
   selectedPeriod.value = route.query.period
 }
 
+if (typeof route.query.month === 'string' && /^\d{4}-\d{2}$/.test(route.query.month)) {
+  selectedMonth.value = route.query.month
+}
+
 const businessId = computed(() => authStore.businessId)
 
-const expensesCtx = useExpenses(businessId, selectedPeriod)
+const periodDates = computed(() => {
+  const monthMatch = selectedMonth.value.match(/^(\d{4})-(\d{2})$/)
+  const today = new Date()
+
+  const toYmd = (d: Date) => {
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
+
+  if (selectedPeriod.value === 'month' && monthMatch) {
+    const year = Number(monthMatch[1])
+    const monthIndex = Number(monthMatch[2]) - 1
+    const start = new Date(year, monthIndex, 1)
+    const endOfMonth = new Date(year, monthIndex + 1, 0)
+    const isCurrentMonth = year === today.getFullYear() && monthIndex === today.getMonth()
+    return {
+      start: toYmd(start),
+      end: toYmd(isCurrentMonth ? today : endOfMonth),
+    }
+  }
+
+  if (selectedPeriod.value === 'quarter') {
+    const quarterStart = Math.floor(today.getMonth() / 3) * 3
+    return {
+      start: toYmd(new Date(today.getFullYear(), quarterStart, 1)),
+      end: toYmd(today),
+    }
+  }
+
+  return {
+    start: toYmd(new Date(today.getFullYear(), 0, 1)),
+    end: toYmd(today),
+  }
+})
+
+const expensesCtx = useExpenses(businessId, selectedPeriod, selectedMonth)
 const expenses = expensesCtx.expenses
 
-const summaryCtx = useFinancialSummary(businessId, selectedPeriod, expenses)
-const paymentsCtx = useEmployeePayments(businessId)
+const summaryCtx = useFinancialSummary(businessId, selectedPeriod, expenses, selectedMonth)
+const paymentsCtx = useEmployeePayments(businessId, periodDates)
 const rateCtx = useExchangeRate()
 
 const incomeTotal = summaryCtx.incomeTotal
@@ -277,11 +342,16 @@ const visibleTransactions = computed(() => summaryCtx.transactions.value.slice(0
 
 const canViewAllTransactions = computed(() => summaryCtx.transactions.value.length > 5)
 
+const resetToCurrentMonth = () => {
+  selectedPeriod.value = 'month'
+  selectedMonth.value = currentMonthKey()
+}
+
 const goToAllRecords = (tipo: 'gastos' | 'pagos' | 'transacciones' | 'cobros' | 'ventas-productos') => {
   router.push({
     name: 'admin-finanzas-registros',
     params: { tipo },
-    query: { period: selectedPeriod.value },
+    query: { period: selectedPeriod.value, month: selectedMonth.value },
   })
 }
 

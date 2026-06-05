@@ -188,6 +188,10 @@ import { FormInput, FormSelect } from '../forms'
 
 const MODAL_ID = 'empleado-form-modal'
 
+const props = withDefaults(defineProps<{ isSaving?: boolean }>(), {
+  isSaving: false,
+})
+
 const emit = defineEmits<{
   save: [empleado: EmpleadoFormData & { id?: string }]
   delete: [empleadoId: string]
@@ -200,7 +204,8 @@ const businessStore = useBusinessStore()
 
 const t = computed(() => businessStore.terminology)
 
-const isLoading = ref(false)
+const isSubmitting = ref(false)
+const isLoading = computed(() => isSubmitting.value || props.isSaving)
 const isEditing = computed(() => !!modalData.value?.empleado)
 
 const showingCustomRole = ref(false)
@@ -250,8 +255,12 @@ const isFormValid = computed(() => {
 })
 
 watch(
-  () => modalData.value?.empleado,
-  (empleado) => {
+  [isOpen, () => modalData.value?.empleado],
+  ([open, empleado]) => {
+    if (!open) return
+
+    showingCustomRole.value = false
+
     if (empleado) {
       formData.value = {
         name: empleado.name || '',
@@ -268,6 +277,7 @@ watch(
         baseSalary: empleado.baseSalary || 0,
       }
     } else {
+      // Always reset when opening "Nuevo" to avoid stale values from previous attempts.
       formData.value = { ...defaultFormData }
     }
     errors.value = {}
@@ -334,12 +344,14 @@ const confirmDelete = () => {
 }
 
 const handleSubmit = async () => {
+  if (isLoading.value) return
+
   if (!validateForm()) {
     showError('Por favor corrige los errores en el formulario')
     return
   }
 
-  isLoading.value = true
+  isSubmitting.value = true
 
   try {
     const role = formData.value.role.trim()
@@ -365,7 +377,7 @@ const handleSubmit = async () => {
     showError(`Error al guardar el ${t.value.employee.toLowerCase()}`)
     console.error(err)
   } finally {
-    isLoading.value = false
+    isSubmitting.value = false
   }
 }
 

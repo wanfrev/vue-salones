@@ -30,6 +30,24 @@ export interface EmployeeEarningRecord {
   employeeEarnings: number
 }
 
+const computeEmployeeEarnings = (
+  totalAmount: number,
+  payType?: 'salary' | 'percentage' | 'mixed' | null,
+  payPercentage?: number | null,
+  fallbackPercentage?: number | null,
+) => {
+  const type = payType ?? 'percentage'
+  if (type === 'salary') {
+    return { percentage: 0, earnings: 0 }
+  }
+
+  const percentage = Math.max(0, Number(payPercentage ?? fallbackPercentage ?? 0))
+  return {
+    percentage,
+    earnings: totalAmount * (percentage / 100),
+  }
+}
+
 export const listEmployeeAppointments = async (
   businessId: string,
   employeeId: string
@@ -83,7 +101,8 @@ export const listEmployeeTransactions = async (
       appointments!inner (
         employee_id,
         clients ( full_name ),
-        services ( name )
+        services ( name ),
+        employee_profile:profiles!appointments_employee_id_fkey ( pay_type, pay_percentage )
       )
     `)
     .eq('appointments.employee_id', employeeId)
@@ -97,19 +116,33 @@ export const listEmployeeTransactions = async (
       appointments?: {
         clients?: { full_name: string | null } | null
         services?: { name: string | null } | null
+        employee_profile?: {
+          pay_type?: 'salary' | 'percentage' | 'mixed' | null
+          pay_percentage?: number | null
+        } | null
       } | null
     }
   >
 
-  return raw.map(row => ({
-    id: row.id,
-    date: formatDate(row.paid_at),
-    clientName: row.appointments?.clients?.full_name ?? '—',
-    serviceName: row.appointments?.services?.name ?? '—',
-    totalAmount: Number(row.total_amount),
-    employeePercentage: Number(row.employee_percentage ?? 0),
-    employeeEarnings: Number(row.total_amount) * (Number(row.employee_percentage ?? 0) / 100),
-  }))
+  return raw.map(row => {
+    const totalAmount = Number(row.total_amount)
+    const calc = computeEmployeeEarnings(
+      totalAmount,
+      row.appointments?.employee_profile?.pay_type,
+      row.appointments?.employee_profile?.pay_percentage,
+      row.employee_percentage,
+    )
+
+    return {
+      id: row.id,
+      date: formatDate(row.paid_at),
+      clientName: row.appointments?.clients?.full_name ?? '—',
+      serviceName: row.appointments?.services?.name ?? '—',
+      totalAmount,
+      employeePercentage: calc.percentage,
+      employeeEarnings: calc.earnings,
+    }
+  })
 }
 
 export const listEmployeePayments = async (

@@ -82,7 +82,7 @@
   <!-- Team Grid -->
   <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     <div
-      v-for="member in team"
+      v-for="member in visibleTeam"
       :key="member.id"
       class="group rounded-xl border border-border bg-surface p-4 transition-theme hover:border-border-strong"
     >
@@ -122,6 +122,16 @@
         </button>
       </div>
     </div>
+  </div>
+
+  <div v-if="hasMoreThanDefault" class="mb-4 flex justify-center">
+    <button
+      type="button"
+      class="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-primary transition-theme hover:bg-bg-secondary"
+      @click="showAll = !showAll"
+    >
+      {{ showAll ? 'Ver menos' : 'Ver todos' }}
+    </button>
   </div>
 
   <!-- Team Schedule Overview -->
@@ -168,6 +178,7 @@
   <!-- Modals -->
   <EmpleadoFormModal
     ref="empleadoModalRef"
+    :is-saving="isSaving"
     @save="handleSaveEmpleado"
     @delete="handleDeleteEmpleado"
   />
@@ -197,6 +208,7 @@ const {
   items: team,
   handleSave: handleSaveEmpleado,
   handleDelete: handleDeleteEmpleado,
+  isSaving,
 } = useCrud<Empleado, EmpleadoFormData>({
   businessId,
   queryKey: (id) => equipoKeys.all(id),
@@ -205,6 +217,16 @@ const {
   deleteFn: (id) => deleteEmpleado(id),
   entityName: 'Empleado',
   modalRef: empleadoModalRef,
+})
+
+const DEFAULT_VISIBLE_EMPLOYEES = 4
+const showAll = ref(false)
+
+const hasMoreThanDefault = computed(() => team.value.length > DEFAULT_VISIBLE_EMPLOYEES)
+
+const visibleTeam = computed(() => {
+  if (showAll.value) return team.value
+  return team.value.slice(0, DEFAULT_VISIBLE_EMPLOYEES)
 })
 
 const teamSchedule = computed(() => team.value

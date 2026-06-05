@@ -13,13 +13,24 @@ interface EmployeeOption {
   name: string
 }
 
-export function useEmployeePayments(businessId: import('vue').Ref<string | null>) {
+export function useEmployeePayments(
+  businessId: import('vue').Ref<string | null>,
+  periodDates?: import('vue').Ref<{ start: string; end: string }>,
+) {
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
 
   const { data: paymentsData, isLoading } = useQuery({
-    queryKey: computed(() => employeePaymentKeys.all(businessId.value)),
-    queryFn: () => listEmployeePayments(businessId.value!),
+    queryKey: computed(() => [
+      ...employeePaymentKeys.all(businessId.value),
+      periodDates?.value.start ?? null,
+      periodDates?.value.end ?? null,
+    ] as const),
+    queryFn: () => listEmployeePayments(
+      businessId.value!,
+      periodDates?.value.start,
+      periodDates?.value.end,
+    ),
     enabled: computed(() => !!businessId.value),
   })
 

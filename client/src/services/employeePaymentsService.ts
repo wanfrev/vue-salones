@@ -17,12 +17,21 @@ export interface EmployeePaymentRecord {
   paymentDate: string
 }
 
-export const listEmployeePayments = async (businessId: string): Promise<EmployeePaymentRecord[]> => {
-  const { data, error } = await supabase
+export const listEmployeePayments = async (
+  businessId: string,
+  startDate?: string,
+  endDate?: string,
+): Promise<EmployeePaymentRecord[]> => {
+  let query = supabase
     .from('employee_payments')
     .select('id, employee_id, amount, payment_method, notes, payment_date, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
     .eq('business_id', businessId)
     .order('payment_date', { ascending: false })
+
+  if (startDate) query = query.gte('payment_date', startDate)
+  if (endDate) query = query.lte('payment_date', endDate)
+
+  const { data, error } = await query
 
   if (error) handleDbError(error, 'Error al cargar pagos de empleados')
 
@@ -98,6 +107,13 @@ export const getEmployeeBalance = async (
   businessId: string,
   employeeId: string
 ): Promise<EmployeeBalance> => {
+  const toYmd = (d: Date) => {
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('id, full_name, pay_type, pay_percentage, base_salary')
@@ -106,42 +122,60 @@ export const getEmployeeBalance = async (
 
   if (!profile) throw new Error('Empleado no encontrado')
 
+  const now = new Date()
+  const periodStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const periodStartIso = toYmd(periodStart)
+  const periodEndIso = toYmd(now)
+
   const { data: appointments } = await supabase
     .from('appointments')
-    .select('id')
+    .select('id, start_time')
     .eq('business_id', businessId)
     .eq('employee_id', employeeId)
+    .gte('start_time', `${periodStartIso}T00:00:00.000Z`)
+    .lte('start_time', `${periodEndIso}T23:59:59.999Z`)
 
   const appointmentIds = (appointments ?? []).map((a: any) => a.id)
 
-  let totalEarned = 0
+  const p = profile as any
+  const payType = (p.pay_type ?? 'percentage') as 'salary' | 'percentage' | 'mixed'
+  const payPercentage = Number(p.pay_percentage ?? 0)
+  const baseSalary = Number(p.base_salary ?? 0)
+
+  let variableEarnings = 0
   if (appointmentIds.length > 0) {
     const { data: txData } = await supabase
       .from('transactions')
-      .select('employee_amount')
+      .select('total_amount')
       .eq('business_id', businessId)
       .in('appointment_id', appointmentIds)
 
-    const rawTx = (txData ?? []) as Array<{ employee_amount: number }>
-    totalEarned = rawTx.reduce((sum, t) => sum + Number(t.employee_amount), 0)
+    const rawTx = (txData ?? []) as Array<{ total_amount: number }>
+    if (payType !== 'salary') {
+      variableEarnings = rawTx.reduce((sum, t) => sum + Number(t.total_amount), 0) * (Math.max(0, payPercentage) / 100)
+    }
   }
+
+  const fixedEarnings = payType === 'salary' || payType === 'mixed' ? Math.max(0, baseSalary) : 0
+  const totalEarned = fixedEarnings + variableEarnings
 
   const { data: paymentsData } = await supabase
     .from('employee_payments')
     .select('amount')
     .eq('business_id', businessId)
     .eq('employee_id', employeeId)
+    .gte('payment_date', periodStartIso)
+    .lte('payment_date', periodEndIso)
 
   const rawP = (paymentsData ?? []) as Array<{ amount: number }>
   const totalPaid = rawP.reduce((sum, p) => sum + Number(p.amount), 0)
 
-  const p = profile as any
   return {
     employeeId: p.id,
     employeeName: p.full_name,
-    payType: p.pay_type ?? null,
-    payPercentage: Number(p.pay_percentage ?? 0),
-    baseSalary: Number(p.base_salary ?? 0),
+    payType: payType,
+    payPercentage,
+    baseSalary,
     totalEarned,
     totalPaid,
     pendingBalance: Math.max(0, totalEarned - totalPaid),

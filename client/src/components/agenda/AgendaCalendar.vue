@@ -138,6 +138,21 @@ const getStatusIcon = (status: string) => {
   }
 }
 
+const getStatusDotColor = (status: string) => {
+  switch (status) {
+    case 'paid':
+      return 'var(--color-success)'
+    case 'pending':
+      return 'var(--color-warning)'
+    case 'cancelled':
+    case 'no_show':
+      return 'var(--color-danger)'
+    case 'confirmed':
+    default:
+      return 'var(--color-primary)'
+  }
+}
+
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'pending', label: 'Pendiente' },
   { value: 'confirmed', label: 'Confirmada' },
@@ -217,7 +232,6 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   eventContent: (arg) => {
     const extProps = arg.event.extendedProps as any
     const statusLabel = extProps?.statusLabel || ''
-    const statusColor = extProps?.statusColor || 'var(--color-primary)'
     const statusIcon = extProps?.statusIcon || ''
     const serviceName = extProps?.serviceName || 'Servicio'
     const employeeName = extProps?.employeeName || ''
@@ -234,7 +248,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
     const dot = document.createElement('span')
     dot.className = 'agenda-event-dot'
-    dot.style.background = statusColor
+    dot.style.background = getStatusDotColor(extProps?.status || 'confirmed')
 
     const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     iconSvg.setAttribute('viewBox', '0 0 24 24')
@@ -355,7 +369,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
         const itemDot = document.createElement('span')
         itemDot.className = 'agenda-status-option-dot'
-        itemDot.style.background = getStatusColor(opt.value)
+        itemDot.style.background = getStatusDotColor(opt.value)
 
         const itemIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
         itemIcon.setAttribute('viewBox', '0 0 24 24')
@@ -851,7 +865,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 999px;
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.55);
   flex-shrink: 0;
 }
 
