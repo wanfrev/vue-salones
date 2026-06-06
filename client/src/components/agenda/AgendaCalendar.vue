@@ -69,8 +69,25 @@
       </div>
     </div>
 
-    <!-- Mobile: Date Selector Carousel -->
-    <div class="lg:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide">
+    <!-- Mobile: View Switcher -->
+    <div v-if="isMobile" class="flex justify-center">
+      <div class="inline-flex rounded-lg border border-border bg-surface p-0.5">
+        <button
+          v-for="view in mobileViewOptions"
+          :key="view.value"
+          @click="changeMobileView(view.value)"
+          class="px-3 py-1.5 text-xs font-medium rounded-md transition-theme"
+          :class="mobileView === view.value
+            ? 'bg-primary text-text-inverse shadow-sm'
+            : 'text-text-secondary hover:text-text'"
+        >
+          {{ view.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile: Date Selector Carousel (solo en vista Día) -->
+    <div v-if="isMobile && mobileView === 'timeGridDay'" class="-mx-4 px-4 overflow-x-auto scrollbar-hide">
       <div class="flex gap-1.5 min-w-max pb-3">
         <button
           v-for="day in weekDays"
@@ -145,6 +162,23 @@ onUnmounted(() => window.removeEventListener('resize', onResize))
 // Mobile date selector
 const selectedDate = ref(toISODate(new Date()))
 
+// Mobile view mode
+type MobileView = 'timeGridDay' | 'timeGridWeek' | 'dayGridMonth'
+const mobileView = ref<MobileView>('timeGridDay')
+const mobileViewOptions = [
+  { value: 'timeGridDay' as const, label: 'Día' },
+  { value: 'timeGridWeek' as const, label: 'Semana' },
+  { value: 'dayGridMonth' as const, label: 'Mes' },
+]
+
+const changeMobileView = (view: MobileView) => {
+  mobileView.value = view
+  const api = calendarRef.value?.getApi()
+  if (api) {
+    api.changeView(view)
+  }
+}
+
 const weekDays = computed(() => {
   const selected = new Date(selectedDate.value + 'T12:00:00')
   const startOfWeek = new Date(selected)
@@ -169,7 +203,7 @@ const weekDays = computed(() => {
 watch(isMobile, (mobile) => {
   const api = calendarRef.value?.getApi()
   if (api) {
-    api.changeView(mobile ? 'timeGridDay' : 'timeGridWeek')
+    api.changeView(mobile ? mobileView.value : 'timeGridWeek')
   }
 })
 
@@ -284,7 +318,7 @@ const calendarEvents = computed<EventInput[]>(() => {
 
 const calendarOptions = computed<CalendarOptions>(() => ({
   plugins: [timeGridPlugin, dayGridPlugin, interactionPlugin],
-  initialView: isMobile.value ? 'timeGridDay' : 'timeGridWeek',
+  initialView: isMobile.value ? mobileView.value : 'timeGridWeek',
   headerToolbar: isMobile.value ? {
     left: 'prev,next',
     center: 'title',

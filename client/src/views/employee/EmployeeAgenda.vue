@@ -12,6 +12,37 @@
       </button>
     </template>
 
+    <div class="space-y-4">
+      <div class="flex items-center justify-between gap-2">
+        <header>
+          <h2 class="text-lg font-bold text-text">Mis {{ t.appointment || 'cita' }}s</h2>
+          <p v-if="citas.length > 0" class="text-sm text-text-muted">{{ citas.length }} {{ t.appointment?.toLowerCase() || 'cita' }}{{ citas.length !== 1 ? 's' : '' }}</p>
+        </header>
+        <div class="flex items-center gap-2 shrink-0">
+          <input
+            type="date"
+            :value="toISODate(selectedDate)"
+            @change="selectedDate = new Date(($event.target as HTMLInputElement).value + 'T12:00:00')"
+            class="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/15"
+          />
+          <button
+            v-if="!isToday"
+            @click="goToToday"
+            class="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:border-border-strong"
+          >
+            Hoy
+          </button>
+        </div>
+      </div>
+
+      <AgendaListView
+        :citas="citas"
+        :loading="isLoading"
+        :t="(t.appointment || 'cita').toLowerCase()"
+        @edit="handleEditCita"
+        @delete="handleDeleteCita"
+      />
+    </div>
   </AppLayout>
 
   <CitaFormModal
@@ -31,8 +62,12 @@ import { useBusinessStore } from '../../store/business'
 import { useAppointmentMutations } from '../../composables/useAppointmentMutations'
 import { listServicios, serviciosKeys } from '../../services/serviciosService'
 import { listEquipo, equipoKeys } from '../../services/equipoService'
+import { listCitas, agendaKeys } from '../../services/agendaService'
+import { toISODate } from '../../lib/formatters'
 import AppLayout from '../../components/layout/AppLayout.vue'
+import AgendaListView from '../../components/agenda/AgendaListView.vue'
 import { CitaFormModal } from '../../components/modals'
+import type { Cita } from '../../types/cita'
 
 const authStore = useAuthStore()
 const businessStore = useBusinessStore()
@@ -41,6 +76,31 @@ const t = computed(() => businessStore.terminology)
 const businessId = computed(() => authStore.businessId)
 
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
+const editingCita = ref<Cita | null>(null)
+
+const selectedDate = ref<Date>(new Date())
+
+const dateRange = computed(() => {
+  const start = new Date(selectedDate.value)
+  start.setHours(0, 0, 0, 0)
+  const end = new Date(start)
+  end.setDate(end.getDate() + 1)
+  return { start, end }
+})
+
+const isToday = computed(() => toISODate(selectedDate.value) === toISODate(new Date()))
+
+const goToToday = () => {
+  selectedDate.value = new Date()
+}
+
+const { data: citasData, isLoading } = useQuery({
+  queryKey: computed(() => [...agendaKeys.appointments(businessId.value), 'employee', authStore.profile?.id, toISODate(selectedDate.value)]),
+  queryFn: () => listCitas(businessId.value!, dateRange.value, authStore.profile?.id),
+  enabled: computed(() => !!businessId.value && !!authStore.profile?.id),
+})
+
+const citas = computed<Cita[]>(() => citasData.value ?? [])
 
 const { data: serviciosData } = useQuery({
   queryKey: computed(() => serviciosKeys.all(businessId.value)),
@@ -62,10 +122,6 @@ const empleadosList = computed(() => (empleadosData.value ?? []).map(e => ({
   id: e.id, name: e.name,
 })))
 
-const handleNewCita = () => {
-  citaModalRef.value?.open()
-}
-
 const {
   handleSaveCita,
   handleDeleteCita,
@@ -74,4 +130,14 @@ const {
   createdBy: computed(() => authStore.profile?.id),
   modalRef: citaModalRef,
 })
+
+const handleNewCita = () => {
+  editingCita.value = null
+  citaModalRef.value?.open()
+}
+
+const handleEditCita = (cita: Cita) => {
+  editingCita.value = cita
+  citaModalRef.value?.open(cita)
+}
 </script>

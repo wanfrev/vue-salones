@@ -96,7 +96,38 @@
           </div>
         </section>
 
+        <!-- Agenda List -->
+        <section class="mb-4">
+          <header class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 class="text-base font-bold text-text lg:text-lg">{{ (businessStore.terminology.appointment || 'Cita') }}s</h2>
+              <p v-if="citas.length > 0" class="text-xs text-text-muted">{{ citas.length }} {{ (businessStore.terminology.appointment || 'cita').toLowerCase() }}{{ citas.length !== 1 ? 's' : '' }}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                type="date"
+                :value="toISODate(selectedDate)"
+                @change="selectedDate = new Date(($event.target as HTMLInputElement).value + 'T12:00:00')"
+                class="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/15"
+              />
+              <button
+                v-if="!isToday"
+                @click="goToToday"
+                class="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:border-border-strong"
+              >
+                Hoy
+              </button>
+            </div>
+          </header>
 
+          <AgendaListView
+            :citas="citas"
+            :loading="isLoading"
+            :t="(businessStore.terminology.appointment || 'cita').toLowerCase()"
+            @edit="handleEditCita"
+            @delete="handleDeleteCita"
+          />
+        </section>
 
   <!-- Modals -->
   <CitaFormModal 
@@ -114,13 +145,14 @@ import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { downloadCsv } from '../lib/csv'
-import { exportCitasToCsv, listCitas } from '../services/agendaService'
+import { exportCitasToCsv, listCitas, agendaKeys } from '../services/agendaService'
 import { equipoKeys, listEquipo } from '../services/equipoService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { useBusinessStore } from '../store/business'
 import { useAppointmentMutations } from '../composables/useAppointmentMutations'
 import { toISODate } from '../lib/formatters'
 import { CitaFormModal } from '../components/modals'
+import AgendaListView from '../components/agenda/AgendaListView.vue'
 import type { Cita } from '../types/cita'
 
 const { authStore } = useAuth()
@@ -128,21 +160,28 @@ const { success } = useNotification()
 const businessStore = useBusinessStore()
 
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
+const editingCita = ref<Cita | null>(null)
 const businessId = computed(() => authStore.businessId)
 
-const todayRange = computed(() => {
-  const start = new Date()
+const selectedDate = ref<Date>(new Date())
+
+const dateRange = computed(() => {
+  const start = new Date(selectedDate.value)
   start.setHours(0, 0, 0, 0)
   const end = new Date(start)
   end.setDate(end.getDate() + 1)
   return { start, end }
 })
 
-const { data: citasData } = useQuery({
-  queryKey: computed(() => ['appointments', businessId.value, toISODate(new Date())]),
-  queryFn: () => listCitas(businessId.value!, todayRange.value),
+const { data: citasData, isLoading } = useQuery({
+  queryKey: computed(() => [...agendaKeys.appointments(businessId.value), toISODate(selectedDate.value)]),
+  queryFn: () => listCitas(businessId.value!, dateRange.value),
   enabled: computed(() => !!businessId.value),
 })
+
+const goToToday = () => {
+  selectedDate.value = new Date()
+}
 
 const citas = computed<Cita[]>(() => citasData.value ?? [])
 
@@ -168,16 +207,18 @@ const {
 })
 
 const todayLabel = computed(() => {
-  const now = new Date()
-  const dd = String(now.getDate()).padStart(2, '0')
-  const mm = String(now.getMonth() + 1).padStart(2, '0')
-  const yy = String(now.getFullYear()).slice(-2)
+  const d = selectedDate.value
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yy = String(d.getFullYear()).slice(-2)
   return `${dd}-${mm}-${yy}`
 })
 
+const isToday = computed(() => toISODate(selectedDate.value) === toISODate(new Date()))
+
 const stats = computed(() => {
-  const hoy = toISODate(new Date())
-  const citasHoy = citas.value.filter(c => c.date === hoy)
+  const filterDate = toISODate(selectedDate.value)
+  const citasHoy = citas.value.filter(c => c.date === filterDate)
   
   return {
     citasHoy: citasHoy.length,
@@ -203,15 +244,21 @@ const empleadosList = computed(() => (empleadosData.value ?? []).map(employee =>
 })))
 
 const handleNewCita = () => {
+  editingCita.value = null
   citaModalRef.value?.open()
 }
 
+const handleEditCita = (cita: Cita) => {
+  editingCita.value = cita
+  citaModalRef.value?.open(cita)
+}
+
 const handleExport = () => {
-  const hoy = toISODate(new Date())
-  const citasHoy = citas.value.filter(c => c.date === hoy)
+  const dateStr = toISODate(selectedDate.value)
+  const citasFiltered = citas.value.filter(c => c.date === dateStr)
   
-  const csvContent = exportCitasToCsv(citasHoy)
-  downloadCsv(`citas-${hoy}.csv`, csvContent)
+  const csvContent = exportCitasToCsv(citasFiltered)
+  downloadCsv(`citas-${dateStr}.csv`, csvContent)
   success('Citas exportadas correctamente')
 }
 </script>
