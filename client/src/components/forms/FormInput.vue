@@ -16,6 +16,7 @@
         :value="modelValue"
         @input="handleInput"
         @blur="$emit('blur', $event)"
+        @focus="$emit('focus', $event)"
         :placeholder="placeholder"
         :required="required"
         :disabled="disabled"
@@ -73,6 +74,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:modelValue': [value: string | number]
   blur: [event: FocusEvent]
+  focus: [event: FocusEvent]
 }>()
 
 const inputId = computed(() => props.id || `form-input-${++idCounter}`)
