@@ -8,13 +8,13 @@
           </svg>
           <span class="font-medium uppercase tracking-wider">Ventas</span>
         </div>
-        <h1 class="text-xl font-bold text-text lg:text-2xl">Punto de Venta</h1>
+        <h1 class="text-2xl font-bold text-text lg:text-3xl">Punto de Venta</h1>
         <p class="hidden text-sm text-text-muted sm:block">Registra pagos y ventas de servicios y productos</p>
       </div>
       <div class="flex items-center gap-3">
         <button
           @click="refreshAppointments"
-          class="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+          class="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-text-secondary shadow-sm transition-all duration-200 hover:bg-bg-secondary hover:shadow-md"
           title="Refrescar citas pendientes"
         >
           <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -22,8 +22,8 @@
           </svg>
           Refrescar
         </button>
-        <div class="text-xs text-text-muted">
-          Tasa: 1 USD = <strong>{{ rateDisplay }}</strong> Bs
+        <div class="rounded-lg bg-surface/80 border border-border px-3 py-1.5 text-xs text-text-muted shadow-sm">
+          Tasa: 1 USD = <strong class="tabular-nums text-text">{{ rateDisplay }}</strong> Bs
         </div>
       </div>
     </div>
@@ -33,14 +33,14 @@
     Error al cargar citas: {{ queryError }}
   </div>
 
-  <div class="mb-4 rounded-xl border border-border bg-surface p-1">
+  <div class="mb-4 rounded-xl border border-border bg-surface p-1 shadow-sm">
     <div class="grid grid-cols-1 gap-1 sm:grid-cols-2">
       <button
         @click="activeTab = 'quick'"
         :class="[
-          'rounded-lg px-4 py-2 text-sm font-semibold transition-theme',
+          'rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200',
           activeTab === 'quick'
-            ? 'bg-primary text-text-inverse'
+            ? 'bg-primary text-text-inverse shadow-sm'
             : 'text-text-secondary hover:bg-bg-secondary'
         ]"
       >
@@ -49,9 +49,9 @@
       <button
         @click="activeTab = 'appointments'"
         :class="[
-          'rounded-lg px-4 py-2 text-sm font-semibold transition-theme',
+          'rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200',
           activeTab === 'appointments'
-            ? 'bg-primary text-text-inverse'
+            ? 'bg-primary text-text-inverse shadow-sm'
             : 'text-text-secondary hover:bg-bg-secondary'
         ]"
       >
@@ -131,15 +131,15 @@
       <!-- Mobile floating bottom bar -->
       <div
         v-if="selectedAppointment && !isPaymentModalOpen"
-        class="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface px-4 py-3 shadow-2xl lg:hidden"
+        class="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface px-4 py-3 shadow-2xl shadow-primary/5 lg:hidden"
       >
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm text-text-muted">Total</span>
-          <span class="text-lg font-bold text-primary">{{ formatDual(grandTotal) }}</span>
+          <span class="text-lg font-bold text-primary tabular-nums">{{ formatDual(grandTotal) }}</span>
         </div>
         <button
           @click="isPaymentModalOpen = true"
-          class="w-full rounded-xl bg-primary py-3 text-sm font-bold text-text-inverse transition-theme hover:bg-primary-hover"
+          class="w-full rounded-xl bg-primary py-3 text-sm font-bold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
         >
           Proceder al cobro
         </button>
@@ -152,11 +152,11 @@
         v-if="isPaymentModalOpen"
         class="fixed inset-0 z-50 flex flex-col bg-surface lg:hidden"
       >
-        <div class="flex items-center justify-between border-b border-border px-4 py-4">
+        <div class="flex items-center justify-between border-b border-border bg-bg-secondary/50 px-4 py-4">
           <h3 class="text-lg font-semibold text-text">Cobro</h3>
           <button
             @click="isPaymentModalOpen = false"
-            class="rounded-lg p-2 text-text-muted hover:bg-bg-secondary transition-theme"
+            class="rounded-lg p-2 text-text-muted transition-all duration-200 hover:bg-bg-secondary hover:text-text"
           >
             <X class="h-5 w-5" />
           </button>

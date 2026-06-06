@@ -8,11 +8,11 @@
           </svg>
           <span class="font-medium uppercase tracking-wider">Inventario</span>
         </div>
-        <h1 class="text-xl font-bold text-text lg:text-2xl">Productos</h1>
+        <h1 class="text-2xl font-bold text-text lg:text-3xl">Productos</h1>
       </div>
       <button
         @click="productoModalRef?.open()"
-        class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover"
+        class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
       >
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -44,15 +44,15 @@
         </svg>
       </div>
     </div>
-    <div class="flex rounded-xl border border-border bg-surface p-1">
+    <div class="flex rounded-xl border border-border bg-surface p-1 shadow-sm">
       <button
         v-for="tab in tabs"
         :key="tab.value"
         @click="activeTab = tab.value"
         :class="[
-          'rounded-lg px-3 py-1.5 text-xs font-medium transition-theme',
+          'rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200',
           activeTab === tab.value
-            ? 'bg-primary text-text-inverse'
+            ? 'bg-primary text-text-inverse shadow-sm'
             : 'text-text-secondary hover:bg-bg-secondary'
         ]"
       >
@@ -65,11 +65,11 @@
     <div
       v-for="producto in filteredProductos"
       :key="producto.id"
-      class="rounded-xl border border-border bg-surface p-4 space-y-3"
+      class="group rounded-xl border border-border bg-surface p-4 space-y-3 shadow-sm transition-all duration-200 hover:shadow-md"
     >
       <div class="flex items-start justify-between">
         <div class="flex items-center gap-2 min-w-0">
-          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 transition-transform duration-300 group-hover:scale-105">
             <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
@@ -81,19 +81,25 @@
         </div>
         <span
           :class="[
-            'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
+            'shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
             producto.status === 'Activo' ? 'bg-success/10 text-success' : 'bg-bg-secondary text-text-muted'
           ]"
-        >{{ producto.status }}</span>
+        >
+          <span :class="[
+            'h-1.5 w-1.5 rounded-full',
+            producto.status === 'Activo' ? 'bg-success' : 'bg-text-muted'
+          ]" />
+          {{ producto.status }}
+        </span>
       </div>
 
       <div class="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <div class="text-xs text-text-muted mb-0.5">Categoría</div>
+          <div class="text-xs font-medium uppercase tracking-wider text-text-muted mb-0.5">Categoría</div>
           <div class="text-text text-xs">{{ producto.categoryName || '—' }}</div>
         </div>
         <div class="text-right">
-          <div class="text-xs text-text-muted mb-0.5">Stock</div>
+          <div class="text-xs font-medium uppercase tracking-wider text-text-muted mb-0.5">Stock</div>
           <div>
             <span
               :class="[
@@ -105,21 +111,21 @@
           </div>
         </div>
         <div>
-          <div class="text-xs text-text-muted mb-0.5">Costo</div>
-          <div class="text-text">${{ producto.unitCost.toFixed(2) }}</div>
-          <div class="text-xs text-slate-400">Bs {{ formatVESInline(producto.unitCost) }}</div>
+          <div class="text-xs font-medium uppercase tracking-wider text-text-muted mb-0.5">Costo</div>
+          <div class="text-text tabular-nums">${{ producto.unitCost.toFixed(2) }}</div>
+          <div class="text-xs text-slate-400 tabular-nums">Bs {{ formatVESInline(producto.unitCost) }}</div>
         </div>
         <div class="text-right">
-          <div class="text-xs text-text-muted mb-0.5">Precio</div>
-          <div class="text-text font-medium">${{ producto.unitPrice.toFixed(2) }}</div>
-          <div class="text-xs text-slate-400">Bs {{ formatVESInline(producto.unitPrice) }}</div>
+          <div class="text-xs font-medium uppercase tracking-wider text-text-muted mb-0.5">Precio</div>
+          <div class="text-text font-medium tabular-nums">${{ producto.unitPrice.toFixed(2) }}</div>
+          <div class="text-xs text-slate-400 tabular-nums">Bs {{ formatVESInline(producto.unitPrice) }}</div>
         </div>
       </div>
 
       <div class="flex items-center justify-end gap-1 pt-1 border-t border-border-subtle">
         <button
           @click.stop="productoModalRef?.open(producto)"
-          class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
+          class="rounded-lg p-1.5 text-text-muted transition-all duration-200 hover:bg-bg-secondary hover:text-primary"
           title="Editar producto"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,7 +134,7 @@
         </button>
         <button
           @click.stop="openDeleteModal(producto)"
-          class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-warning"
+          class="rounded-lg p-1.5 text-text-muted transition-all duration-200 hover:bg-bg-secondary hover:text-warning"
           title="Desactivar producto"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,7 +143,7 @@
         </button>
         <button
           @click.stop="openPermanentDeleteModal(producto)"
-          class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-danger"
+          class="rounded-lg p-1.5 text-text-muted transition-all duration-200 hover:bg-bg-secondary hover:text-danger"
           title="Eliminar permanentemente"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,11 +154,11 @@
     </div>
   </div>
 
-  <div class="hidden lg:block rounded-xl border border-border bg-surface overflow-hidden">
+  <div class="hidden lg:block rounded-xl border border-border bg-surface shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
-          <tr class="border-b border-border">
+          <tr class="border-b border-border bg-bg-secondary/50">
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Producto</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">SKU</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Categoría</th>
@@ -164,10 +170,10 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
-          <tr v-for="producto in filteredProductos" :key="producto.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+          <tr v-for="producto in filteredProductos" :key="producto.id" class="text-sm transition-all duration-200 hover:bg-bg-secondary/50">
             <td class="px-4 py-3">
               <div class="flex items-center gap-2">
-                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 transition-transform duration-300 group-hover:scale-105">
                   <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
@@ -177,32 +183,38 @@
             </td>
             <td class="px-4 py-3 text-slate-500 font-mono text-xs">{{ producto.sku || '—' }}</td>
             <td class="px-4 py-3 text-xs text-slate-500">{{ producto.categoryName || '—' }}</td>
-            <td class="px-4 py-3 text-right">
+            <td class="px-4 py-3 text-right tabular-nums">
               <span class="text-text">${{ producto.unitCost.toFixed(2) }}</span>
               <span class="block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitCost) }}</span>
             </td>
-            <td class="px-4 py-3 text-right font-medium">
+            <td class="px-4 py-3 text-right font-medium tabular-nums">
               <span class="text-text">${{ producto.unitPrice.toFixed(2) }}</span>
               <span class="block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitPrice) }}</span>
             </td>
-            <td class="px-4 py-3 text-right">
+            <td class="px-4 py-3 text-right tabular-nums">
               <span :class="[
-                'font-medium tabular-nums',
+                'font-medium',
                 producto.stockTotal <= producto.reorderPoint ? 'text-danger' : 'text-text'
               ]">{{ producto.stockTotal }}</span>
               <span class="text-xs text-slate-400"> {{ producto.unit }}</span>
             </td>
             <td class="px-4 py-3 text-center">
               <span :class="[
-                'rounded-full px-2 py-0.5 text-xs font-medium',
+                'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
                 producto.status === 'Activo' ? 'bg-success/10 text-success' : 'bg-bg-secondary text-text-muted'
-              ]">{{ producto.status }}</span>
+              ]">
+                <span :class="[
+                  'h-1.5 w-1.5 rounded-full',
+                  producto.status === 'Activo' ? 'bg-success' : 'bg-text-muted'
+                ]" />
+                {{ producto.status }}
+              </span>
             </td>
             <td class="px-4 py-3 text-center">
               <div class="flex items-center justify-center gap-1">
                 <button
                   @click="productoModalRef?.open(producto)"
-                  class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
+                  class="rounded-lg p-1.5 text-text-muted transition-all duration-200 hover:bg-bg-secondary hover:text-primary"
                   title="Editar producto"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -211,7 +223,7 @@
                 </button>
                 <button
                   @click="openDeleteModal(producto)"
-                  class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-warning"
+                  class="rounded-lg p-1.5 text-text-muted transition-all duration-200 hover:bg-bg-secondary hover:text-warning"
                   title="Desactivar producto"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -220,7 +232,7 @@
                 </button>
                 <button
                   @click="openPermanentDeleteModal(producto)"
-                  class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-danger"
+                  class="rounded-lg p-1.5 text-text-muted transition-all duration-200 hover:bg-bg-secondary hover:text-danger"
                   title="Eliminar permanentemente"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -233,7 +245,7 @@
         </tbody>
       </table>
     </div>
-    <div v-if="filteredProductos.length === 0" class="hidden lg:block py-12 text-center">
+    <div v-if="filteredProductos.length === 0" class="hidden lg:block py-16 text-center">
       <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
         <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />

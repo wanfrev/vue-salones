@@ -8,12 +8,12 @@
           </svg>
           <span class="font-medium uppercase tracking-wider">Stock</span>
         </div>
-        <h1 class="text-xl font-bold text-text lg:text-2xl">Inventario</h1>
+        <h1 class="text-2xl font-bold text-text lg:text-3xl">Inventario</h1>
       </div>
       <div class="flex items-center gap-2">
         <button
           @click="handleNewProducto"
-          class="flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-text-inverse transition-theme hover:bg-primary-hover"
+          class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -22,7 +22,7 @@
         </button>
         <button
           @click="showMovements = !showMovements"
-          class="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+          class="flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary shadow-sm transition-all duration-200 hover:bg-bg-secondary hover:shadow-md"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -51,7 +51,7 @@
     </div>
 
     <div class="lg:hidden space-y-3 mb-4">
-      <div v-for="item in filteredInventario" :key="item.id" class="rounded-xl border border-border bg-surface p-4">
+      <div v-for="item in filteredInventario" :key="item.id" class="group rounded-xl border border-border bg-surface p-4 shadow-sm transition-all duration-200 hover:shadow-md">
         <div class="flex items-start justify-between mb-3">
           <div>
             <p class="font-medium text-text">{{ item.productName }}</p>
@@ -61,24 +61,24 @@
         </div>
         <div class="grid grid-cols-3 gap-3 mb-3 text-sm">
           <div>
-            <p class="text-xs text-text-muted mb-0.5">Stock</p>
+            <p class="text-xs font-medium uppercase tracking-wider text-text-muted mb-0.5">Stock</p>
             <p class="font-medium tabular-nums" :class="item.quantity <= item.reorderPoint ? 'text-danger' : 'text-text'">{{ item.quantity }}</p>
           </div>
           <div>
-            <p class="text-xs text-text-muted mb-0.5">Reservado</p>
+            <p class="text-xs font-medium uppercase tracking-wider text-text-muted mb-0.5">Reservado</p>
             <p class="tabular-nums text-text-muted">{{ item.reservedQty }}</p>
           </div>
           <div>
-            <p class="text-xs text-text-muted mb-0.5">Disponible</p>
+            <p class="text-xs font-medium uppercase tracking-wider text-text-muted mb-0.5">Disponible</p>
             <p class="font-medium tabular-nums" :class="item.availableQty > 0 ? 'text-success' : 'text-danger'">{{ item.availableQty }}</p>
           </div>
         </div>
         <div class="flex items-center justify-between">
-          <p class="text-sm text-text">${{ (item.quantity * item.unitCost).toFixed(2) }}</p>
-          <button @click.stop="openAdjustModal(item)" class="rounded-lg bg-bg-secondary px-3 py-1.5 text-xs font-medium text-text-secondary transition-theme hover:bg-border-subtle">Ajustar</button>
+          <p class="text-sm text-text tabular-nums">${{ (item.quantity * item.unitCost).toFixed(2) }}</p>
+          <button @click.stop="openAdjustModal(item)" class="rounded-lg bg-bg-secondary px-3 py-1.5 text-xs font-medium text-text-secondary transition-all duration-200 hover:bg-border-subtle hover:shadow-sm">Ajustar</button>
         </div>
       </div>
-      <div v-if="filteredInventario.length === 0" class="py-12 text-center">
+      <div v-if="filteredInventario.length === 0" class="py-16 text-center">
         <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
           <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -89,11 +89,11 @@
       </div>
     </div>
 
-    <div class="hidden lg:block rounded-xl border border-border bg-surface overflow-hidden">
+    <div class="hidden lg:block rounded-xl border border-border bg-surface shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>
-            <tr class="border-b border-border">
+            <tr class="border-b border-border bg-bg-secondary/50">
               <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Producto</th>
               <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Variante</th>
               <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Stock</th>
@@ -104,7 +104,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-border-subtle">
-            <tr v-for="item in filteredInventario" :key="item.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+            <tr v-for="item in filteredInventario" :key="item.id" class="text-sm transition-all duration-200 hover:bg-bg-secondary/50">
               <td class="px-4 py-3">
                 <div>
                   <p class="font-medium text-text">{{ item.productName }}</p>
@@ -117,27 +117,26 @@
                   {{ item.quantity }}
                 </span>
               </td>
-              <td class="px-4 py-3 text-right text-text-muted">{{ item.reservedQty }}</td>
-              <td class="px-4 py-3 text-right font-medium" :class="item.availableQty > 0 ? 'text-success' : 'text-danger'">
+              <td class="px-4 py-3 text-right tabular-nums text-text-muted">{{ item.reservedQty }}</td>
+              <td class="px-4 py-3 text-right font-medium tabular-nums" :class="item.availableQty > 0 ? 'text-success' : 'text-danger'">
                 {{ item.availableQty }}
               </td>
-              <td class="px-4 py-3 text-right text-text">${{ (item.quantity * item.unitCost).toFixed(2) }}</td>
+              <td class="px-4 py-3 text-right tabular-nums text-text">${{ (item.quantity * item.unitCost).toFixed(2) }}</td>
               <td class="px-4 py-3 text-center">
                 <div class="flex items-center justify-center gap-1">
                   <button
                     @click="openAdjustModal(item)"
-                    class="rounded-lg px-2 py-1 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary"
+                    class="rounded-lg px-3 py-1.5 text-xs font-medium text-text-secondary transition-all duration-200 hover:bg-bg-secondary hover:shadow-sm"
                   >
                     Ajustar
                   </button>
-
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div v-if="filteredInventario.length === 0" class="py-12 text-center">
+      <div v-if="filteredInventario.length === 0" class="py-16 text-center">
         <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
           <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -167,29 +166,38 @@
     </div>
 
     <div class="lg:hidden space-y-3 mb-4">
-      <div v-for="mov in filteredMovements" :key="mov.id" class="rounded-xl border border-border bg-surface p-4">
+      <div v-for="mov in filteredMovements" :key="mov.id" class="group rounded-xl border border-border bg-surface p-4 shadow-sm transition-all duration-200 hover:shadow-md">
         <div class="flex items-start justify-between mb-2">
           <div>
             <p class="text-xs text-text-muted">{{ formatDateTime(mov.createdAt) }}</p>
             <p class="font-medium text-text">{{ mov.productName }} <span v-if="mov.variantName" class="text-xs text-text-muted">({{ mov.variantName }})</span></p>
           </div>
           <span :class="[
-            'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
+            'shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
             mov.movementType === 'purchase' ? 'bg-success/10 text-success' :
             mov.movementType === 'sale' ? 'bg-primary/10 text-primary' :
             mov.movementType === 'adjustment' ? 'bg-warning/10 text-warning' :
             'bg-info/10 text-info'
-          ]">{{ formatMovementType(mov.movementType) }}</span>
+          ]">
+            <span :class="[
+              'h-1.5 w-1.5 rounded-full',
+              mov.movementType === 'purchase' ? 'bg-success' :
+              mov.movementType === 'sale' ? 'bg-primary' :
+              mov.movementType === 'adjustment' ? 'bg-warning' :
+              'bg-info'
+            ]" />
+            {{ formatMovementType(mov.movementType) }}
+          </span>
         </div>
         <div class="flex items-center justify-between text-sm">
           <div class="flex items-center gap-4">
             <span class="font-medium tabular-nums" :class="mov.quantity < 0 ? 'text-danger' : 'text-success'">{{ mov.quantity > 0 ? '+' : '' }}{{ mov.quantity }}</span>
-            <span class="text-text-muted">Costo: <span class="text-text">${{ mov.unitCost.toFixed(2) }}</span></span>
+            <span class="text-text-muted">Costo: <span class="text-text tabular-nums">${{ mov.unitCost.toFixed(2) }}</span></span>
           </div>
           <span class="text-xs text-text-muted truncate max-w-28 text-right">{{ mov.notes || '—' }}</span>
         </div>
       </div>
-      <div v-if="filteredMovements.length === 0" class="py-12 text-center">
+      <div v-if="filteredMovements.length === 0" class="py-16 text-center">
         <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
           <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
@@ -200,11 +208,11 @@
       </div>
     </div>
 
-    <div class="hidden lg:block rounded-xl border border-border bg-surface overflow-hidden">
+    <div class="hidden lg:block rounded-xl border border-border bg-surface shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>
-            <tr class="border-b border-border">
+            <tr class="border-b border-border bg-bg-secondary/50">
               <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Fecha</th>
               <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Producto</th>
               <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Tipo</th>
@@ -214,7 +222,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-border-subtle">
-            <tr v-for="mov in filteredMovements" :key="mov.id" class="text-sm transition-theme hover:bg-bg-secondary/50">
+            <tr v-for="mov in filteredMovements" :key="mov.id" class="text-sm transition-all duration-200 hover:bg-bg-secondary/50">
               <td class="px-4 py-3 text-text-muted whitespace-nowrap">{{ formatDateTime(mov.createdAt) }}</td>
               <td class="px-4 py-3">
                 <span class="font-medium text-text">{{ mov.productName }}</span>
@@ -222,23 +230,32 @@
               </td>
               <td class="px-4 py-3">
                 <span :class="[
-                  'rounded-full px-2 py-0.5 text-xs font-medium',
+                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
                   mov.movementType === 'purchase' ? 'bg-success/10 text-success' :
                   mov.movementType === 'sale' ? 'bg-primary/10 text-primary' :
                   mov.movementType === 'adjustment' ? 'bg-warning/10 text-warning' :
                   'bg-info/10 text-info'
-                ]">{{ formatMovementType(mov.movementType) }}</span>
+                ]">
+                  <span :class="[
+                    'h-1.5 w-1.5 rounded-full',
+                    mov.movementType === 'purchase' ? 'bg-success' :
+                    mov.movementType === 'sale' ? 'bg-primary' :
+                    mov.movementType === 'adjustment' ? 'bg-warning' :
+                    'bg-info'
+                  ]" />
+                  {{ formatMovementType(mov.movementType) }}
+                </span>
               </td>
-              <td class="px-4 py-3 text-right font-medium" :class="mov.quantity < 0 ? 'text-danger' : 'text-success'">
+              <td class="px-4 py-3 text-right font-medium tabular-nums" :class="mov.quantity < 0 ? 'text-danger' : 'text-success'">
                 {{ mov.quantity > 0 ? '+' : '' }}{{ mov.quantity }}
               </td>
-              <td class="px-4 py-3 text-right text-text">${{ mov.unitCost.toFixed(2) }}</td>
+              <td class="px-4 py-3 text-right tabular-nums text-text">${{ mov.unitCost.toFixed(2) }}</td>
               <td class="px-4 py-3 text-text-muted max-w-40 truncate">{{ mov.notes || '—' }}</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div v-if="filteredMovements.length === 0" class="py-12 text-center">
+      <div v-if="filteredMovements.length === 0" class="py-16 text-center">
         <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
           <svg class="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
