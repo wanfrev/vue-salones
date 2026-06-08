@@ -316,6 +316,22 @@ const employeeDebtSummary = computed(() => {
   }).filter(s => s.totalEarned > 0 || s.totalPaid > 0)
 })
 
+const buildBalanceFromSummary = (employeeId: string): EmployeeBalance | null => {
+  const summary = employeeDebtSummary.value.find(row => row.employeeId === employeeId)
+  if (!summary) return null
+
+  return {
+    employeeId: summary.employeeId,
+    employeeName: summary.employeeName,
+    payType: summary.payType === 'unknown' ? null : summary.payType,
+    payPercentage: Number(summary.payPercentage ?? 0),
+    baseSalary: Number(summary.baseSalary ?? 0),
+    totalEarned: Number(summary.totalEarned ?? 0),
+    totalPaid: Number(summary.totalPaid ?? 0),
+    pendingBalance: Number(summary.pendingBalance ?? 0),
+  }
+}
+
 function payTypeLabel(): string {
   if (!selectedBalance.value) return '—'
   const b = selectedBalance.value
@@ -341,10 +357,22 @@ const openPaymentModal = async () => {
 const closePaymentModal = () => { showPaymentModal.value = false; paymentError.value = ''; selectedBalance.value = null }
 
 const onEmployeeChange = async () => {
-  if (!props.businessId || !paymentForm.value.employeeId) {
+  if (!paymentForm.value.employeeId) {
     selectedBalance.value = null
     return
   }
+
+  const balanceFromSummary = buildBalanceFromSummary(paymentForm.value.employeeId)
+  if (balanceFromSummary) {
+    selectedBalance.value = balanceFromSummary
+    return
+  }
+
+  if (!props.businessId) {
+    selectedBalance.value = null
+    return
+  }
+
   try {
     selectedBalance.value = await getEmployeeBalance(props.businessId, paymentForm.value.employeeId)
   } catch {

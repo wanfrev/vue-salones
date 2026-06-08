@@ -127,33 +127,23 @@ export const getEmployeeBalance = async (
   const periodStartIso = toYmd(periodStart)
   const periodEndIso = toYmd(now)
 
-  const { data: appointments } = await supabase
-    .from('appointments')
-    .select('id, start_time')
-    .eq('business_id', businessId)
-    .eq('employee_id', employeeId)
-    .gte('start_time', `${periodStartIso}T00:00:00.000Z`)
-    .lte('start_time', `${periodEndIso}T23:59:59.999Z`)
-
-  const appointmentIds = (appointments ?? []).map((a: any) => a.id)
-
   const p = profile as any
   const payType = (p.pay_type ?? 'percentage') as 'salary' | 'percentage' | 'mixed'
   const payPercentage = Number(p.pay_percentage ?? 0)
   const baseSalary = Number(p.base_salary ?? 0)
 
   let variableEarnings = 0
-  if (appointmentIds.length > 0) {
+  if (payType !== 'salary') {
     const { data: txData } = await supabase
       .from('transactions')
-      .select('total_amount')
+      .select('total_amount, appointments!inner(employee_id)')
       .eq('business_id', businessId)
-      .in('appointment_id', appointmentIds)
+      .eq('appointments.employee_id', employeeId)
+      .gte('created_at', `${periodStartIso}T00:00:00.000Z`)
+      .lte('created_at', `${periodEndIso}T23:59:59.999Z`)
 
     const rawTx = (txData ?? []) as Array<{ total_amount: number }>
-    if (payType !== 'salary') {
-      variableEarnings = rawTx.reduce((sum, t) => sum + Number(t.total_amount), 0) * (Math.max(0, payPercentage) / 100)
-    }
+    variableEarnings = rawTx.reduce((sum, t) => sum + Number(t.total_amount), 0) * (Math.max(0, payPercentage) / 100)
   }
 
   const fixedEarnings = payType === 'salary' || payType === 'mixed' ? Math.max(0, baseSalary) : 0
