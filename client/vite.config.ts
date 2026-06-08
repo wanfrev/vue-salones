@@ -29,18 +29,8 @@ export default defineConfig({
         runtimeCaching: [
           {
             urlPattern: /^https?:\/\/.*\/(rest\/v1|rpc\/v1)\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-api-cache',
-              networkTimeoutSeconds: 5,
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
+            // Avoid stale financial/transaction data in production.
+            handler: 'NetworkOnly',
           },
           {
             urlPattern: /^https?:\/\/.*\/storage\/v1\/object\/.*/i,

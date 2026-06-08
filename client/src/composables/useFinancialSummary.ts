@@ -1,5 +1,5 @@
-import { computed } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { computed, watch } from 'vue'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { formatMethod, formatDate } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
 import type { Transaction, EmployeePayment, Expense } from '../types/database'
@@ -183,7 +183,41 @@ function useFinancialSummary(
   expenses: import('vue').Ref<{ date: string; amount: number }[]>,
   selectedMonth?: import('vue').Ref<string>,
 ) {
+  const queryClient = useQueryClient()
   const periodConfig = computed(() => resolvePeriod(selectedPeriod.value, selectedMonth?.value))
+
+  // Keep Finanzas in sync across sessions/devices (e.g. POS on another browser/device).
+  watch(
+    businessId,
+    (id, _prev, onCleanup) => {
+      if (!id) return
+
+      const channel = supabase
+        .channel(`finanzas-live-${id}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'inventory_movements', filter: `business_id=eq.${id}` },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ['finanzas-product-sales', id] })
+            queryClient.invalidateQueries({ queryKey: ['financial-summary', id] })
+          },
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'transactions', filter: `business_id=eq.${id}` },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', id] })
+            queryClient.invalidateQueries({ queryKey: ['financial-summary', id] })
+          },
+        )
+        .subscribe()
+
+      onCleanup(() => {
+        supabase.removeChannel(channel)
+      })
+    },
+    { immediate: true },
+  )
 
   const summaryQueryKey = computed(() =>
     ['financial-summary', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null] as const
@@ -217,6 +251,8 @@ function useFinancialSummary(
     queryKey: transactionsQueryKey,
     queryFn: async () => {
       const cfg = periodConfig.value
+      const endExclusive = new Date(cfg.end)
+      endExclusive.setDate(endExclusive.getDate() + 1)
       const { data, error } = await supabase
         .from('transactions')
         .select(`
@@ -238,7 +274,7 @@ function useFinancialSummary(
         .eq('business_id', businessId.value!)
         // Use created_at as fallback because some payments may not set paid_at
         .gte('created_at', cfg.start.toISOString())
-        .lte('created_at', cfg.end.toISOString())
+        .lt('created_at', endExclusive.toISOString())
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -309,13 +345,15 @@ function useFinancialSummary(
     queryKey: computed(() => ['finanzas-product-sales', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null]),
     queryFn: async () => {
       const cfg = periodConfig.value
+      const endExclusive = new Date(cfg.end)
+      endExclusive.setDate(endExclusive.getDate() + 1)
       const { data, error } = await supabase
         .from('inventory_movements')
         .select('product_id, variant_id, movement_type, quantity, unit_cost, created_at, products ( name )')
         .eq('business_id', businessId.value!)
         .eq('movement_type', 'sale')
         .gte('created_at', cfg.start.toISOString())
-        .lte('created_at', cfg.end.toISOString())
+        .lt('created_at', endExclusive.toISOString())
         .order('created_at', { ascending: false })
 
       if (error) throw error
