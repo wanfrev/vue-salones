@@ -224,8 +224,14 @@ const NICHE_CATEGORIES: Record<string, { value: string; label: string }[]> = {
 }
 
 const showingCustomCategory = ref(false)
+const categoriesVersion = ref(0)
+
+watch(isOpen, (open) => {
+  if (open) categoriesVersion.value++
+})
 
 const categoryOptions = computed(() => {
+  categoriesVersion.value
   const bizCats = businessStore.serviceCategories
   const items = bizCats.length > 0
     ? bizCats.map((c: string) => ({ value: c, label: c }))
@@ -267,26 +273,9 @@ const isFormValid = computed(() => {
          formData.value.duration > 0
 })
 
-watch(
-  [isOpen, () => modalData.value?.servicio],
-  ([open, servicio]) => {
-    if (!open) return
-    if (servicio) {
-      formData.value = {
-        name: servicio.name || '',
-        description: servicio.description || '',
-        price: servicio.price || 0,
-        duration: servicio.duration || 30,
-        status: servicio.status || 'Activo',
-        category: servicio.category || 'corte',
-      }
-    } else {
-      formData.value = { ...defaultFormData, category: defaultCategory.value }
-    }
-    errors.value = {}
-  },
-  { immediate: true }
-)
+watch(isOpen, (open) => {
+  if (open) errors.value = {}
+})
 
 watch(
   () => formData.value.category,
@@ -351,6 +340,20 @@ const handleSubmit = async () => {
 
 const open = (servicio?: Servicio) => {
   useModal(MODAL_ID).open({ servicio })
+  if (servicio) {
+    formData.value = {
+      name: servicio.name || '',
+      description: servicio.description || '',
+      price: servicio.price || 0,
+      duration: servicio.duration || 30,
+      status: servicio.status || 'Activo',
+      category: servicio.category || 'corte',
+    }
+  } else {
+    formData.value = { ...defaultFormData, category: defaultCategory.value }
+    showingCustomCategory.value = false
+  }
+  errors.value = {}
 }
 
 defineExpose({
