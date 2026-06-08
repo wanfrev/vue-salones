@@ -246,6 +246,10 @@ const {
   deleteFn: (id) => deleteServicio(id),
   entityName: 'Servicio',
   modalRef: servicioModalRef,
+  extraInvalidations: [
+    () => ['appointments'],
+    () => ['pos-pending'],
+  ],
 })
 
 // Stats

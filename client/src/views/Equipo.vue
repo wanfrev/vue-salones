@@ -264,6 +264,12 @@ const {
   deleteFn: (id) => deleteEmpleado(id),
   entityName: 'Empleado',
   modalRef: empleadoModalRef,
+  extraInvalidations: [
+    () => ['appointments'],
+    () => ['dashboard-services'],
+    () => ['dashboard-payments'],
+    () => ['dashboard-history'],
+  ],
 })
 
 const DEFAULT_VISIBLE_EMPLOYEES = 4

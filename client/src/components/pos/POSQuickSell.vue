@@ -275,6 +275,9 @@ const sellMutation = useMutation({
     queryClient.invalidateQueries({ queryKey: inventarioKeys.all(props.businessId) })
     queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(props.businessId) })
     queryClient.invalidateQueries({ queryKey: posKeys.products(props.businessId) })
+    queryClient.invalidateQueries({ queryKey: ['finanzas-product-sales'] })
+    queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+    queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
     success('Venta registrada correctamente')
     cancelSelection()
   },

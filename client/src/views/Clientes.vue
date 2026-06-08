@@ -269,6 +269,9 @@ const {
   deleteFn: (id) => deleteCliente(id),
   entityName: 'Cliente',
   modalRef: clienteModalRef,
+  extraInvalidations: [
+    () => ['appointments'],
+  ],
 })
 
 const {

@@ -46,6 +46,9 @@ export function useEmployeePayments(
     }) => createEmployeePayment(businessId.value!, params.employeeId, params.amount, params.method, params.notes, params.date),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'] })
       success('Pago registrado correctamente')
       closeModal()
     },

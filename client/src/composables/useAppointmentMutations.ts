@@ -13,7 +13,25 @@ export function useAppointmentMutations(options: {
   const { success, error: showError } = useNotification()
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['appointments'] })
+    const keys = [
+      ['appointments'],
+      ['pos-pending'],
+      ['clientes'],
+      ['cliente'],
+      ['cliente-historial'],
+      ['finanzas-transactions'],
+      ['financial-summary'],
+      ['finanzas-employee-payments'],
+      ['dashboard-services'],
+      ['dashboard-payments'],
+      ['dashboard-history'],
+      ['employee-appointments'],
+      ['employee-earnings'],
+      ['employee-history'],
+    ]
+    for (const key of keys) {
+      queryClient.invalidateQueries({ queryKey: key })
+    }
   }
 
   const saveCitaMutation = useMutation({
