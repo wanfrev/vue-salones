@@ -84,19 +84,46 @@
 
   <!-- Category Tabs -->
   <div class="mb-5 flex overflow-x-auto rounded-xl border border-border bg-surface p-1 shadow-sm scrollbar-hide">
-    <button
+    <div
       v-for="cat in categories"
       :key="cat.id"
-      @click="activeCategory = cat.id"
       :class="[
-        'flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-theme',
+        'group/category flex flex-1 items-center gap-1 rounded-lg px-1 py-1 transition-theme',
         activeCategory === cat.id
           ? 'bg-primary text-text-inverse shadow-sm shadow-primary/20'
-          : 'text-text-secondary hover:text-text hover:bg-bg-secondary'
+          : 'text-text-secondary hover:bg-bg-secondary'
       ]"
     >
-      {{ cat.name }}
-    </button>
+      <button
+        @click="activeCategory = cat.id"
+        class="min-w-0 flex-1 whitespace-nowrap rounded-md px-2 py-1 text-sm font-medium text-center"
+      >
+        {{ cat.name }}
+      </button>
+
+      <div v-if="cat.id !== 'all'" class="flex items-center gap-0.5 opacity-100 transition-theme sm:opacity-0 sm:group-hover/category:opacity-100">
+        <button
+          @click.stop="openRenameCategoryModal(cat.id)"
+          type="button"
+          class="rounded-md p-1 transition-theme hover:bg-black/10"
+          title="Editar categoría"
+        >
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </button>
+        <button
+          @click.stop="openDeleteCategoryModal(cat.id)"
+          type="button"
+          class="rounded-md p-1 transition-theme hover:bg-black/10"
+          title="Eliminar categoría"
+        >
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Services Grid -->
@@ -201,15 +228,79 @@
       Este servicio será eliminado permanentemente del catálogo.
     </p>
   </ModalBase>
+
+  <ModalBase
+    :is-open="isRenameCategoryModalOpen"
+    title="Editar categoría"
+    subtitle="Actualiza el nombre de la categoría"
+    icon="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+    size="sm"
+    confirm-text="Guardar"
+    cancel-text="Cancelar"
+    :loading="isUpdatingCategory"
+    @close="closeRenameCategoryModal"
+    @confirm="confirmRenameCategory"
+    @cancel="closeRenameCategoryModal"
+  >
+    <label class="mb-2 block text-sm font-medium text-text" for="new-category-name">Nombre</label>
+    <input
+      id="new-category-name"
+      v-model="newCategoryName"
+      type="text"
+      class="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary"
+      placeholder="Nombre de la categoría"
+    />
+  </ModalBase>
+
+  <ModalBase
+    :is-open="isDeleteCategoryModalOpen"
+    title="Eliminar categoría"
+    subtitle="Sus servicios se moverán a otra categoría"
+    icon="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+    variant="danger"
+    size="sm"
+    confirm-text="Eliminar"
+    cancel-text="Cancelar"
+    :loading="isUpdatingCategory"
+    @close="closeDeleteCategoryModal"
+    @confirm="confirmDeleteCategory"
+    @cancel="closeDeleteCategoryModal"
+  >
+    <p class="mb-3 text-sm text-text-secondary">
+      La categoría <strong>{{ categoryToDelete }}</strong> será eliminada.
+    </p>
+    <label class="mb-2 block text-sm font-medium text-text" for="replacement-category">Mover servicios a</label>
+    <select
+      id="replacement-category"
+      v-model="replacementCategory"
+      class="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary"
+    >
+      <option
+        v-for="cat in deleteCategoryOptions"
+        :key="cat.id"
+        :value="cat.id"
+      >
+        {{ cat.name }}
+      </option>
+    </select>
+  </ModalBase>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useQueryClient } from '@tanstack/vue-query'
 import { useCrud } from '../composables/useCrud'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
-import { deleteServicio, listServicios, saveServicio, serviciosKeys } from '../services/serviciosService'
+import {
+  deleteBusinessCategory,
+  deleteServicio,
+  listServicios,
+  renameBusinessCategory,
+  saveServicio,
+  serviciosKeys,
+} from '../services/serviciosService'
 import { useBusinessStore } from '../store/business'
 import { ServicioFormModal } from '../components/modals'
 import { ModalBase } from '../components/common'
@@ -218,7 +309,8 @@ import type { Servicio, ServicioFormData } from '../types/servicio'
 const { authStore } = useAuth()
 const businessStore = useBusinessStore()
 const { formatVESInline, formatUSD } = useCurrency()
-useNotification()
+const queryClient = useQueryClient()
+const { success, error: showError, warning } = useNotification()
 const activeCategory = ref('all')
 const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null)
 
@@ -226,6 +318,15 @@ const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null
 const isDeleteModalOpen = ref(false)
 const servicioToDelete = ref<Servicio | null>(null)
 const businessId = computed(() => authStore.businessId)
+const isUpdatingCategory = ref(false)
+
+const isRenameCategoryModalOpen = ref(false)
+const categoryToEdit = ref('')
+const newCategoryName = ref('')
+
+const isDeleteCategoryModalOpen = ref(false)
+const categoryToDelete = ref('')
+const replacementCategory = ref('')
 
 const categories = computed(() => {
   const list = servicios.value.map(service => service.category).filter(Boolean)
@@ -267,6 +368,10 @@ const filteredServices = computed(() => {
   return servicios.value.filter(s => s.category === activeCategory.value)
 })
 
+const deleteCategoryOptions = computed(() =>
+  categories.value.filter((item) => item.id !== 'all' && item.id !== categoryToDelete.value)
+)
+
 // Actions
 const handleNewServicio = () => {
   servicioModalRef.value?.open()
@@ -286,6 +391,91 @@ const confirmDelete = async () => {
     deleteServicioMutation.mutate(servicioToDelete.value.id)
     isDeleteModalOpen.value = false
     servicioToDelete.value = null
+  }
+}
+
+const openRenameCategoryModal = (currentCategory: string) => {
+  categoryToEdit.value = currentCategory
+  newCategoryName.value = currentCategory
+  isRenameCategoryModalOpen.value = true
+}
+
+const closeRenameCategoryModal = () => {
+  isRenameCategoryModalOpen.value = false
+  categoryToEdit.value = ''
+  newCategoryName.value = ''
+}
+
+const confirmRenameCategory = async () => {
+  const businessIdValue = businessId.value
+  if (!businessIdValue) return
+
+  const currentCategory = categoryToEdit.value
+  const nextCategory = newCategoryName.value.trim()
+  if (!currentCategory || !nextCategory || nextCategory === currentCategory) {
+    closeRenameCategoryModal()
+    return
+  }
+
+  try {
+    isUpdatingCategory.value = true
+    const updated = await renameBusinessCategory(businessIdValue, currentCategory, nextCategory)
+    businessStore.updateBusiness({ service_categories: updated })
+    await queryClient.invalidateQueries({ queryKey: serviciosKeys.all(businessIdValue) })
+    activeCategory.value = nextCategory
+    closeRenameCategoryModal()
+    success('Categoría actualizada')
+  } catch (err) {
+    console.error(err)
+    showError('No se pudo actualizar la categoría')
+  } finally {
+    isUpdatingCategory.value = false
+  }
+}
+
+const openDeleteCategoryModal = (category: string) => {
+  categoryToDelete.value = category
+  const defaultReplacement = categories.value.find((item) => item.id !== 'all' && item.id !== category)?.id
+  replacementCategory.value = defaultReplacement ?? ''
+
+  if (!replacementCategory.value) {
+    warning('Debe existir al menos otra categoría para poder eliminarla')
+    return
+  }
+
+  isDeleteCategoryModalOpen.value = true
+}
+
+const closeDeleteCategoryModal = () => {
+  isDeleteCategoryModalOpen.value = false
+  categoryToDelete.value = ''
+  replacementCategory.value = ''
+}
+
+const confirmDeleteCategory = async () => {
+  const businessIdValue = businessId.value
+  if (!businessIdValue) return
+
+  const category = categoryToDelete.value
+  const replacement = replacementCategory.value
+  if (!category || !replacement) {
+    closeDeleteCategoryModal()
+    return
+  }
+
+  try {
+    isUpdatingCategory.value = true
+    const updated = await deleteBusinessCategory(businessIdValue, category, replacement)
+    businessStore.updateBusiness({ service_categories: updated })
+    await queryClient.invalidateQueries({ queryKey: serviciosKeys.all(businessIdValue) })
+    if (activeCategory.value === category) activeCategory.value = replacement
+    closeDeleteCategoryModal()
+    success('Categoría eliminada')
+  } catch (err) {
+    console.error(err)
+    showError('No se pudo eliminar la categoría')
+  } finally {
+    isUpdatingCategory.value = false
   }
 }
 </script>
