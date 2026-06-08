@@ -105,7 +105,6 @@
           :label="formData.isSellable ? 'Precio de venta ($)' : 'Precio de venta ($) — opcional'"
           type="number"
           placeholder="0.00"
-          :required="formData.isSellable"
           :error="errors.unitPrice"
         />
         <FormInput
@@ -211,8 +210,7 @@ const errors = ref<Partial<Record<keyof ProductoFormData, string>>>({})
 
 const isFormValid = computed(() => {
   return formData.value.name.trim().length >= 2 &&
-         formData.value.unit.trim().length > 0 &&
-         (formData.value.isSellable ? formData.value.unitPrice > 0 : true)
+         formData.value.unit.trim().length > 0
 })
 
 watch(
@@ -263,8 +261,8 @@ const validateForm = (): boolean => {
   if (!formData.value.unit.trim()) {
     errors.value.unit = 'La unidad de medida es requerida'
   }
-  if (formData.value.unitPrice <= 0) {
-    errors.value.unitPrice = 'El precio debe ser mayor a 0'
+  if (formData.value.unitPrice < 0) {
+    errors.value.unitPrice = 'El precio no puede ser negativo'
   }
   if (formData.value.unitCost < 0) {
     errors.value.unitCost = 'El costo no puede ser negativo'
