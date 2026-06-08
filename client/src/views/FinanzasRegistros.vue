@@ -57,7 +57,7 @@
                 <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ terminology.service || 'Servicio' }}</th>
                 <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Costo</th>
                 <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">% {{ terminology.employee || 'Empleado' }}</th>
-                <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Ganancia</th>
+                <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Comisión</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border-subtle">
