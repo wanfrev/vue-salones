@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { mutate } from '../lib/typedSupabase'
+import { resolveFunctionErrorMessage } from '../lib/errors'
 import type { Business } from '../types/database'
 import type { AuthProfile } from '../types/auth'
 
@@ -43,7 +44,10 @@ export const createBusinessWithOwner = async (input: CreateBusinessInput): Promi
     },
   })
 
-  if (error) throw error
+  if (error) {
+    const message = await resolveFunctionErrorMessage(error, 'No fue posible crear el negocio.')
+    throw new Error(message)
+  }
   if (!data?.business || !data?.invitedUserId) {
     throw new Error('No fue posible crear el negocio.')
   }
@@ -71,7 +75,10 @@ export const updateBusiness = async (input: UpdateBusinessInput): Promise<Busine
     },
   })
 
-  if (error) throw error
+  if (error) {
+    const message = await resolveFunctionErrorMessage(error, 'No fue posible actualizar el negocio.')
+    throw new Error(message)
+  }
   if (!data?.business) {
     throw new Error('No fue posible actualizar el negocio.')
   }
@@ -87,7 +94,10 @@ export const deleteBusiness = async (businessId: string): Promise<void> => {
     },
   })
 
-  if (error) throw error
+  if (error) {
+    const message = await resolveFunctionErrorMessage(error, 'No fue posible eliminar el negocio.')
+    throw new Error(message)
+  }
   if (!data?.success) {
     throw new Error('No fue posible eliminar el negocio.')
   }

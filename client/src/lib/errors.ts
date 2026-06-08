@@ -41,6 +41,37 @@ function extractDbError(error: unknown): { code: string; message: string; hint?:
   return null
 }
 
+export async function resolveFunctionErrorMessage(error: unknown, fallback: string): Promise<string> {
+  if (!error || typeof error !== 'object') return fallback
+
+  const maybeError = error as {
+    message?: string
+    context?: { json?: () => Promise<any>; text?: () => Promise<string> }
+  }
+
+  try {
+    if (maybeError.context?.json) {
+      const payload = await maybeError.context.json()
+      if (payload?.error && typeof payload.error === 'string') return payload.error
+      if (payload?.message && typeof payload.message === 'string') return payload.message
+    }
+  } catch {
+    // ignore
+  }
+
+  try {
+    if (maybeError.context?.text) {
+      const raw = await maybeError.context.text()
+      if (raw?.trim()) return raw
+    }
+  } catch {
+    // ignore
+  }
+
+  if (maybeError.message && maybeError.message.trim()) return maybeError.message
+  return fallback
+}
+
 export function handleDbError(error: unknown, fallback: string): never {
   const mapped = extractDbError(error)
   if (mapped) {

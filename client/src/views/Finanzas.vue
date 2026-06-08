@@ -213,6 +213,8 @@
     <ExpensesSection
       :expenses="expenses"
       :business-id="authStore.businessId"
+      :is-loading="expensesCtx.isLoading.value"
+      :error="expensesCtx.queryError.value ? (expensesCtx.queryError.value as Error).message : null"
       @saved="onExpenseSaved"
       @view-all="goToAllRecords('gastos')"
     />
@@ -443,6 +445,8 @@ const invalidateAll = () => {
   queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
   queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value] })
   queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value] })
+  queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value] })
+  queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments', businessId.value] })
 }
 
 const onExpenseSaved = () => invalidateAll()

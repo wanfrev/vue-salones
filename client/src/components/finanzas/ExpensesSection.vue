@@ -12,7 +12,40 @@
         <span class="hidden sm:inline">Registrar gasto</span>
       </button>
     </div>
-    <div class="lg:hidden space-y-2 mb-3">
+    <div v-if="isLoading" class="py-8 text-center">
+      <div class="flex items-center justify-center gap-2 text-sm text-text-muted">
+        <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        Cargando gastos...
+      </div>
+    </div>
+
+    <div v-else-if="error" class="py-8 text-center">
+      <div class="flex flex-col items-center gap-2">
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-danger/10 mb-1">
+          <svg class="h-5 w-5 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <p class="text-sm text-danger">{{ error }}</p>
+      </div>
+    </div>
+
+    <div v-else-if="expenses.length === 0" class="py-8 text-center">
+      <div class="flex flex-col items-center gap-2">
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-1">
+          <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
+          </svg>
+        </div>
+        <p class="text-sm text-text-muted">No hay gastos en este período</p>
+      </div>
+    </div>
+
+    <template v-else>
+      <div class="lg:hidden space-y-2 mb-3">
       <div v-for="expense in visibleExpenses" :key="expense.id" class="rounded-lg border border-border-subtle bg-bg-secondary p-3">
         <div class="flex items-start justify-between mb-1.5">
           <div>
@@ -80,7 +113,8 @@
         Ver todos
       </button>
     </div>
-  </div>
+  </template>
+</div>
 
   <Teleport to="body">
     <div v-if="showModal"
@@ -152,6 +186,8 @@ import { saveExpense, type ExpenseRow, type ExpenseFormData } from '../../servic
 const props = defineProps<{
   expenses: ExpenseRow[]
   businessId: string | null
+  isLoading?: boolean
+  error?: string | null
 }>()
 
 const emit = defineEmits<{

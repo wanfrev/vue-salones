@@ -63,7 +63,7 @@ export function useExpenses(
     expensesKeys.filtered(businessId.value, periodDates.value.start, periodDates.value.end)
   )
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error: queryError } = useQuery({
     queryKey,
     queryFn: () => listExpenses(businessId.value!, periodDates.value.start, periodDates.value.end),
     enabled: computed(() => !!businessId.value),
@@ -138,6 +138,8 @@ export function useExpenses(
     expenses,
     expenseTotal,
     isLoading,
+    isError,
+    queryError,
     saveMutation,
     showExpenseModal,
     editingExpenseId,

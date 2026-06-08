@@ -201,6 +201,7 @@
                 <option value="salon">Salón de belleza</option>
                 <option value="barberia">Barbería</option>
                 <option value="spa">Spa (humano)</option>
+                <option value="mixto">Mixto (Barbería + Salón + Spa)</option>
                 <option value="dog_spa">Spa canino / Veterinaria</option>
                 <option value="nail_bar">Barra de uñas</option>
                 <option value="centro_estetico">Centro estético</option>

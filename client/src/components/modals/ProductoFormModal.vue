@@ -209,8 +209,9 @@ const isFormValid = computed(() => {
 })
 
 watch(
-  () => modalData.value?.producto,
-  (producto) => {
+  [isOpen, () => modalData.value?.producto],
+  ([open, producto]) => {
+    if (!open) return
     if (producto) {
       formData.value = {
         name: producto.name || '',

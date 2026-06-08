@@ -1,4 +1,5 @@
 import { mutate } from '../lib/typedSupabase'
+import { resolveFunctionErrorMessage } from '../lib/errors'
 
 export type CreateUserInput = {
   email: string
@@ -20,37 +21,6 @@ export type CreateUserResult = {
     id: string
     email: string
   }
-}
-
-const resolveFunctionErrorMessage = async (error: unknown, fallback: string): Promise<string> => {
-  if (!error || typeof error !== 'object') return fallback
-
-  const maybeError = error as {
-    message?: string
-    context?: { json?: () => Promise<any>; text?: () => Promise<string> }
-  }
-
-  try {
-    if (maybeError.context?.json) {
-      const payload = await maybeError.context.json()
-      if (payload?.error && typeof payload.error === 'string') return payload.error
-      if (payload?.message && typeof payload.message === 'string') return payload.message
-    }
-  } catch {
-    // ignore parse errors and try text/message fallback
-  }
-
-  try {
-    if (maybeError.context?.text) {
-      const raw = await maybeError.context.text()
-      if (raw?.trim()) return raw
-    }
-  } catch {
-    // ignore parse errors and use message fallback
-  }
-
-  if (maybeError.message && maybeError.message.trim()) return maybeError.message
-  return fallback
 }
 
 export const createAuthUser = async (input: CreateUserInput): Promise<CreateUserResult> => {

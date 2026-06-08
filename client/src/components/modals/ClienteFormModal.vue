@@ -153,8 +153,9 @@ const isFormValid = computed(() => {
 })
 
 watch(
-  () => modalData.value?.cliente,
-  (cliente) => {
+  [isOpen, () => modalData.value?.cliente],
+  ([open, cliente]) => {
+    if (!open) return
     if (cliente) {
       const meta = cliente.metadata ?? {} as Record<string, string>
       formData.value = {

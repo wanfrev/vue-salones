@@ -4,6 +4,13 @@ import { formatMethod, formatDate } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
 import type { Transaction, EmployeePayment, Expense } from '../types/database'
 
+const toYmd = (d: Date) => {
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export type UnifiedTransaction = {
   id: string
   date: string
@@ -135,11 +142,11 @@ const resolvePeriod = (value: 'month' | 'quarter' | 'year', monthKey?: string): 
 const normalizeBucketKey = (date: Date, bucket: 'day' | 'week' | 'month') => {
   const normalized = new Date(date)
   normalized.setHours(0, 0, 0, 0)
-  if (bucket === 'day') return normalized.toISOString().slice(0, 10)
+  if (bucket === 'day') return toYmd(normalized)
   if (bucket === 'month') return `${normalized.getFullYear()}-${String(normalized.getMonth() + 1).padStart(2, '0')}-01`
   const day = (normalized.getDay() + 6) % 7
   normalized.setDate(normalized.getDate() - day)
-  return normalized.toISOString().slice(0, 10)
+  return toYmd(normalized)
 }
 
 const formatBucketLabel = (date: Date, bucket: 'day' | 'week' | 'month') => {
@@ -176,8 +183,8 @@ function useFinancialSummary(
     queryKey: summaryQueryKey,
     queryFn: async () => {
       const cfg = periodConfig.value
-      const start = cfg.start.toISOString().slice(0, 10)
-      const end = cfg.end.toISOString().slice(0, 10)
+      const start = toYmd(cfg.start)
+      const end = toYmd(cfg.end)
       const { data, error } = await supabase.rpc('financial_summary', {
         p_business_id: businessId.value!,
         p_period_start: start,
@@ -257,8 +264,8 @@ function useFinancialSummary(
         .from('employee_payments')
         .select('id, amount, payment_method, payment_date, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
         .eq('business_id', businessId.value!)
-        .gte('payment_date', cfg.start.toISOString().slice(0, 10))
-        .lte('payment_date', cfg.end.toISOString().slice(0, 10))
+        .gte('payment_date', toYmd(cfg.start))
+        .lte('payment_date', toYmd(cfg.end))
         .order('payment_date', { ascending: false })
       if (error) throw error
       return (data ?? []) as Array<EmployeePayment & { employee_profile?: { full_name: string } | null }>
@@ -275,8 +282,8 @@ function useFinancialSummary(
         .from('expenses')
         .select('id, name, amount, expense_date')
         .eq('business_id', businessId.value!)
-        .gte('expense_date', cfg.start.toISOString().slice(0, 10))
-        .lte('expense_date', cfg.end.toISOString().slice(0, 10))
+        .gte('expense_date', toYmd(cfg.start))
+        .lte('expense_date', toYmd(cfg.end))
         .order('expense_date', { ascending: false })
       if (error) throw error
       return (data ?? []) as Expense[]

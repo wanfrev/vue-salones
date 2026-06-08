@@ -446,8 +446,9 @@ const isFormValid = computed(() => {
 })
 
 watch(
-  () => modalData.value?.cita,
-  async (cita) => {
+  [isOpen, () => modalData.value?.cita],
+  async ([open, cita]) => {
+    if (!open) return
     priceOverride.value = null
     if (cita) {
       let phone = ''
