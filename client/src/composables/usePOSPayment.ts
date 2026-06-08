@@ -61,6 +61,7 @@ export function usePOSPayment() {
       queryClient.invalidateQueries({ queryKey: posKeys.products(businessId.value) })
       queryClient.invalidateQueries({ queryKey: ['inventario'] })
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-product-sales'] })
       queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
       queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
     },
