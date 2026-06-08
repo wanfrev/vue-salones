@@ -71,15 +71,15 @@ function toLocalDate(value: string | Date): Date {
 function formatDdMmYy(date: Date): string {
   const dd = String(date.getDate()).padStart(2, '0')
   const mm = String(date.getMonth() + 1).padStart(2, '0')
-  const yy = String(date.getFullYear()).slice(-2)
-  return `${dd}-${mm}-${yy}`
+  const yyyy = date.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
 }
 
 export function formatDate(date: string | Date, format: keyof typeof DATE_FORMATS = 'short'): string {
   const d = toLocalDate(date)
   if (Number.isNaN(d.getTime())) return String(date)
   if (format === 'month') {
-    return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getFullYear()).slice(-2)}`
+    return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getFullYear()).slice(-2)}`
   }
   return formatDdMmYy(d)
 }
