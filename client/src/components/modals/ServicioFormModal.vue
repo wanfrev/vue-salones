@@ -311,31 +311,29 @@ const handleSubmit = async () => {
     return
   }
 
-  try {
-    const category = formData.value.category.trim()
+  const category = formData.value.category.trim()
 
-    // Persist new category to business config
-    const businessId = authStore.businessId
+  const businessId = authStore.businessId
   const bizCats = businessStore.serviceCategories
-    if (businessId && category && !bizCats.includes(category)) {
+  if (businessId && category && !bizCats.includes(category)) {
+    try {
       const updated = await addBusinessCategory(businessId, category)
       businessStore.updateBusiness({ service_categories: updated })
+    } catch (err) {
+      console.error('Error persisting category:', err)
     }
-
-    const servicioData: ServicioFormData & { id?: string } = {
-      ...formData.value,
-      category,
-    }
-
-    if (modalData.value?.servicio?.id) {
-      servicioData.id = modalData.value.servicio.id
-    }
-
-    emit('save', servicioData)
-  } catch (err) {
-    showError(`Error al guardar el ${t.value.service.toLowerCase()}`)
-    console.error(err)
   }
+
+  const servicioData: ServicioFormData & { id?: string } = {
+    ...formData.value,
+    category,
+  }
+
+  if (modalData.value?.servicio?.id) {
+    servicioData.id = modalData.value.servicio.id
+  }
+
+  emit('save', servicioData)
 }
 
 const open = (servicio?: Servicio) => {

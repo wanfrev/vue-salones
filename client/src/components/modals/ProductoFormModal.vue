@@ -277,31 +277,30 @@ const handleSubmit = async () => {
     return
   }
 
-  try {
-    // Create new category if one was typed
-    let categoryId = formData.value.categoryId
-    if (showingCustomCategory.value && newCategoryName.value.trim()) {
+  let categoryId = formData.value.categoryId
+  if (showingCustomCategory.value && newCategoryName.value.trim()) {
+    try {
       const newCat = await createProductCategory(businessId.value!, newCategoryName.value.trim())
       categoryId = newCat.id
       if (queryClient) {
         await queryClient.invalidateQueries({ queryKey: productosKeys.categories(businessId.value) })
       }
+    } catch (err) {
+      console.error('Error creating category:', err)
+      showError('No se pudo crear la categoria, pero el producto se guardara')
     }
-
-    const productoData: ProductoFormData & { id?: string } = {
-      ...formData.value,
-      categoryId,
-    }
-
-    if (modalData.value?.producto?.id) {
-      productoData.id = modalData.value.producto.id
-    }
-
-    emit('save', productoData)
-  } catch (err) {
-    showError('Error al guardar el producto')
-    console.error(err)
   }
+
+  const productoData: ProductoFormData & { id?: string } = {
+    ...formData.value,
+    categoryId,
+  }
+
+  if (modalData.value?.producto?.id) {
+    productoData.id = modalData.value.producto.id
+  }
+
+  emit('save', productoData)
 }
 
 const open = (producto?: Producto, opts?: { defaultSellable?: boolean }) => {
