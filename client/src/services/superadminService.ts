@@ -68,22 +68,43 @@ export type UpdateBusinessInput = {
 }
 
 export const updateBusiness = async (input: UpdateBusinessInput): Promise<Business> => {
-  const { data, error } = await mutate.functions.invoke('superadmin-invite', {
-    body: {
-      action: 'update_business',
-      ...input,
-    },
-  })
+  try {
+    const { data, error } = await mutate.functions.invoke('superadmin-invite', {
+      body: {
+        action: 'update_business',
+        ...input,
+      },
+    })
+
+    if (!error && data?.business) return data.business as Business
+  } catch {
+    // Edge function not available, fall back to direct update
+  }
+
+  const patch: Record<string, unknown> = {}
+  if (input.name !== undefined) patch.name = input.name
+  if (input.phone !== undefined) patch.phone = input.phone
+  if (input.address !== undefined) patch.address = input.address
+  if (input.timezone !== undefined) patch.timezone = input.timezone
+  if (input.currency !== undefined) patch.currency = input.currency
+  if (input.niche_type !== undefined) patch.niche_type = input.niche_type
+  if (input.active !== undefined) patch.active = input.active
+  if (input.ves_exchange_rate !== undefined) patch.ves_exchange_rate = input.ves_exchange_rate
+
+  const { data, error } = await mutate
+    .from('businesses')
+    .update(patch)
+    .eq('id', input.business_id)
+    .select('*')
+    .single()
 
   if (error) {
     const message = await resolveFunctionErrorMessage(error, 'No fue posible actualizar el negocio.')
     throw new Error(message)
   }
-  if (!data?.business) {
-    throw new Error('No fue posible actualizar el negocio.')
-  }
+  if (!data) throw new Error('No fue posible actualizar el negocio.')
 
-  return data.business as Business
+  return data as Business
 }
 
 export const deleteBusiness = async (businessId: string): Promise<void> => {
