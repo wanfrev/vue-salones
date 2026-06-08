@@ -123,6 +123,27 @@ export const NICHE_FIELDS: Record<string, NicheConfig> = {
     sectionTitle: 'Datos',
     fields: [...PET_FIELDS, ...VET_EXTRA_FIELDS],
   },
+  mixto: {
+    sectionTitle: 'Perfil del Cliente',
+    fields: [
+      { key: 'hair_type', label: 'Tipo de cabello', type: 'select', options: HAIR_TYPE_OPTIONS },
+      { key: 'hair_length', label: 'Largo del cabello', type: 'select', options: HAIR_LENGTH_OPTIONS },
+      { key: 'products_used', label: 'Productos que usa', type: 'input', placeholder: 'Ej: Pomada, cera, aceite, shampoo' },
+      {
+        key: 'beard_style', label: 'Estilo de barba', type: 'select', options: BEARD_STYLE_OPTIONS,
+        collapsibleGroup: 'barber_extra', collapsibleGroupLabel: 'Agregar estilo de barba y fade',
+      },
+      {
+        key: 'fade_preference', label: 'Preferencia de fade', type: 'select', options: FADE_OPTIONS,
+        collapsibleGroup: 'barber_extra',
+      },
+      { key: 'chemical_history', label: 'Historial de químicos', type: 'textarea', placeholder: 'Tintes, alisados, decoloraciones recientes...' },
+      { key: 'skin_type', label: 'Tipo de piel', type: 'select', options: SKIN_TYPE_OPTIONS },
+      { key: 'massage_preference', label: 'Preferencia de masaje', type: 'select', options: MASSAGE_OPTIONS },
+      { key: 'allergies', label: 'Alergias o contraindicaciones', type: 'textarea', placeholder: 'Aceites esenciales, fragancias, condiciones médicas...' },
+      { key: 'notes', label: 'Preferencias del Cliente', type: 'textarea', placeholder: 'Indicaciones específicas del corte, peinado o tratamiento...' },
+    ],
+  },
 }
 
 export function getNicheConfig(nicheType: string): NicheConfig | null {
