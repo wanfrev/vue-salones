@@ -135,9 +135,8 @@ export const saveCita = async (
       })())
     : generateId()
 
-  // On update, delete old group members before re-inserting
+  // On update, delete old records before re-inserting
   if (data.id) {
-    // Delete all appointments in the same group (including the edited one)
     const { data: existing } = await supabase
       .from('appointments')
       .select('group_id')
@@ -146,10 +145,17 @@ export const saveCita = async (
 
     const targetGroupId = (existing as any)?.group_id
     if (targetGroupId) {
+      // Multi-service → delete all group members
       await mutate
         .from('appointments')
         .delete()
         .eq('group_id', targetGroupId)
+    } else {
+      // Single-service being converted to multi-service → delete the old standalone record
+      await mutate
+        .from('appointments')
+        .delete()
+        .eq('id', data.id)
     }
   }
 
