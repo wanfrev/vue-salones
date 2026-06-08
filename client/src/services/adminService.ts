@@ -1,5 +1,28 @@
 import { mutate } from '../lib/typedSupabase'
+import { supabase } from '../lib/supabase'
 import { resolveFunctionErrorMessage } from '../lib/errors'
+
+async function invokeWithSessionRefresh(action: string, body: Record<string, unknown>) {
+  const invoke = () =>
+    mutate.functions.invoke('manage-user', {
+      body: { action, ...body },
+    })
+
+  let result = await invoke()
+
+  if (result.error && /session|jwt|auth/i.test(String(result.error.message ?? ''))) {
+    const { data: sessionData } = await supabase.auth.getSession()
+    if (sessionData.session) {
+      await supabase.auth.setSession({
+        access_token: sessionData.session.access_token,
+        refresh_token: sessionData.session.refresh_token,
+      })
+      result = await invoke()
+    }
+  }
+
+  return result
+}
 
 export type CreateUserInput = {
   email: string
@@ -24,13 +47,10 @@ export type CreateUserResult = {
 }
 
 export const createAuthUser = async (input: CreateUserInput): Promise<CreateUserResult> => {
-  const { data, error } = await mutate.functions.invoke('manage-user', {
-    body: {
-      action: 'create',
-      email: input.email.trim().toLowerCase(),
-      password: input.password,
-      user_metadata: input.user_metadata,
-    },
+  const { data, error } = await invokeWithSessionRefresh('create', {
+    email: input.email.trim().toLowerCase(),
+    password: input.password,
+    user_metadata: input.user_metadata,
   })
 
   if (error) {
@@ -48,13 +68,10 @@ export const updateAuthUser = async (userId: string, input: {
   password?: string
   user_metadata?: Record<string, unknown>
 }): Promise<void> => {
-  const { data, error } = await mutate.functions.invoke('manage-user', {
-    body: {
-      action: 'update',
-      user_id: userId,
-      password: input.password,
-      user_metadata: input.user_metadata,
-    },
+  const { data, error } = await invokeWithSessionRefresh('update', {
+    user_id: userId,
+    password: input.password,
+    user_metadata: input.user_metadata,
   })
 
   if (error) {
@@ -67,11 +84,8 @@ export const updateAuthUser = async (userId: string, input: {
 }
 
 export const deleteAuthUser = async (userId: string): Promise<void> => {
-  const { data, error } = await mutate.functions.invoke('manage-user', {
-    body: {
-      action: 'delete',
-      user_id: userId,
-    },
+  const { data, error } = await invokeWithSessionRefresh('delete', {
+    user_id: userId,
   })
 
   if (error) {

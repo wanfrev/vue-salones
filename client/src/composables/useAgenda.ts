@@ -4,19 +4,28 @@ import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/auth'
 import type { Profile, Service } from '../types/database'
 
+function defaultWeekRange() {
+  const today = new Date()
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const end = new Date(start)
+  end.setDate(end.getDate() + 7)
+  end.setMilliseconds(-1)
+  return { start, end }
+}
+
 export const useAgenda = () => {
   const authStore = useAuthStore()
   const businessId = computed(() => authStore.businessId)
 
   const selectedEmployeeId = ref<string | 'all'>('all')
-  const dateRange = ref({ start: new Date(), end: new Date() })
+  const dateRange = ref(defaultWeekRange())
 
   const setDateRange = (start: Date, end: Date) => {
     dateRange.value = { start, end }
   }
 
   const { data: employees, isLoading: loadingEmployees } = useQuery({
-    queryKey: ['employees', businessId],
+    queryKey: computed(() => ['employees', businessId.value]),
     queryFn: async (): Promise<Profile[]> => {
       if (!businessId.value) return []
       const { data, error } = await supabase
@@ -32,7 +41,7 @@ export const useAgenda = () => {
   })
 
   const { data: services } = useQuery({
-    queryKey: ['services', businessId],
+    queryKey: computed(() => ['services', businessId.value]),
     queryFn: async (): Promise<Service[]> => {
       if (!businessId.value) return []
       const { data, error } = await supabase
@@ -47,7 +56,7 @@ export const useAgenda = () => {
   })
 
   const { data: schedules } = useQuery({
-    queryKey: ['schedules', businessId, selectedEmployeeId],
+    queryKey: computed(() => ['schedules', businessId.value, selectedEmployeeId.value]),
     queryFn: async (): Promise<any[]> => {
       if (!businessId.value) return []
       let query = supabase
@@ -65,7 +74,7 @@ export const useAgenda = () => {
   })
 
   const { data: appointments, isLoading: loadingAppointments, refetch: refetchAppointments } = useQuery({
-    queryKey: ['appointments', businessId, selectedEmployeeId, dateRange],
+    queryKey: computed(() => ['appointments', businessId.value, selectedEmployeeId.value, dateRange.value]),
     queryFn: async (): Promise<any[]> => {
       if (!businessId.value) return []
       let query = supabase
