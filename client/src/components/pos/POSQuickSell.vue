@@ -4,7 +4,7 @@
       <svg class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
       </svg>
-      <h3 class="text-base font-semibold text-text">1. Venta de productos</h3>
+      <h3 class="text-base font-semibold text-text">Venta de productos</h3>
     </div>
 
     <div class="relative mb-3">
@@ -21,22 +21,31 @@
       </div>
     </div>
 
-    <div v-if="!selected" class="max-h-40 overflow-y-auto space-y-1">
-      <button
-        v-for="product in displayedProducts"
-        :key="product.id"
-        @click="selectProduct(product)"
-        :disabled="Number(product.available_qty ?? 0) <= 0"
-        class="w-full text-left rounded-lg px-3 py-2 text-sm transition-theme hover:bg-bg-secondary flex items-center justify-between disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <div>
-          <span class="text-text">{{ product.name }}</span>
-          <p class="text-xs text-text-muted">Disponible: {{ Number(product.available_qty ?? 0) }}</p>
+    <div v-if="!selected" class="space-y-1">
+      <div v-if="!search" class="mb-2 text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5 px-1">
+        <svg class="h-3.5 w-3.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+        Productos disponibles
+      </div>
+
+      <div class="max-h-40 overflow-y-auto space-y-1">
+        <button
+          v-for="product in displayedProducts"
+          :key="product.id"
+          @click="selectProduct(product)"
+          :disabled="Number(product.available_qty ?? 0) <= 0"
+          class="w-full text-left rounded-lg px-3 py-2 text-sm transition-theme hover:bg-bg-secondary flex items-center justify-between disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <div>
+            <span class="text-text">{{ product.name }}</span>
+            <p class="text-xs text-text-muted">Disponible: {{ Number(product.available_qty ?? 0) }}</p>
+          </div>
+          <span class="text-text-muted whitespace-nowrap">{{ formatDual(product.unit_price) }}</span>
+        </button>
+        <div v-if="displayedProducts.length === 0" class="py-4 text-center text-sm text-text-muted">
+          {{ search ? 'Sin resultados' : 'No hay productos disponibles para la venta' }}
         </div>
-        <span class="text-text-muted whitespace-nowrap">{{ formatDual(product.unit_price) }}</span>
-      </button>
-      <div v-if="displayedProducts.length === 0 && search" class="py-4 text-center text-sm text-text-muted">
-        Sin resultados
       </div>
     </div>
 
@@ -216,8 +225,14 @@ const paymentMethods = [
 const mixedMethods = paymentMethods.filter(m => m.value !== 'mixed')
 
 const displayedProducts = computed(() => {
+  if (!search.value) {
+    const withStock = props.products.filter((p: any) => Number(p.available_qty ?? 0) > 0)
+    if (withStock.length > 0) {
+      return withStock.slice(0, 8)
+    }
+    return props.products.slice(0, 8)
+  }
   const q = search.value.toLowerCase()
-  if (!q) return []
   return props.products.filter((p: any) =>
     p.name.toLowerCase().includes(q)
   ).slice(0, 8)
