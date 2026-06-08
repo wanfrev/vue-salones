@@ -60,6 +60,17 @@ export const listCitas = async (
   return (data as AppointmentWithRelations[]).map(mapAppointmentToCita)
 }
 
+export const listCitaGroupMembers = async (groupId: string): Promise<AppointmentWithRelations[]> => {
+  const { data, error } = await supabase
+    .from('appointments')
+    .select(APPOINTMENT_SELECT)
+    .eq('group_id', groupId)
+    .order('start_time')
+
+  if (error) throw error
+  return data as AppointmentWithRelations[]
+}
+
 export const saveCita = async (
   businessId: string,
   data: CitaFormData & { id?: string; clientPhone?: string },
@@ -112,7 +123,35 @@ export const saveCita = async (
   }
 
   // Multi-service (grouped) path
-  const groupId = generateId()
+  const groupId = data.id
+    ? (await (async () => {
+        // For updates, find the existing group_id of the appointment being edited
+        const { data: existing } = await supabase
+          .from('appointments')
+          .select('group_id')
+          .eq('id', data.id)
+          .maybeSingle()
+        return (existing as any)?.group_id || generateId()
+      })())
+    : generateId()
+
+  // On update, delete old group members before re-inserting
+  if (data.id) {
+    // Delete all appointments in the same group (including the edited one)
+    const { data: existing } = await supabase
+      .from('appointments')
+      .select('group_id')
+      .eq('id', data.id)
+      .maybeSingle()
+
+    const targetGroupId = (existing as any)?.group_id
+    if (targetGroupId) {
+      await mutate
+        .from('appointments')
+        .delete()
+        .eq('group_id', targetGroupId)
+    }
+  }
 
   // Fetch all services for extra rows
   const extraServiceIds = data.extraServices.map(e => e.serviceId)
@@ -179,6 +218,24 @@ export const updateCitaStatus = async (
     ? { status: 'completed' as const, payment_status: 'paid' as const }
     : { status, payment_status: 'unpaid' as const }
 
+  const { data: appt } = await supabase
+    .from('appointments')
+    .select('group_id')
+    .eq('id', id)
+    .maybeSingle()
+
+  const groupId = (appt as any)?.group_id
+
+  if (groupId) {
+    const { error } = await mutate
+      .from('appointments')
+      .update(statusPayload)
+      .eq('group_id', groupId)
+
+    if (error) throw error
+    return
+  }
+
   const { error } = await mutate
     .from('appointments')
     .update(statusPayload)
@@ -201,6 +258,24 @@ export const updateAppointmentTime = async (
 }
 
 export const deleteCita = async (id: string): Promise<void> => {
+  const { data: appt } = await supabase
+    .from('appointments')
+    .select('group_id')
+    .eq('id', id)
+    .maybeSingle()
+
+  const groupId = (appt as any)?.group_id
+
+  if (groupId) {
+    const { error } = await mutate
+      .from('appointments')
+      .delete()
+      .eq('group_id', groupId)
+
+    if (error) throw error
+    return
+  }
+
   const { error } = await mutate
     .from('appointments')
     .delete()

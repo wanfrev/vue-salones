@@ -215,6 +215,7 @@ import { useAuthStore } from '../../store/auth'
 import { useBusinessStore } from '../../store/business'
 import { toISODate, minutesToHHmm } from '../../lib/formatters'
 import { searchClients } from '../../services/clientesService'
+import { listCitaGroupMembers } from '../../services/agendaService'
 import type { Cita, CitaFormData, CitaFormServiceItem } from '../../types/cita'
 import ModalBase from '../common/ModalBase.vue'
 import { FormInput, FormSelect, FormTextarea } from '../forms'
@@ -413,6 +414,13 @@ watch(() => formData.value.service, (serviceId) => {
   }
 })
 
+// Keep primary duration synced with the longest extra service
+watch(maxDuration, (max) => {
+  if (formData.value.extraServices.length > 0) {
+    formData.value.duration = max
+  }
+})
+
 // Total price = sum of all service rows
 const totalPrice = computed(() => {
   let total = formData.value.price
@@ -452,6 +460,8 @@ watch(
     priceOverride.value = null
     if (cita) {
       let phone = ''
+      let groupMembers: CitaFormServiceItem[] = []
+
       if (cita.clientId && businessId.value) {
         try {
           const results = await searchClients(businessId.value, cita.clientName)
@@ -459,6 +469,21 @@ watch(
           if (match) phone = match.phone
         } catch { /* ignore */ }
       }
+
+      if (cita.groupId) {
+        try {
+          const members = await listCitaGroupMembers(cita.groupId)
+          groupMembers = members
+            .filter(m => m.id !== cita.id)
+            .map(m => ({
+              serviceId: m.service_id,
+              employeeId: m.employee_id,
+              duration: m.services?.duration_minutes ?? 30,
+              price: Number(m.services?.price ?? 0),
+            }))
+        } catch { /* ignore */ }
+      }
+
       formData.value = {
         clientId: cita.clientId || undefined,
         clientName: cita.clientName || '',
@@ -467,7 +492,7 @@ watch(
         employee: cita.employeeId || '',
         duration: cita.duration || 30,
         price: cita.price || 0,
-        extraServices: [],
+        extraServices: groupMembers,
         date: cita.date || toISODate(new Date()),
         time: cita.time || '09:00',
         status: cita.status || 'confirmed',
