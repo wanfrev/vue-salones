@@ -414,13 +414,6 @@ watch(() => formData.value.service, (serviceId) => {
   }
 })
 
-// Keep primary duration synced with the longest extra service
-watch(maxDuration, (max) => {
-  if (formData.value.extraServices.length > 0) {
-    formData.value.duration = max
-  }
-})
-
 // Total price = sum of all service rows
 const totalPrice = computed(() => {
   let total = formData.value.price
@@ -437,6 +430,13 @@ const maxDuration = computed(() => {
     if (extra.duration > max) max = extra.duration
   }
   return max
+})
+
+// Keep primary duration synced with the longest extra service
+watch(maxDuration, (max) => {
+  if (formData.value.extraServices.length > 0) {
+    formData.value.duration = max
+  }
 })
 
 const isFormValid = computed(() => {
