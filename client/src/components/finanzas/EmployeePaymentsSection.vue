@@ -106,6 +106,49 @@
         </table>
       </div>
     </div>
+
+    <div v-if="employeeDebtSummary.length > 0" class="mt-4 border-t border-border-subtle pt-4">
+      <h4 class="mb-3 text-base font-semibold text-text">Deuda por {{ terminology.employee || 'empleado' }}</h4>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-border-subtle">
+              <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">{{ terminology.employee || 'Empleado' }}</th>
+              <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">Tipo</th>
+              <th class="pb-2 text-right text-xs font-semibold uppercase text-text-muted">Comisión</th>
+              <th class="pb-2 text-right text-xs font-semibold uppercase text-text-muted">Sueldo base</th>
+              <th class="pb-2 text-right text-xs font-semibold uppercase text-text-muted">Total</th>
+              <th class="pb-2 text-right text-xs font-semibold uppercase text-text-muted">Pagado</th>
+              <th class="pb-2 text-right text-xs font-semibold uppercase text-text-muted">Pendiente</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border-subtle">
+            <tr v-for="row in employeeDebtSummary" :key="row.employeeId" class="text-sm transition-theme hover:bg-bg-secondary/50">
+              <td class="py-2 font-medium text-text">{{ row.employeeName }}</td>
+              <td class="py-2 text-text-secondary text-xs">
+                <span v-if="row.payType === 'salary'">Sueldo base</span>
+                <span v-else-if="row.payType === 'mixed'">Sueldo + {{ row.payPercentage }}%</span>
+                <span v-else-if="row.payType === 'percentage'">{{ row.payPercentage }}%</span>
+                <span v-else>—</span>
+              </td>
+              <td class="py-2 text-right text-text">{{ formatUSD(row.commissionTotal) }}</td>
+              <td class="py-2 text-right text-text">{{ formatUSD(row.baseSalary) }}</td>
+              <td class="py-2 text-right font-semibold text-text">{{ formatUSD(row.totalEarned) }}</td>
+              <td class="py-2 text-right">
+                <div class="font-medium text-danger">{{ formatUSD(row.totalPaid) }}</div>
+                <div class="text-xs text-text-muted">Bs {{ formatVESInline(row.totalPaid) }}</div>
+              </td>
+              <td class="py-2 text-right">
+                <span class="font-bold" :class="row.pendingBalance > 0 ? 'text-primary' : 'text-text-muted'">
+                  {{ formatUSD(row.pendingBalance) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div v-if="canViewAllPayments" class="mt-3 flex justify-center border-t border-border-subtle pt-3">
       <button
         type="button"
@@ -224,6 +267,7 @@ import { useCurrency } from '../../composables/useCurrency'
 import { useNotification } from '../../composables/useNotification'
 import { supabase } from '../../lib/supabase'
 import { createEmployeePayment, getEmployeeBalance, employeePaymentKeys, type EmployeeBalance, type EmployeePaymentRecord } from '../../services/employeePaymentsService'
+import type { EmployeeEarningSummary } from '../../composables/useFinancialSummary'
 
 interface PaymentRow {
   id: string; employee: string; service: string; amount: number; percentage: number; earnings: number
@@ -231,6 +275,7 @@ interface PaymentRow {
 
 const props = defineProps<{
   employeePayments: PaymentRow[]
+  employeeEarningsByEmployee?: EmployeeEarningSummary[]
   paymentsMade: EmployeePaymentRecord[]
   terminology: Record<string, string>
   businessId: string | null
@@ -256,6 +301,20 @@ const visibleEmployeePayments = computed(() => props.employeePayments.slice(0, 5
 const visiblePaymentsMade = computed(() => props.paymentsMade.slice(0, 5))
 
 const canViewAllPayments = computed(() => props.employeePayments.length > 5 || props.paymentsMade.length > 5)
+
+const employeeDebtSummary = computed(() => {
+  const summaries = props.employeeEarningsByEmployee ?? []
+  return summaries.map(s => {
+    const totalPaid = props.paymentsMade
+      .filter(p => p.employeeId === s.employeeId)
+      .reduce((sum, p) => sum + p.amount, 0)
+    return {
+      ...s,
+      totalPaid,
+      pendingBalance: Math.max(0, s.totalEarned - totalPaid),
+    }
+  }).filter(s => s.totalEarned > 0 || s.totalPaid > 0)
+})
 
 function payTypeLabel(): string {
   if (!selectedBalance.value) return '—'

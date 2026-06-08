@@ -223,6 +223,7 @@
   <div class="mb-5 lg:mb-6">
     <EmployeePaymentsSection
       :employee-payments="summaryCtx.employeePayments.value"
+      :employee-earnings-by-employee="summaryCtx.employeeEarningsByEmployee.value"
       :payments-made="paymentsCtx.paymentsMade.value"
       :terminology="businessStore.terminology"
       :business-id="authStore.businessId"

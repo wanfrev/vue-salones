@@ -20,6 +20,16 @@ export type UnifiedTransaction = {
   type: 'ingreso' | 'nomina' | 'gasto'
 }
 
+export type EmployeeEarningSummary = {
+  employeeId: string
+  employeeName: string
+  payType: 'salary' | 'percentage' | 'mixed' | 'unknown'
+  payPercentage: number
+  baseSalary: number
+  commissionTotal: number
+  totalEarned: number
+}
+
 type SummaryBucket = {
   bucket: string
   appointments: number
@@ -236,6 +246,9 @@ function useFinancialSummary(
       const raw = (data ?? []) as Array<
         Transaction & {
           appointments?: {
+            client_id: string | null
+            service_id: string | null
+            employee_id: string | null
             clients?: { full_name: string | null } | null
             services?: { name: string | null } | null
             employee_profile?: {
@@ -431,6 +444,53 @@ function useFinancialSummary(
     })
   )
 
+  const employeeEarningsByEmployee = computed<EmployeeEarningSummary[]>(() => {
+    const map = new Map<string, {
+      employeeName: string
+      payType: string
+      payPercentage: number
+      baseSalary: number
+      commissionTotal: number
+    }>()
+
+    for (const tx of rawTransactions.value) {
+      const profile = tx.appointments?.employee_profile
+      if (!profile) continue
+      const id = tx.appointments?.employee_id ?? ''
+      if (!id) continue
+
+      if (!map.has(id)) {
+        const profileFromTx = profile as EmployeeCompProfile
+        const pt = profileFromTx.pay_type ?? 'percentage'
+        map.set(id, {
+          employeeName: profile.full_name ?? '—',
+          payType: pt,
+          payPercentage: pt === 'salary' ? 0 : Number(profileFromTx.pay_percentage ?? 0),
+          baseSalary: pt === 'percentage' ? 0 : Number(profileFromTx.base_salary ?? 0),
+          commissionTotal: 0,
+        })
+      }
+
+      const entry = map.get(id)!
+      const calc = computeServiceEarnings(
+        Number(tx.total_amount ?? 0),
+        profile,
+        tx.employee_percentage,
+      )
+      entry.commissionTotal += calc.earnings
+    }
+
+    return [...map.entries()].map(([employeeId, data]) => ({
+      employeeId,
+      employeeName: data.employeeName,
+      payType: data.payType as EmployeeEarningSummary['payType'],
+      payPercentage: data.payPercentage,
+      baseSalary: data.baseSalary,
+      commissionTotal: data.commissionTotal,
+      totalEarned: data.baseSalary + data.commissionTotal,
+    }))
+  })
+
   const incomeTotal = computed(() =>
     summaryBuckets.value.reduce((acc, row) => acc + row.total_amount, 0)
   )
@@ -483,6 +543,7 @@ function useFinancialSummary(
     servicesRevenue,
     chartData,
     employeePayments,
+    employeeEarningsByEmployee,
     appointmentIncomeDetails,
     productSalesTotal,
     productSalesBreakdown,
