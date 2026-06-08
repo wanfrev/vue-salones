@@ -85,6 +85,12 @@
         />
       </div>
 
+      <FormToggle
+        v-model="formData.isSellable"
+        label="Vendible en POS"
+        description="Disponible para venta desde el punto de venta"
+      />
+
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <FormInput
           v-model.number="formData.unitCost"
@@ -96,10 +102,10 @@
         />
         <FormInput
           v-model.number="formData.unitPrice"
-          label="Precio de venta ($)"
+          :label="formData.isSellable ? 'Precio de venta ($)' : 'Precio de venta ($) — opcional'"
           type="number"
           placeholder="0.00"
-          required
+          :required="formData.isSellable"
           :error="errors.unitPrice"
         />
         <FormInput
@@ -132,7 +138,7 @@ import { useAuthStore } from '../../store/auth'
 import { mapCategoryToOption } from '../../mappers/productosMapper'
 import type { Producto, ProductoFormData } from '../../types/producto'
 import ModalBase from '../common/ModalBase.vue'
-import { FormInput, FormSelect, FormTextarea } from '../forms'
+import { FormInput, FormSelect, FormTextarea, FormToggle } from '../forms'
 
 const MODAL_ID = 'producto-form-modal'
 
@@ -196,6 +202,7 @@ const defaultFormData: ProductoFormData = {
   unitPrice: 0,
   reorderPoint: 0,
   active: 'Activo',
+  isSellable: true,
   initialStock: 0,
 }
 
@@ -205,7 +212,7 @@ const errors = ref<Partial<Record<keyof ProductoFormData, string>>>({})
 const isFormValid = computed(() => {
   return formData.value.name.trim().length >= 2 &&
          formData.value.unit.trim().length > 0 &&
-         formData.value.unitPrice > 0
+         (formData.value.isSellable ? formData.value.unitPrice > 0 : true)
 })
 
 watch(
@@ -224,10 +231,13 @@ watch(
         unitPrice: producto.unitPrice || 0,
         reorderPoint: producto.reorderPoint || 0,
         active: producto.status,
+        isSellable: producto.isSellable ?? true,
         initialStock: 0,
       }
     } else {
-      formData.value = { ...defaultFormData }
+      const ctx = modalData.value?.context
+      const defaultSellable = ctx?.defaultSellable ?? true
+      formData.value = { ...defaultFormData, isSellable: defaultSellable }
     }
     errors.value = {}
   },
@@ -296,8 +306,8 @@ const handleSubmit = async () => {
   }
 }
 
-const open = (producto?: Producto) => {
-  useModal(MODAL_ID).open({ producto })
+const open = (producto?: Producto, opts?: { defaultSellable?: boolean }) => {
+  useModal(MODAL_ID).open({ producto, context: opts })
 }
 
 defineExpose({

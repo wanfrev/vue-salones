@@ -105,6 +105,7 @@ export const listSaleableProducts = async (businessId: string) => {
     .select('*')
     .eq('business_id', businessId)
     .eq('active', true)
+    .eq('is_sellable', true)
     .order('name')
 
   if (error) throw error

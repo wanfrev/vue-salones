@@ -18,6 +18,7 @@ export const mapProductToProducto = (
   unitPrice: Number(product.unit_price),
   reorderPoint: Number(product.reorder_point),
   status: product.active ? 'Activo' : 'Inactivo',
+  isSellable: product.is_sellable ?? true,
   stockTotal,
   createdAt: product.created_at,
 })
@@ -37,6 +38,7 @@ export const mapProductoFormToProductInsert = (
   unit_price: Number(data.unitPrice),
   reorder_point: Number(data.reorderPoint),
   active: data.active === 'Activo',
+  is_sellable: data.isSellable,
 })
 
 export const mapCategoryToOption = (cat: ProductCategory) => ({

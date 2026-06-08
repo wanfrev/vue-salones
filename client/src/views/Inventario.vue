@@ -378,7 +378,7 @@ const saveProductoMutation = useMutation({
 })
 
 const handleNewProducto = () => {
-  productoModalRef.value?.open()
+  productoModalRef.value?.open(undefined, { defaultSellable: false })
 }
 
 const handleSaveProducto = async (data: ProductoFormData & { id?: string }) => {

@@ -233,6 +233,7 @@ export interface Product {
   unit_price: number
   reorder_point: number
   active: boolean
+  is_sellable: boolean
   metadata: Record<string, unknown>
   created_at: string
   updated_at: string

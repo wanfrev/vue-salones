@@ -270,6 +270,7 @@
     variant="danger"
     size="sm"
     confirm-text="Desactivar"
+    :is-loading="deleteMutation?.isPending.value"
     @close="closeDeleteModal"
     @confirm="confirmDelete"
     @cancel="closeDeleteModal"
@@ -288,6 +289,7 @@
     variant="danger"
     size="sm"
     confirm-text="Eliminar"
+    :is-loading="isPermanentDeleting"
     @close="closePermanentDeleteModal"
     @confirm="confirmPermanentDelete"
     @cancel="closePermanentDeleteModal"
@@ -316,6 +318,7 @@ import { ModalBase } from '../components/common'
 const {
   productoModalRef,
   saveProductoMutation,
+  deleteMutation,
   handleSaveProducto,
   totalProductos,
   totalCategorias,
@@ -332,6 +335,7 @@ const {
   confirmDelete,
   isPermanentDeleteModalOpen,
   productoToDeletePermanently,
+  isPermanentDeleting,
   openPermanentDeleteModal,
   closePermanentDeleteModal,
   confirmPermanentDelete,

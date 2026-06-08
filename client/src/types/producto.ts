@@ -11,6 +11,7 @@ export interface Producto {
   unitPrice: number
   reorderPoint: number
   status: 'Activo' | 'Inactivo'
+  isSellable: boolean
   stockTotal: number
   createdAt: string
 }
@@ -26,6 +27,7 @@ export interface ProductoFormData {
   unitPrice: number
   reorderPoint: number
   active: 'Activo' | 'Inactivo'
+  isSellable: boolean
   initialStock?: number
 }
 

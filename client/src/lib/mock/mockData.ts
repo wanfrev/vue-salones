@@ -240,8 +240,8 @@ export function createMockDataStore(): MockDataStore {
   ]
 
   const products: Product[] = [
-    { id: PROD1, business_id: BIZ, category_id: CAT1, name: 'Shampoo Kerastase', description: 'Shampoo profesional para cabello teñido', sku: 'KER-SHM-001', barcode: '7501234567890', unit: 'botella', unit_cost: 180, unit_price: 350, reorder_point: 5, active: true, metadata: {}, created_at: now, updated_at: now },
-    { id: PROD2, business_id: BIZ, category_id: CAT2, name: 'Collar Antipulgas', description: 'Collar antipulgas para perros', sku: 'COL-ANT-001', barcode: '7509876543210', unit: 'unidad', unit_cost: 250, unit_price: 450, reorder_point: 3, active: true, metadata: {}, created_at: now, updated_at: now },
+    { id: PROD1, business_id: BIZ, category_id: CAT1, name: 'Shampoo Kerastase', description: 'Shampoo profesional para cabello teñido', sku: 'KER-SHM-001', barcode: '7501234567890', unit: 'botella', unit_cost: 180, unit_price: 350, reorder_point: 5, active: true, is_sellable: true, metadata: {}, created_at: now, updated_at: now },
+    { id: PROD2, business_id: BIZ, category_id: CAT2, name: 'Collar Antipulgas', description: 'Collar antipulgas para perros', sku: 'COL-ANT-001', barcode: '7509876543210', unit: 'unidad', unit_cost: 250, unit_price: 450, reorder_point: 3, active: true, is_sellable: true, metadata: {}, created_at: now, updated_at: now },
   ]
 
   const product_variants: ProductVariant[] = [

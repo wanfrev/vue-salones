@@ -75,6 +75,7 @@ export function useProductCRUD() {
 
   const isPermanentDeleteModalOpen = ref(false)
   const productoToDeletePermanently = ref<Producto | null>(null)
+  const isPermanentDeleting = ref(false)
 
   const openPermanentDeleteModal = (producto: Producto) => {
     productoToDeletePermanently.value = producto
@@ -88,16 +89,22 @@ export function useProductCRUD() {
 
   const confirmPermanentDelete = async () => {
     if (!productoToDeletePermanently.value) return
-    await deleteProductoPermanently(productoToDeletePermanently.value.id)
-    productoToDeletePermanently.value = null
-    isPermanentDeleteModalOpen.value = false
-    crud.invalidateAll()
+    isPermanentDeleting.value = true
+    try {
+      await deleteProductoPermanently(productoToDeletePermanently.value.id)
+      productoToDeletePermanently.value = null
+      isPermanentDeleteModalOpen.value = false
+      crud.invalidateAll()
+    } finally {
+      isPermanentDeleting.value = false
+    }
   }
 
   return {
     productoModalRef,
     productos: crud.items,
     saveProductoMutation: crud.saveMutation,
+    deleteMutation: crud.deleteMutation,
     handleSaveProducto: crud.handleSave,
     totalProductos,
     totalCategorias,
@@ -114,6 +121,7 @@ export function useProductCRUD() {
     confirmDelete,
     isPermanentDeleteModalOpen,
     productoToDeletePermanently,
+    isPermanentDeleting,
     openPermanentDeleteModal,
     closePermanentDeleteModal,
     confirmPermanentDelete,
