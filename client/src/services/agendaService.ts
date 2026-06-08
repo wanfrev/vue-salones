@@ -255,6 +255,24 @@ export const updateAppointmentTime = async (
   startTime: string,
   endTime: string
 ): Promise<void> => {
+  const { data: appt } = await supabase
+    .from('appointments')
+    .select('group_id')
+    .eq('id', id)
+    .maybeSingle()
+
+  const groupId = (appt as any)?.group_id
+
+  if (groupId) {
+    const { error } = await mutate
+      .from('appointments')
+      .update({ start_time: startTime, end_time: endTime })
+      .eq('group_id', groupId)
+
+    if (error) throw mapAgendaWriteError(error, 'reagendar')
+    return
+  }
+
   const { error } = await mutate
     .from('appointments')
     .update({ start_time: startTime, end_time: endTime })

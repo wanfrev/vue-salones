@@ -136,7 +136,7 @@ const emit = defineEmits<{
     start: Date
     end: Date
     status?: string
-    citaData?: Omit<Cita, 'paymentStatus' | 'statusLabel' | 'statusColor' | 'groupId'>
+    citaData?: Omit<Cita, 'paymentStatus' | 'statusLabel' | 'statusColor'>
   }]
   statusChange: [payload: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }]
   eventChange: [payload: { id: string; start: string; end: string }]
@@ -283,7 +283,17 @@ const calendarEvents = computed<EventInput[]>(() => {
   }
 
   if (appointments.value) {
+    const renderedGroups = new Set<string>()
+
     appointments.value.forEach(appt => {
+      const groupId = appt.group_id
+      if (groupId && renderedGroups.has(groupId)) {
+        return
+      }
+      if (groupId) {
+        renderedGroups.add(groupId)
+      }
+
       const visualStatus = normalizeAppointmentStatus(appt)
       const service = services.value?.find(s => s.id === appt.service_id)
       const employee = employees.value?.find(e => e.id === appt.employee_id)
@@ -440,6 +450,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
         service: ext.serviceName || 'Servicio',
         employeeId: ext.employee_id,
         employee: ext.employeeName || 'Empleado',
+        groupId: ext.group_id || undefined,
         date,
         time,
         duration,
