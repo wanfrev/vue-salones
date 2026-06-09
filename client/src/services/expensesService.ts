@@ -1,4 +1,7 @@
 import { supabase } from '../lib/supabase'
+import { mutate } from '../lib/typedSupabase'
+import { handleDbError } from '../lib/errors'
+import { expenseFormSchema } from '../lib/validation'
 import type { Expense } from '../types/database'
 
 export const expensesKeys = {
@@ -46,27 +49,32 @@ export const saveExpense = async (
   businessId: string,
   data: ExpenseFormData & { id?: string }
 ): Promise<void> => {
+  const parsed = expenseFormSchema.safeParse(data)
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues.map(e => e.message).join('. '))
+  }
+
   if (data.id) {
-    const { error } = await supabase
+    const { error } = await mutate
       .from('expenses')
       .update({
-        name: data.name,
-        category: data.category,
-        amount: data.amount,
-        expense_date: data.date,
-        notes: data.notes || null,
+        name: parsed.data.name,
+        category: parsed.data.category,
+        amount: parsed.data.amount,
+        expense_date: parsed.data.date,
+        notes: parsed.data.notes || null,
       })
       .eq('id', data.id)
-    if (error) throw error
+    if (error) handleDbError(error, 'Error al actualizar el gasto')
   } else {
-    const { error } = await supabase.from('expenses').insert({
+    const { error } = await mutate.from('expenses').insert({
       business_id: businessId,
-      name: data.name,
-      category: data.category,
-      amount: data.amount,
-      expense_date: data.date,
-      notes: data.notes || null,
+      name: parsed.data.name,
+      category: parsed.data.category,
+      amount: parsed.data.amount,
+      expense_date: parsed.data.date,
+      notes: parsed.data.notes || null,
     })
-    if (error) throw error
+    if (error) handleDbError(error, 'Error al guardar el gasto')
   }
 }

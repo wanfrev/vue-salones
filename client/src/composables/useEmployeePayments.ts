@@ -43,7 +43,10 @@ export function useEmployeePayments(
       method: string
       notes: string
       date: string
-    }) => createEmployeePayment(businessId.value!, params.employeeId, params.amount, params.method, params.notes, params.date),
+    }) => {
+      if (!businessId.value) throw new Error('No hay negocio activo')
+      return createEmployeePayment(businessId.value, params.employeeId, params.amount, params.method, params.notes, params.date)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
       queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
@@ -56,6 +59,8 @@ export function useEmployeePayments(
       showError(err instanceof Error ? err.message : 'Error al registrar el pago')
     },
   })
+
+  const paymentError = ref('')
 
   const showPaymentModal = ref(false)
   const paymentForm = ref({
@@ -91,6 +96,7 @@ export function useEmployeePayments(
       date: new Date().toISOString().slice(0, 10),
       notes: '',
     }
+    paymentError.value = ''
     showPaymentModal.value = true
     await loadEmployees()
   }
@@ -99,22 +105,30 @@ export function useEmployeePayments(
     showPaymentModal.value = false
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (createMutation.isPending.value) return
     if (!paymentForm.value.employeeId) {
-      showError('Selecciona un empleado')
+      paymentError.value = 'Selecciona un empleado'
       return
     }
     if (paymentForm.value.amount <= 0) {
-      showError('El monto debe ser mayor a 0')
+      paymentError.value = 'El monto debe ser mayor a 0'
       return
     }
-    createMutation.mutate(paymentForm.value)
+    paymentError.value = ''
+    try {
+      await createMutation.mutateAsync(paymentForm.value)
+    } catch (err) {
+      paymentError.value = err instanceof Error ? err.message : 'Error al registrar el pago'
+      throw err
+    }
   }
 
   return {
     paymentsMade,
     isLoading,
     createMutation,
+    paymentError,
     showPaymentModal,
     paymentForm,
     employeeList,

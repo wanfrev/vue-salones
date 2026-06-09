@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
 
@@ -28,6 +28,7 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
 
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
+  const saveError = ref('')
 
   const { data, isLoading } = useQuery({
     queryKey: computed(() => queryKey(businessId.value ?? '')),
@@ -46,14 +47,19 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
   }
 
   const saveMutation = useMutation({
-    mutationFn: (formData: TForm & { id?: TId }) => saveFn(businessId.value!, formData),
+    mutationFn: (formData: TForm & { id?: TId }) => {
+      if (!businessId.value) throw new Error('No hay negocio activo')
+      return saveFn(businessId.value, formData)
+    },
     onSuccess: () => {
+      saveError.value = ''
       invalidateAll()
       modalRef?.value?.close()
       success(`${entityName} guardado correctamente`)
     },
     onError: (err) => {
-      showError(err instanceof Error ? err.message : `Error al guardar el ${entityName.toLowerCase()}`)
+      saveError.value = err instanceof Error ? err.message : `Error al guardar el ${entityName.toLowerCase()}`
+      showError(saveError.value)
     },
   })
 
@@ -72,10 +78,11 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
     : null
 
   const handleSave = async (formData: TForm & { id?: TId }) => {
+    saveError.value = ''
     try {
       await saveMutation.mutateAsync(formData)
     } catch {
-      // Error handled by onError
+      // Error handled by onError callback + saveError ref
     }
   }
 
@@ -88,6 +95,7 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
     items,
     isLoading,
     saveMutation,
+    saveError,
     deleteMutation,
     handleSave,
     handleDelete,

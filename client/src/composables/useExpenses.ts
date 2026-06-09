@@ -51,13 +51,16 @@ function resolvePeriodDates(value: PeriodValue, monthKey?: string) {
 
 export function useExpenses(
   businessId: import('vue').Ref<string | null>,
-  selectedPeriod: import('vue').Ref<PeriodValue>,
+  selectedPeriod?: import('vue').Ref<PeriodValue>,
   selectedMonth?: import('vue').Ref<string>,
 ) {
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
 
-  const periodDates = computed(() => resolvePeriodDates(selectedPeriod.value, selectedMonth?.value))
+  const periodDates = computed(() => {
+    if (!selectedPeriod) return { start: '', end: '' }
+    return resolvePeriodDates(selectedPeriod.value, selectedMonth?.value)
+  })
 
   const queryKey = computed(() =>
     expensesKeys.filtered(businessId.value, periodDates.value.start, periodDates.value.end)
@@ -66,15 +69,17 @@ export function useExpenses(
   const { data, isLoading, isError, error: queryError } = useQuery({
     queryKey,
     queryFn: () => listExpenses(businessId.value!, periodDates.value.start, periodDates.value.end),
-    enabled: computed(() => !!businessId.value),
+    enabled: computed(() => !!businessId.value && !!selectedPeriod),
   })
 
   const expenses = computed(() => data.value ?? [])
   const expenseTotal = computed(() => expenses.value.reduce((acc, row) => acc + row.amount, 0))
 
   const saveMutation = useMutation({
-    mutationFn: (formData: ExpenseFormData & { id?: string }) =>
-      saveExpense(businessId.value!, formData),
+    mutationFn: (formData: ExpenseFormData & { id?: string }) => {
+      if (!businessId.value) throw new Error('No hay negocio activo')
+      return saveExpense(businessId.value, formData)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value) })
       queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value] })
@@ -97,6 +102,8 @@ export function useExpenses(
     notes: '',
   })
 
+  const saveError = ref('')
+
   const resetForm = () => {
     expenseForm.value = {
       name: '',
@@ -106,6 +113,7 @@ export function useExpenses(
       notes: '',
     }
     editingExpenseId.value = null
+    saveError.value = ''
   }
 
   const openNew = () => {
@@ -122,6 +130,7 @@ export function useExpenses(
       date: expense.date,
       notes: '',
     }
+    saveError.value = ''
     showExpenseModal.value = true
   }
 
@@ -130,8 +139,15 @@ export function useExpenses(
     resetForm()
   }
 
-  const handleSave = () => {
-    saveMutation.mutate({ ...expenseForm.value, id: editingExpenseId.value ?? undefined })
+  const handleSave = async () => {
+    if (saveMutation.isPending.value) return
+    saveError.value = ''
+    try {
+      await saveMutation.mutateAsync({ ...expenseForm.value, id: editingExpenseId.value ?? undefined })
+    } catch (err) {
+      saveError.value = err instanceof Error ? err.message : 'Error al guardar el gasto'
+      throw err
+    }
   }
 
   return {
@@ -141,6 +157,7 @@ export function useExpenses(
     isError,
     queryError,
     saveMutation,
+    saveError,
     showExpenseModal,
     editingExpenseId,
     expenseForm,

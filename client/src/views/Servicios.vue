@@ -388,9 +388,14 @@ const handleDeleteServicio = (servicio: Servicio) => {
 
 const confirmDelete = async () => {
   if (servicioToDelete.value && deleteServicioMutation) {
-    deleteServicioMutation.mutate(servicioToDelete.value.id)
-    isDeleteModalOpen.value = false
-    servicioToDelete.value = null
+    try {
+      await deleteServicioMutation.mutateAsync(servicioToDelete.value.id)
+    } catch {
+      // Error handled by useCrud onError
+    } finally {
+      isDeleteModalOpen.value = false
+      servicioToDelete.value = null
+    }
   }
 }
 

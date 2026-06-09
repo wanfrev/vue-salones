@@ -52,6 +52,14 @@ export const posSaleSchema = z.object({
   paymentsBreakdown: z.array(paymentBreakdownItemSchema).min(1, 'Agrega al menos un método de pago'),
 })
 
+export const expenseFormSchema = z.object({
+  name: z.string().min(1, 'El concepto es requerido'),
+  category: z.string().min(1, 'Selecciona una categoría'),
+  amount: z.number().min(0.01, 'El monto debe ser mayor a 0'),
+  date: z.string().min(1, 'Selecciona una fecha'),
+  notes: z.string().default(''),
+})
+
 export const clienteFormSchema = z.object({
   name: z.string().min(1, 'El nombre del cliente es requerido'),
   phone: z.string().min(1, 'El teléfono del cliente es requerido'),

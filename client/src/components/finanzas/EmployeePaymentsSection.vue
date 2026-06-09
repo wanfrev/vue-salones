@@ -161,7 +161,7 @@
   </div>
 
   <Teleport to="body">
-    <div v-if="showPaymentModal"
+    <div v-if="paymentsCtx.showPaymentModal.value"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
       @click.self="closePaymentModal"
     >
@@ -171,16 +171,16 @@
           <p class="text-sm text-text-muted">Registra un adelanto, sueldo o comisión pagada</p>
         </div>
         <form class="space-y-4" @submit.prevent="handleSavePayment">
-          <div v-if="paymentError" class="rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
+          <div v-if="paymentsCtx.paymentError.value" class="rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
             <p class="font-medium">Error al registrar el pago</p>
-            <p class="mt-0.5">{{ paymentError }}</p>
+            <p class="mt-0.5">{{ paymentsCtx.paymentError.value }}</p>
           </div>
           <div>
             <label class="mb-1 block text-sm font-medium text-text">{{ terminology.employee || 'Empleado' }}</label>
-            <select v-model="paymentForm.employeeId" required @change="onEmployeeChange"
+            <select v-model="paymentsCtx.paymentForm.value.employeeId" required @change="onEmployeeChange"
               class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
               <option value="" disabled>Seleccionar {{ (terminology.employee || 'empleado').toLowerCase() }}</option>
-              <option v-for="emp in employeeList" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
+              <option v-for="emp in paymentsCtx.employeeList.value" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
             </select>
           </div>
 
@@ -206,7 +206,7 @@
             <button
               v-if="selectedBalance.pendingBalance > 0"
               type="button"
-              @click="paymentForm.amount = selectedBalance.pendingBalance"
+                @click="paymentsCtx.paymentForm.value.amount = selectedBalance.pendingBalance"
               class="w-full mt-1 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-primary/10"
             >
               Pagar saldo pendiente
@@ -216,13 +216,13 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="mb-1 block text-sm font-medium text-text">Monto ($)</label>
-              <input v-model.number="paymentForm.amount" type="number" min="0.01" step="0.01"
+              <input v-model.number="paymentsCtx.paymentForm.value.amount" type="number" min="0.01" step="0.01"
                 class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
                 placeholder="0.00" required />
             </div>
             <div>
               <label class="mb-1 block text-sm font-medium text-text">Método</label>
-              <select v-model="paymentForm.method"
+              <select v-model="paymentsCtx.paymentForm.value.method"
                 class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
                 <option value="cash">Efectivo</option>
                 <option value="card">Tarjeta</option>
@@ -234,23 +234,23 @@
           </div>
           <div>
             <label class="mb-1 block text-sm font-medium text-text">Fecha</label>
-            <input v-model="paymentForm.date" type="date"
+            <input v-model="paymentsCtx.paymentForm.value.date" type="date"
               class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30" required />
           </div>
           <div>
             <label class="mb-1 block text-sm font-medium text-text">Notas</label>
-            <input v-model="paymentForm.notes" type="text"
+            <input v-model="paymentsCtx.paymentForm.value.notes" type="text"
               class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
               placeholder="Ej: Comisión servicios, adelanto..." />
           </div>
-          <p v-if="paymentError" class="hidden">{{ paymentError }}</p>
+          <p v-if="paymentsCtx.paymentError.value" class="hidden">{{ paymentsCtx.paymentError.value }}</p>
           <div class="flex items-center justify-end gap-3">
             <button type="button"
               class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
               @click="closePaymentModal">Cancelar</button>
-            <button type="submit" :disabled="savingPayment"
+            <button type="submit" :disabled="paymentsCtx.createMutation.isPending.value"
               class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
-              {{ savingPayment ? 'Guardando...' : 'Guardar pago' }}
+              {{ paymentsCtx.createMutation.isPending.value ? 'Guardando...' : 'Guardar pago' }}
             </button>
           </div>
         </form>
@@ -261,12 +261,10 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useQueryClient } from '@tanstack/vue-query'
 import { formatMethod } from '../../lib/formatters'
 import { useCurrency } from '../../composables/useCurrency'
-import { useNotification } from '../../composables/useNotification'
-import { supabase } from '../../lib/supabase'
-import { createEmployeePayment, getEmployeeBalance, employeePaymentKeys, type EmployeeBalance, type EmployeePaymentRecord } from '../../services/employeePaymentsService'
+import { useEmployeePayments } from '../../composables/useEmployeePayments'
+import { getEmployeeBalance, type EmployeeBalance, type EmployeePaymentRecord } from '../../services/employeePaymentsService'
 import type { EmployeeEarningSummary } from '../../composables/useFinancialSummary'
 
 interface PaymentRow {
@@ -287,19 +285,13 @@ const emit = defineEmits<{
 }>()
 
 const { formatUSD, formatVESInline } = useCurrency()
-const { success } = useNotification()
-const queryClient = useQueryClient()
-const showPaymentModal = ref(false)
-const savingPayment = ref(false)
-const paymentError = ref('')
-const paymentForm = ref({ employeeId: '', amount: 0, method: 'cash', date: new Date().toISOString().slice(0, 10), notes: '' })
-const employeeList = ref<{ id: string; name: string }[]>([])
+
+const paymentsCtx = useEmployeePayments(computed(() => props.businessId))
+
 const selectedBalance = ref<EmployeeBalance | null>(null)
 
 const visibleEmployeePayments = computed(() => props.employeePayments.slice(0, 5))
-
 const visiblePaymentsMade = computed(() => props.paymentsMade.slice(0, 5))
-
 const canViewAllPayments = computed(() => props.employeePayments.length > 5 || props.paymentsMade.length > 5)
 
 const employeeDebtSummary = computed(() => {
@@ -319,7 +311,6 @@ const employeeDebtSummary = computed(() => {
 const buildBalanceFromSummary = (employeeId: string): EmployeeBalance | null => {
   const summary = employeeDebtSummary.value.find(row => row.employeeId === employeeId)
   if (!summary) return null
-
   return {
     employeeId: summary.employeeId,
     employeeName: summary.employeeName,
@@ -341,79 +332,45 @@ function payTypeLabel(): string {
   return 'Por servicio'
 }
 
-const openPaymentModal = async () => {
-  paymentForm.value = { employeeId: '', amount: 0, method: 'cash', date: new Date().toISOString().slice(0, 10), notes: '' }
+const openPaymentModal = () => {
+  paymentsCtx.openModal()
   selectedBalance.value = null
-  paymentError.value = ''
-  showPaymentModal.value = true
-  if (employeeList.value.length === 0 && props.businessId) {
-    const { data, error } = await supabase
-      .from('profiles').select('id, full_name')
-      .eq('business_id', props.businessId).eq('role', 'empleado').eq('active', true).order('full_name')
-    if (!error) employeeList.value = (data ?? []).map((p: any) => ({ id: p.id, name: p.full_name }))
-  }
 }
 
-const closePaymentModal = () => { showPaymentModal.value = false; paymentError.value = ''; selectedBalance.value = null }
+const closePaymentModal = () => {
+  paymentsCtx.closeModal()
+  selectedBalance.value = null
+}
 
 const onEmployeeChange = async () => {
-  if (!paymentForm.value.employeeId) {
+  const employeeId = paymentsCtx.paymentForm.value.employeeId
+  if (!employeeId) {
     selectedBalance.value = null
     return
   }
-
-  const balanceFromSummary = buildBalanceFromSummary(paymentForm.value.employeeId)
+  const balanceFromSummary = buildBalanceFromSummary(employeeId)
   if (balanceFromSummary) {
     selectedBalance.value = balanceFromSummary
     return
   }
-
   if (!props.businessId) {
     selectedBalance.value = null
     return
   }
-
   try {
-    selectedBalance.value = await getEmployeeBalance(props.businessId, paymentForm.value.employeeId)
+    selectedBalance.value = await getEmployeeBalance(props.businessId, employeeId)
   } catch {
     selectedBalance.value = null
   }
 }
 
 const handleSavePayment = async () => {
-  if (!props.businessId) {
-    paymentError.value = 'No hay negocio activo'
-    return
-  }
-  if (!paymentForm.value.employeeId) { paymentError.value = 'Selecciona un empleado'; return }
-  if (paymentForm.value.amount <= 0) { paymentError.value = 'El monto debe ser mayor a 0'; return }
-  savingPayment.value = true
-  paymentError.value = ''
   try {
-    const result = await createEmployeePayment(
-      props.businessId,
-      paymentForm.value.employeeId,
-      paymentForm.value.amount,
-      paymentForm.value.method,
-      paymentForm.value.notes,
-      paymentForm.value.date,
-    )
-    console.log('[EmployeePayment] guardado OK', result)
-    success('Pago registrado correctamente')
+    await paymentsCtx.handleSave()
     closePaymentModal()
     emit('saved')
-    if (props.businessId) {
-      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(props.businessId) })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary', props.businessId] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', props.businessId] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments', props.businessId] })
-    }
-  } catch (err: any) {
-    console.error('[EmployeePayment] error al guardar:', err)
-    const msg = err?.message ?? (typeof err === 'string' ? err : null) ?? 'Error al registrar el pago'
-    paymentError.value = msg
-  } finally {
-    savingPayment.value = false
+  } catch {
+    // Error handled by composable
   }
 }
 </script>
