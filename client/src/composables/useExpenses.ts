@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
+import { useCurrency } from './useCurrency'
 import { expensesKeys, listExpenses, saveExpense, type ExpenseFormData, type ExpenseRow } from '../services/expensesService'
 
 type PeriodValue = 'month' | 'quarter' | 'year'
@@ -56,6 +57,7 @@ export function useExpenses(
 ) {
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
+  const { exchangeRate } = useCurrency()
 
   const periodDates = computed(() => {
     if (!selectedPeriod) return { start: '', end: '' }
@@ -78,7 +80,7 @@ export function useExpenses(
   const saveMutation = useMutation({
     mutationFn: (formData: ExpenseFormData & { id?: string }) => {
       if (!businessId.value) throw new Error('No hay negocio activo')
-      return saveExpense(businessId.value, formData)
+      return saveExpense(businessId.value, formData, exchangeRate.value)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value) })
@@ -98,6 +100,7 @@ export function useExpenses(
     name: '',
     category: 'General',
     amount: 0,
+    currency: 'USD',
     date: new Date().toISOString().slice(0, 10),
     notes: '',
   })
@@ -109,6 +112,7 @@ export function useExpenses(
       name: '',
       category: 'General',
       amount: 0,
+      currency: 'USD',
       date: new Date().toISOString().slice(0, 10),
       notes: '',
     }
@@ -126,9 +130,10 @@ export function useExpenses(
     expenseForm.value = {
       name: expense.name,
       category: expense.category,
-      amount: expense.amount,
+      amount: expense.originalAmount,
+      currency: expense.currency,
       date: expense.date,
-      notes: '',
+      notes: expense.notes,
     }
     saveError.value = ''
     showExpenseModal.value = true

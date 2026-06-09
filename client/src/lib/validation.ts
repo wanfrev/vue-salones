@@ -56,6 +56,7 @@ export const expenseFormSchema = z.object({
   name: z.string().min(1, 'El concepto es requerido'),
   category: z.string().min(1, 'Selecciona una categoría'),
   amount: z.number().min(0.01, 'El monto debe ser mayor a 0'),
+  currency: z.enum(['USD', 'VES']),
   date: z.string().min(1, 'Selecciona una fecha'),
   notes: z.string().default(''),
 })

@@ -60,7 +60,10 @@
           ]">{{ expense.category }}</span>
         </div>
         <div class="flex items-center justify-between">
-          <span class="font-medium text-text">{{ formatUSD(expense.amount) }}</span>
+          <div>
+            <span class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESInline(expense.amount) : formatUSD(expense.amount) }}</span>
+            <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : 'Bs ' + formatVESInline(expense.amount) }}</div>
+          </div>
           <button @click="expensesCtx.openEdit(expense)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary" title="Editar gasto">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -92,7 +95,10 @@
                 'bg-primary/10 text-primary'
               ]">{{ expense.category }}</span>
             </td>
-            <td class="py-3 text-right font-medium text-text">{{ formatUSD(expense.amount) }}</td>
+            <td class="py-3 text-right">
+              <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESInline(expense.amount) : formatUSD(expense.amount) }}</div>
+              <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : 'Bs ' + formatVESInline(expense.amount) }}</div>
+            </td>
             <td class="py-3 text-center">
               <button @click="expensesCtx.openEdit(expense)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary" title="Editar gasto">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -133,7 +139,7 @@
               class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
               placeholder="Ej: Renta del local" required />
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-3 gap-3">
             <div>
               <label class="mb-1 block text-sm font-medium text-text" for="exp-category">Categoría</label>
               <select id="exp-category" v-model="expensesCtx.expenseForm.value.category"
@@ -144,10 +150,18 @@
               </select>
             </div>
             <div>
-              <label class="mb-1 block text-sm font-medium text-text" for="exp-amount">Monto ($)</label>
+              <label class="mb-1 block text-sm font-medium text-text" for="exp-amount">Monto</label>
               <input id="exp-amount" v-model.number="expensesCtx.expenseForm.value.amount" type="number" min="0" step="0.01"
                 class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
                 placeholder="0.00" required />
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text" for="exp-currency">Moneda</label>
+              <select id="exp-currency" v-model="expensesCtx.expenseForm.value.currency"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
+                <option value="USD">USD $</option>
+                <option value="VES">Bs</option>
+              </select>
             </div>
           </div>
           <div>
@@ -195,7 +209,7 @@ const emit = defineEmits<{
   'view-all': []
 }>()
 
-const { formatUSD } = useCurrency()
+const { formatUSD, formatVESInline } = useCurrency()
 
 const expensesCtx = useExpenses(computed(() => props.businessId))
 

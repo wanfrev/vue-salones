@@ -36,7 +36,10 @@
               <td class="py-3 text-text-secondary">{{ expense.date }}</td>
               <td class="py-3 font-medium text-text">{{ expense.name }}</td>
               <td class="py-3 text-text-secondary">{{ expense.category }}</td>
-              <td class="py-3 text-right font-medium text-text">{{ formatUSD(expense.amount) }}</td>
+              <td class="py-3 text-right">
+                <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESInline(expense.amount) : formatUSD(expense.amount) }}</div>
+                <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : 'Bs ' + formatVESInline(expense.amount) }}</div>
+              </td>
             </tr>
             <tr v-if="expensesCtx.expenses.value.length === 0">
               <td colspan="4" class="py-6 text-center text-sm text-text-muted">No hay gastos para este periodo.</td>
@@ -224,7 +227,7 @@ const route = useRoute()
 const router = useRouter()
 const { authStore } = useAuth()
 const businessStore = useBusinessStore()
-const { formatUSD } = useCurrency()
+const { formatUSD, formatVESInline } = useCurrency()
 const terminology = businessStore.terminology
 
 const selectedPeriod = ref<PeriodValue>('month')
