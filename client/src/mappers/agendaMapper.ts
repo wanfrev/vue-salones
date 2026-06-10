@@ -35,7 +35,7 @@ export const mapAppointmentToCita = (appointment: AppointmentWithRelations): Cit
     date: toDateInput(appointment.start_time),
     time: toTimeInput(appointment.start_time),
     duration: service?.duration_minutes ?? Math.round((new Date(appointment.end_time).getTime() - new Date(appointment.start_time).getTime()) / 60000),
-    price: Number(service?.price ?? 0),
+    price: appointment.price_override != null ? Number(appointment.price_override) : Number(service?.price ?? 0),
     status: normalizedStatus,
     paymentStatus: appointment.payment_status,
     statusLabel: getStatusLabel(normalizedStatus),
@@ -56,6 +56,8 @@ export const mapCitaFormToAppointmentInsert = (
 
   const isPaidStatus = data.status === 'paid'
   const appointmentStatus = isPaidStatus ? 'completed' : data.status
+  const catalogPrice = Number(service.price ?? 0)
+  const hasOverride = data.price != null && data.price !== catalogPrice
 
   return {
     business_id: businessId,
@@ -66,6 +68,7 @@ export const mapCitaFormToAppointmentInsert = (
     end_time: endTime.toISOString(),
     status: appointmentStatus,
     payment_status: isPaidStatus ? 'paid' as const : 'unpaid' as const,
+    price_override: hasOverride ? data.price : null,
     internal_notes: data.notes.trim() || null,
     source: 'internal' as const,
     created_by: createdBy ?? null,
@@ -90,6 +93,8 @@ export const mapServiceItemToAppointmentInsert = (
 
   const isPaidStatus = status === 'paid'
   const appointmentStatus = isPaidStatus ? 'completed' : status
+  const catalogPrice = Number(service?.price ?? 0)
+  const hasOverride = item.price != null && item.price !== catalogPrice
 
   return {
     business_id: businessId,
@@ -101,6 +106,7 @@ export const mapServiceItemToAppointmentInsert = (
     end_time: endTime.toISOString(),
     status: appointmentStatus,
     payment_status: isPaidStatus ? 'paid' as const : 'unpaid' as const,
+    price_override: hasOverride ? item.price : null,
     internal_notes: notes.trim() || null,
     source: 'internal' as const,
     created_by: createdBy ?? null,

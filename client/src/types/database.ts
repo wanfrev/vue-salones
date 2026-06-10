@@ -123,6 +123,7 @@ export interface Appointment {
   end_time: string
   status: AppointmentStatus
   payment_status: PaymentStatus
+  price_override: number | null
   service_notes: string | null
   internal_notes: string | null
   reminder_sent_at: string | null

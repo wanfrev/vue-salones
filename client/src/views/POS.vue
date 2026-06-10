@@ -88,7 +88,7 @@
         <POSPaymentPanel
           :selected-appointment="selectedAppointment"
           :cart="cartCtx.cart.value"
-          :service-price="Number(selectedAppointment?.services?.price ?? 0)"
+          :service-price="effectiveServicePrice"
           :products-total="cartCtx.productsTotal.value"
           :cart-count="cartCtx.cart.value.length"
           :grand-total="grandTotal"
@@ -165,7 +165,7 @@
           <POSPaymentPanel
             :selected-appointment="selectedAppointment"
             :cart="cartCtx.cart.value"
-            :service-price="Number(selectedAppointment?.services?.price ?? 0)"
+            :service-price="effectiveServicePrice"
             :products-total="cartCtx.productsTotal.value"
             :cart-count="cartCtx.cart.value.length"
             :grand-total="grandTotal"
@@ -253,8 +253,14 @@ const rateDisplay = computed(() =>
   exchangeRate.value.toLocaleString('es-VE', { minimumFractionDigits: 2 })
 )
 
+const effectiveServicePrice = computed(() => {
+  const appt = selectedAppointment.value
+  if (!appt) return 0
+  return appt.price_override != null ? Number(appt.price_override) : Number(appt.services?.price ?? 0)
+})
+
 const grandTotal = computed(() =>
-  Number(selectedAppointment.value?.services?.price ?? 0) + cartCtx.productsTotal.value
+  effectiveServicePrice.value + cartCtx.productsTotal.value
 )
 
 const splitRemaining = computed(() =>

@@ -191,6 +191,7 @@ export function createMockDataStore(): MockDataStore {
       start_time: start.toISOString(), end_time: end.toISOString(),
       status: status as Appointment['status'],
       payment_status: 'unpaid',
+      price_override: null,
       service_notes: null, internal_notes: null,
       reminder_sent_at: null,
       source: 'internal',
