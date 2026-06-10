@@ -13,11 +13,14 @@
           <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
         </div>
       </div>
-      <button @click="logout" :disabled="loading" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary disabled:opacity-50 disabled:cursor-not-allowed">
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-      </button>
+      <div class="flex items-center gap-2">
+        <NotificationBell />
+        <button @click="logout" :disabled="loading" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary disabled:opacity-50 disabled:cursor-not-allowed">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </div>
     </header>
 
     <Sidebar :is-open="isSidebarOpen" @close="isSidebarOpen = false" />
@@ -39,6 +42,7 @@ import { useThemeStore } from '../../store/theme'
 import lumaLogoLight from '../../assets/Luma.svg'
 import lumaLogoDark from '../../assets/Luma blanco.svg'
 import Sidebar from './Sidebar.vue'
+import NotificationBell from '../common/NotificationBell.vue'
 
 const { logout, loading } = useAuth()
 const themeStore = useThemeStore()
