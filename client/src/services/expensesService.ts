@@ -108,3 +108,11 @@ export const saveExpense = async (
     if (error) handleDbError(error, 'Error al guardar el gasto')
   }
 }
+
+export const deleteExpense = async (id: string): Promise<void> => {
+  const { error } = await mutate
+    .from('expenses')
+    .delete()
+    .eq('id', id)
+  if (error) handleDbError(error, 'Error al eliminar el gasto')
+}

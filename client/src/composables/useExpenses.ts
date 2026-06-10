@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
 import { useCurrency } from './useCurrency'
-import { expensesKeys, listExpenses, saveExpense, type ExpenseFormData, type ExpenseRow } from '../services/expensesService'
+import { expensesKeys, listExpenses, saveExpense, deleteExpense, type ExpenseFormData, type ExpenseRow } from '../services/expensesService'
 
 type PeriodValue = 'month' | 'quarter' | 'year'
 
@@ -94,6 +94,18 @@ export function useExpenses(
     },
   })
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteExpense(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value) })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value] })
+      success('Gasto eliminado correctamente')
+    },
+    onError: (err: unknown) => {
+      showError(err instanceof Error ? err.message : 'Error al eliminar el gasto')
+    },
+  })
+
   const showExpenseModal = ref(false)
   const editingExpenseId = ref<string | null>(null)
   const expenseForm = ref<ExpenseFormData>({
@@ -155,6 +167,12 @@ export function useExpenses(
     }
   }
 
+  const handleDelete = (id: string) => {
+    if (window.confirm('¿Eliminar este gasto? Esta acción no se puede deshacer.')) {
+      deleteMutation.mutate(id)
+    }
+  }
+
   return {
     expenses,
     expenseTotal,
@@ -162,6 +180,7 @@ export function useExpenses(
     isError,
     queryError,
     saveMutation,
+    deleteMutation,
     saveError,
     showExpenseModal,
     editingExpenseId,
@@ -170,5 +189,6 @@ export function useExpenses(
     openEdit,
     closeModal,
     handleSave,
+    handleDelete,
   }
 }

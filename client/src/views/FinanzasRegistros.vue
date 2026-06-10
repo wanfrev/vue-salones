@@ -40,9 +40,16 @@
                 <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</div>
                 <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : 'Bs ' + formatVESInline(expense.amount) }}</div>
               </td>
+              <td class="py-3 text-center">
+                <button @click="expensesCtx.handleDelete(expense.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar gasto">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </td>
             </tr>
             <tr v-if="expensesCtx.expenses.value.length === 0">
-              <td colspan="4" class="py-6 text-center text-sm text-text-muted">No hay gastos para este periodo.</td>
+              <td colspan="5" class="py-6 text-center text-sm text-text-muted">No hay gastos para este periodo.</td>
             </tr>
           </tbody>
         </table>
@@ -88,7 +95,8 @@
                 <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Fecha</th>
                 <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">{{ terminology.employee || 'Empleado' }}</th>
                 <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
-                <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
+              <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
+              <th class="pb-3 text-center text-xs font-semibold uppercase text-text-muted">Acciones</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border-subtle">
