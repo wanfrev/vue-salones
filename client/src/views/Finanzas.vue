@@ -80,7 +80,7 @@
         </div>
         <div class="text-right shrink-0">
           <div class="text-lg font-bold text-success">{{ formatUSD(appointmentChargesTotal) }}</div>
-          <div class="text-[11px] text-text-muted">Bs {{ formatVESInline(appointmentChargesTotal) }}</div>
+          <div class="text-[11px] text-text-muted">{{ formatVESInline(appointmentChargesTotal) }} Bs</div>
         </div>
       </div>
 
@@ -147,7 +147,7 @@
         </div>
         <div class="text-right shrink-0">
           <div class="text-lg font-bold text-info">{{ formatUSD(productSalesTotal) }}</div>
-          <div class="text-[11px] text-text-muted">Bs {{ formatVESEs(vesProductSalesTotal) }}</div>
+          <div class="text-[11px] text-text-muted">{{ formatVESEs(vesProductSalesTotal) }}</div>
         </div>
       </div>
 
@@ -268,7 +268,7 @@
             <div class="font-semibold text-sm tabular-nums" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
               {{ tx.type === 'ingreso' ? '+' : '-' }}{{ formatUSD(tx.amount) }}
             </div>
-            <div class="text-xs text-text-muted tabular-nums">Bs {{ formatVESInline(tx.amount, tx.exchangeRateUsed) }}</div>
+            <div class="text-xs text-text-muted tabular-nums">{{ formatVESInline(tx.amount, tx.exchangeRateUsed) }} Bs</div>
           </div>
         </div>
       </div>
@@ -305,7 +305,7 @@
               <div class="font-semibold tabular-nums" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
                 {{ tx.type === 'ingreso' ? '+' : '-' }}{{ formatUSD(tx.amount) }}
               </div>
-              <div class="text-xs text-text-muted tabular-nums">Bs {{ formatVESInline(tx.amount, tx.exchangeRateUsed) }}</div>
+              <div class="text-xs text-text-muted tabular-nums">{{ formatVESInline(tx.amount, tx.exchangeRateUsed) }} Bs</div>
             </td>
           </tr>
         </tbody>

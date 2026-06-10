@@ -49,7 +49,7 @@
         <div>
           <p class="text-lg font-bold text-text tabular-nums">{{ valorUSD }}</p>
           <p class="text-xs font-medium uppercase tracking-wider text-text-muted">Valor en Stock</p>
-          <p class="text-xs text-text-muted">Bs {{ valorVES }}</p>
+          <p class="text-xs text-text-muted">{{ valorVES }} Bs</p>
         </div>
       </div>
     </div>

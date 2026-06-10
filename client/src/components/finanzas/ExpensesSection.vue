@@ -62,7 +62,7 @@
         <div class="flex items-center justify-between">
           <div>
             <span class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</span>
-            <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : 'Bs ' + formatVESInline(expense.amount) }}</div>
+            <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount) + ' Bs' }}</div>
           </div>
           <div class="flex items-center gap-1">
           <button @click="expensesCtx.openEdit(expense)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary" title="Editar gasto">
@@ -104,7 +104,7 @@
             </td>
             <td class="py-3 text-right">
               <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</div>
-              <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : 'Bs ' + formatVESInline(expense.amount) }}</div>
+              <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount) + ' Bs' }}</div>
             </td>
             <td class="py-3 text-center">
               <div class="flex items-center justify-center gap-1">

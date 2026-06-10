@@ -76,7 +76,7 @@
         <div class="min-w-0">
           <p class="text-lg font-bold text-text tabular-nums sm:text-xl">{{ formatUSD(precioPromedioNumerico) }}</p>
           <p class="text-[11px] font-medium uppercase tracking-wider text-text-muted sm:text-xs">Precio Promedio</p>
-          <p class="text-xs text-text-muted">Bs {{ formatVESInline(precioPromedioNumerico) }}</p>
+          <p class="text-xs text-text-muted">{{ formatVESInline(precioPromedioNumerico) }} Bs</p>
         </div>
       </div>
     </div>
@@ -169,7 +169,7 @@
       <div class="mt-3 sm:mt-4 flex items-center justify-between">
         <div>
           <span class="text-lg font-bold text-text tabular-nums">${{ service.price }}</span>
-          <span class="block text-xs text-text-muted tabular-nums">Bs {{ formatVESInline(service.price) }}</span>
+          <span class="block text-xs text-text-muted tabular-nums">{{ formatVESInline(service.price) }} Bs</span>
           <span class="text-xs text-text-muted">{{ service.duration }} min</span>
         </div>
         <span :class="[

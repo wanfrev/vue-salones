@@ -38,7 +38,7 @@
               <td class="py-3 text-text-secondary">{{ expense.category }}</td>
               <td class="py-3 text-right">
                 <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</div>
-                <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : 'Bs ' + formatVESInline(expense.amount) }}</div>
+                <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount) + ' Bs' }}</div>
               </td>
               <td class="py-3 text-center">
                 <button @click="expensesCtx.handleDelete(expense.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar gasto">

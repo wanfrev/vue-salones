@@ -22,11 +22,11 @@
         <div class="flex items-center justify-between">
           <div>
             <div class="font-medium text-text text-sm">{{ formatUSD(payment.earnings) }}</div>
-            <div class="text-xs text-text-muted">Bs {{ formatVESInline(payment.earnings) }}</div>
+              <div class="text-xs text-text-muted">{{ formatVESInline(payment.earnings) }} Bs</div>
           </div>
           <div class="text-right">
             <div class="text-text text-sm">{{ formatUSD(payment.amount) }}</div>
-            <div class="text-xs text-text-muted">Bs {{ formatVESInline(payment.amount) }}</div>
+              <div class="text-xs text-text-muted">{{ formatVESInline(payment.amount) }} Bs</div>
           </div>
         </div>
       </div>
@@ -48,12 +48,12 @@
             <td class="py-3 text-text-secondary">{{ payment.service }}</td>
             <td class="py-3 text-right">
               <div class="text-text">{{ formatUSD(payment.amount) }}</div>
-              <div class="text-xs text-text-muted">Bs {{ formatVESInline(payment.amount) }}</div>
+            <div class="text-xs text-text-muted">{{ formatVESInline(payment.amount) }} Bs</div>
             </td>
             <td class="py-3 text-right text-text-secondary">{{ payment.percentage }}%</td>
             <td class="py-3 text-right">
               <div class="font-semibold text-success">{{ formatUSD(payment.earnings) }}</div>
-              <div class="text-xs text-text-muted">Bs {{ formatVESInline(payment.earnings) }}</div>
+            <div class="text-xs text-text-muted">{{ formatVESInline(payment.earnings) }} Bs</div>
             </td>
           </tr>
         </tbody>
@@ -77,7 +77,7 @@
             <span class="text-xs text-text-muted">Monto</span>
             <div class="text-right">
               <div class="font-medium text-danger text-sm">{{ formatUSD(ep.amount) }}</div>
-              <div class="text-xs text-text-muted">Bs {{ formatVESInline(ep.amount) }}</div>
+              <div class="text-xs text-text-muted">{{ formatVESInline(ep.amount) }} Bs</div>
             </div>
           </div>
         </div>
@@ -99,7 +99,7 @@
               <td class="py-2 text-text-secondary">{{ formatMethod(ep.paymentMethod) }}</td>
               <td class="py-2 text-right">
                 <div class="font-medium text-danger">{{ formatUSD(ep.amount) }}</div>
-                <div class="text-xs text-text-muted">Bs {{ formatVESInline(ep.amount) }}</div>
+                <div class="text-xs text-text-muted">{{ formatVESInline(ep.amount) }} Bs</div>
               </td>
             </tr>
           </tbody>
@@ -136,7 +136,7 @@
               <td class="py-2 text-right font-semibold text-text">{{ formatUSD(row.totalEarned) }}</td>
               <td class="py-2 text-right">
                 <div class="font-medium text-danger">{{ formatUSD(row.totalPaid) }}</div>
-                <div class="text-xs text-text-muted">Bs {{ formatVESInline(row.totalPaid) }}</div>
+                <div class="text-xs text-text-muted">{{ formatVESInline(row.totalPaid) }} Bs</div>
               </td>
               <td class="py-2 text-right">
                 <span class="font-bold" :class="row.pendingBalance > 0 ? 'text-primary' : 'text-text-muted'">

@@ -113,12 +113,12 @@
         <div>
           <div class="text-xs font-medium uppercase tracking-wider text-text-muted mb-0.5">Costo</div>
           <div class="text-text tabular-nums">${{ producto.unitCost.toFixed(2) }}</div>
-          <div class="text-xs text-slate-400 tabular-nums">Bs {{ formatVESInline(producto.unitCost) }}</div>
+          <div class="text-xs text-slate-400 tabular-nums">{{ formatVESInline(producto.unitCost) }} Bs</div>
         </div>
         <div class="text-right">
           <div class="text-xs font-medium uppercase tracking-wider text-text-muted mb-0.5">Precio</div>
           <div class="text-text font-medium tabular-nums">${{ producto.unitPrice.toFixed(2) }}</div>
-          <div class="text-xs text-slate-400 tabular-nums">Bs {{ formatVESInline(producto.unitPrice) }}</div>
+          <div class="text-xs text-slate-400 tabular-nums">{{ formatVESInline(producto.unitPrice) }} Bs</div>
         </div>
       </div>
 
@@ -185,11 +185,11 @@
             <td class="px-4 py-3 text-xs text-slate-500">{{ producto.categoryName || '—' }}</td>
             <td class="px-4 py-3 text-right tabular-nums">
               <span class="text-text">${{ producto.unitCost.toFixed(2) }}</span>
-              <span class="block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitCost) }}</span>
+              <span class="block whitespace-nowrap text-xs text-slate-400">{{ formatVESInline(producto.unitCost) }} Bs</span>
             </td>
             <td class="px-4 py-3 text-right font-medium tabular-nums">
               <span class="text-text">${{ producto.unitPrice.toFixed(2) }}</span>
-              <span class="block whitespace-nowrap text-xs text-slate-400">Bs {{ formatVESInline(producto.unitPrice) }}</span>
+              <span class="block whitespace-nowrap text-xs text-slate-400">{{ formatVESInline(producto.unitPrice) }} Bs</span>
             </td>
             <td class="px-4 py-3 text-right tabular-nums">
               <span :class="[

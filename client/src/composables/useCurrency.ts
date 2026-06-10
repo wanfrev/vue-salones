@@ -11,19 +11,17 @@ export function useCurrency() {
   const currency = computed(() => businessStore.business?.currency ?? 'USD')
 
   const formatUSD = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return `${new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(value)
+    }).format(value)} $`
   }
 
   const formatVESEs = (vesValue: number) =>
-    `Bs ${new Intl.NumberFormat('es-VE', {
+    `${new Intl.NumberFormat('es-VE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(vesValue)}`
+    }).format(vesValue)} Bs`
 
   const formatVES = (value: number, rate?: number) => {
     return formatVESEs(value * (rate ?? exchangeRate.value))
