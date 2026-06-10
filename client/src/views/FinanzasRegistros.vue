@@ -136,7 +136,17 @@
               <td class="py-3 font-medium text-text">{{ row.client }}</td>
               <td class="py-3 text-text">{{ row.employee }}</td>
               <td class="py-3 text-text-secondary">{{ row.service }}</td>
-              <td class="py-3 text-text-secondary">{{ row.method }}</td>
+              <td class="py-3 text-text-secondary">
+                <template v-if="summaryCtx.editingTransaction.value?.id === row.id">
+                  <select
+                    v-model="summaryCtx.editingMethod.value"
+                    class="rounded-md border border-border bg-input px-2 py-1 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option v-for="opt in summaryCtx.paymentMethodOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                  </select>
+                </template>
+                <span v-else>{{ row.method }}</span>
+              </td>
               <td class="py-3 text-right">
                 <template v-if="summaryCtx.editingTransaction.value?.id === row.id">
                   <div class="flex items-center gap-1 justify-end">
@@ -246,9 +256,37 @@
                   {{ tx.type === 'ingreso' ? 'Ingreso' : tx.type === 'nomina' ? 'Nomina' : 'Gasto' }}
                 </span>
               </td>
-              <td class="py-3 text-text-secondary">{{ tx.method }}</td>
+              <td class="py-3 text-text-secondary">
+                <template v-if="summaryCtx.editingTransaction.value?.id === tx.id && tx.type === 'ingreso'">
+                  <select
+                    v-model="summaryCtx.editingMethod.value"
+                    class="rounded-md border border-border bg-input px-2 py-1 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option v-for="opt in summaryCtx.paymentMethodOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                  </select>
+                </template>
+                <span v-else>{{ tx.method }}</span>
+              </td>
               <td class="py-3 text-right font-medium" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
-                {{ tx.type === 'ingreso' ? '' : '-' }}{{ formatUSD(tx.amount) }}
+                <template v-if="summaryCtx.editingTransaction.value?.id === tx.id && tx.type === 'ingreso'">
+                  <div class="flex items-center gap-1 justify-end">
+                    <input
+                      type="number"
+                      :value="summaryCtx.editingAmount.value"
+                      @input="summaryCtx.editingAmount.value = Number(($event.target as HTMLInputElement).value)"
+                      class="w-24 rounded-md border border-border bg-input px-2 py-1 text-right text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary"
+                      min="0.01"
+                      step="0.01"
+                    />
+                    <button type="button" class="rounded-md bg-success/10 p-1 text-success transition-theme hover:bg-success/20" title="Guardar" @click="summaryCtx.saveEdit()">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    </button>
+                    <button type="button" class="rounded-md bg-danger/10 p-1 text-danger transition-theme hover:bg-danger/20" title="Cancelar" @click="summaryCtx.cancelEdit()">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                </template>
+                <span v-else>{{ tx.type === 'ingreso' ? '' : '-' }}{{ formatUSD(tx.amount) }}</span>
               </td>
               <td class="py-3 text-right">
                 <div v-if="tx.type === 'ingreso'" class="flex items-center gap-1 justify-end">

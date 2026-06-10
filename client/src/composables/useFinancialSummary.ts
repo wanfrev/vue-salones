@@ -48,6 +48,7 @@ type TransactionRow = {
   employee: string
   service: string
   method: string
+  rawMethod: PaymentMethod
   amount: number
   exchangeRateUsed: number
 }
@@ -376,6 +377,7 @@ function useFinancialSummary(
       employee: row.appointments?.employee_profile?.full_name ?? '—',
       service: row.appointments?.services?.name ?? '—',
       method: formatMethod(row.method),
+      rawMethod: row.method as PaymentMethod,
       amount: row.total_amount,
       exchangeRateUsed: row.exchange_rate_used ?? 1,
     }))
@@ -636,15 +638,28 @@ function useFinancialSummary(
 
   const editingTransaction = ref<TransactionRow | null>(null)
   const editingAmount = ref(0)
+  const editingMethod = ref<PaymentMethod>('cash')
+
+  const paymentMethodOptions: { value: PaymentMethod; label: string }[] = [
+    { value: 'cash', label: 'Efectivo' },
+    { value: 'card', label: 'Tarjeta' },
+    { value: 'transfer', label: 'Transferencia' },
+    { value: 'zelle', label: 'Zelle' },
+    { value: 'pago_movil', label: 'Pago Móvil' },
+    { value: 'mixed', label: 'Mixto' },
+    { value: 'other', label: 'Otro' },
+  ]
 
   const startEdit = (tx: TransactionRow) => {
     editingTransaction.value = tx
     editingAmount.value = tx.amount
+    editingMethod.value = tx.rawMethod
   }
 
   const cancelEdit = () => {
     editingTransaction.value = null
     editingAmount.value = 0
+    editingMethod.value = 'cash'
   }
 
   const saveEdit = () => {
@@ -656,6 +671,7 @@ function useFinancialSummary(
     editTransactionMutation.mutate({
       transactionId: editingTransaction.value.id,
       amount: editingAmount.value,
+      method: editingMethod.value,
     })
     cancelEdit()
   }
@@ -687,6 +703,8 @@ function useFinancialSummary(
     deleteTransactionMutation,
     editingTransaction,
     editingAmount,
+    editingMethod,
+    paymentMethodOptions,
     startEdit,
     cancelEdit,
     saveEdit,
