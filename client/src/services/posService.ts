@@ -85,6 +85,32 @@ export const recordSale = async (params: {
   return data as string
 }
 
+export const updateTransaction = async (params: {
+  transactionId: string
+  amount?: number
+  method?: PaymentMethod
+  notes?: string
+  exchangeRate?: number
+}): Promise<void> => {
+  const { error } = await supabase.rpc('update_transaction', {
+    p_transaction_id: params.transactionId,
+    p_amount: params.amount ?? null,
+    p_method: params.method ?? null,
+    p_notes: params.notes ?? null,
+    p_exchange_rate: params.exchangeRate ?? null,
+  })
+  if (error) throw error
+}
+
+export const deleteTransaction = async (params: {
+  transactionId: string
+}): Promise<void> => {
+  const { error } = await supabase.rpc('delete_transaction', {
+    p_transaction_id: params.transactionId,
+  })
+  if (error) throw error
+}
+
 export const listPendingAppointments = async (businessId: string) => {
   const { data, error } = await supabase
     .from('appointments')

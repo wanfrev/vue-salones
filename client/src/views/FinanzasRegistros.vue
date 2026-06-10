@@ -119,6 +119,7 @@
               <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Servicio</th>
               <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
               <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
+              <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border-subtle">
@@ -128,10 +129,52 @@
               <td class="py-3 text-text">{{ row.employee }}</td>
               <td class="py-3 text-text-secondary">{{ row.service }}</td>
               <td class="py-3 text-text-secondary">{{ row.method }}</td>
-              <td class="py-3 text-right font-medium text-success">{{ formatUSD(row.amount) }}</td>
+              <td class="py-3 text-right">
+                <template v-if="summaryCtx.editingTransaction.value?.id === row.id">
+                  <div class="flex items-center gap-1 justify-end">
+                    <input
+                      type="number"
+                      :value="summaryCtx.editingAmount.value"
+                      @input="summaryCtx.editingAmount.value = Number(($event.target as HTMLInputElement).value)"
+                      class="w-24 rounded-md border border-border bg-input px-2 py-1 text-right text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary"
+                      min="0.01"
+                      step="0.01"
+                    />
+                    <button type="button" class="rounded-md bg-success/10 p-1 text-success transition-theme hover:bg-success/20" title="Guardar" @click="summaryCtx.saveEdit()">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    </button>
+                    <button type="button" class="rounded-md bg-danger/10 p-1 text-danger transition-theme hover:bg-danger/20" title="Cancelar" @click="summaryCtx.cancelEdit()">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                </template>
+                <span v-else class="font-medium text-success">{{ formatUSD(row.amount) }}</span>
+              </td>
+              <td class="py-3 text-right">
+                <div class="flex items-center gap-1 justify-end">
+                  <button
+                    type="button"
+                    class="rounded-md bg-primary/10 p-1.5 text-primary transition-theme hover:bg-primary/20"
+                    title="Editar monto"
+                    @click="summaryCtx.startEdit(row)"
+                    :disabled="summaryCtx.editTransactionMutation.isPending.value || summaryCtx.deleteTransactionMutation.isPending.value"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md bg-danger/10 p-1.5 text-danger transition-theme hover:bg-danger/20"
+                    title="Eliminar cobro"
+                    @click="summaryCtx.confirmDeleteTransaction(row.id)"
+                    :disabled="summaryCtx.editTransactionMutation.isPending.value || summaryCtx.deleteTransactionMutation.isPending.value"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </div>
+              </td>
             </tr>
             <tr v-if="summaryCtx.appointmentIncomeDetails.value.length === 0">
-              <td colspan="6" class="py-6 text-center text-sm text-text-muted">No hay cobros de citas en este periodo.</td>
+              <td colspan="7" class="py-6 text-center text-sm text-text-muted">No hay cobros de citas en este periodo.</td>
             </tr>
           </tbody>
         </table>
@@ -178,6 +221,7 @@
               <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Tipo</th>
               <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
               <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
+              <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border-subtle">
@@ -198,9 +242,32 @@
               <td class="py-3 text-right font-medium" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
                 {{ tx.type === 'ingreso' ? '' : '-' }}{{ formatUSD(tx.amount) }}
               </td>
+              <td class="py-3 text-right">
+                <div v-if="tx.type === 'ingreso'" class="flex items-center gap-1 justify-end">
+                  <button
+                    type="button"
+                    class="rounded-md bg-primary/10 p-1.5 text-primary transition-theme hover:bg-primary/20"
+                    title="Editar cobro"
+                    @click="() => { const row = summaryCtx.transactionsAll.value.find(r => r.id === tx.id); if (row) summaryCtx.startEdit(row) }"
+                    :disabled="summaryCtx.editTransactionMutation.isPending.value || summaryCtx.deleteTransactionMutation.isPending.value"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md bg-danger/10 p-1.5 text-danger transition-theme hover:bg-danger/20"
+                    title="Eliminar cobro"
+                    @click="summaryCtx.confirmDeleteTransaction(tx.id)"
+                    :disabled="summaryCtx.editTransactionMutation.isPending.value || summaryCtx.deleteTransactionMutation.isPending.value"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </div>
+                <span v-else class="text-xs text-text-muted">—</span>
+              </td>
             </tr>
             <tr v-if="summaryCtx.allTransactions.value.length === 0">
-              <td colspan="5" class="py-6 text-center text-sm text-text-muted">No hay transacciones en este periodo.</td>
+              <td colspan="6" class="py-6 text-center text-sm text-text-muted">No hay transacciones en este periodo.</td>
             </tr>
           </tbody>
         </table>

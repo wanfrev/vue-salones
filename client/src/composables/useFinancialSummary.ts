@@ -1,8 +1,10 @@
-import { computed, watch } from 'vue'
-import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { computed, watch, ref } from 'vue'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
+import { useNotification } from './useNotification'
 import { formatMethod, formatDate } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
-import type { Transaction, EmployeePayment, Expense } from '../types/database'
+import { updateTransaction, deleteTransaction } from '../services/posService'
+import type { Transaction, EmployeePayment, Expense, PaymentMethod } from '../types/database'
 
 const toYmd = (d: Date) => {
   const yyyy = d.getFullYear()
@@ -572,6 +574,78 @@ function useFinancialSummary(
 
   const isLoading = computed(() => isSummaryLoading.value || isTransactionsLoading.value)
 
+  const { success: notify, error: showError } = useNotification()
+
+  const editTransactionMutation = useMutation({
+    mutationFn: (params: {
+      transactionId: string
+      amount?: number
+      method?: PaymentMethod
+      notes?: string
+      exchangeRate?: number
+    }) => updateTransaction(params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'] })
+      queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
+      notify('Cobro actualizado correctamente')
+    },
+    onError: (err: unknown) => {
+      showError(err instanceof Error ? err.message : 'Error al actualizar el cobro')
+    },
+  })
+
+  const deleteTransactionMutation = useMutation({
+    mutationFn: (params: { transactionId: string }) => deleteTransaction(params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'] })
+      queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
+      queryClient.invalidateQueries({ queryKey: ['inventario'] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-product-sales'] })
+      notify('Cobro eliminado correctamente')
+    },
+    onError: (err: unknown) => {
+      showError(err instanceof Error ? err.message : 'Error al eliminar el cobro')
+    },
+  })
+
+  const editingTransaction = ref<TransactionRow | null>(null)
+  const editingAmount = ref(0)
+
+  const startEdit = (tx: TransactionRow) => {
+    editingTransaction.value = tx
+    editingAmount.value = tx.amount
+  }
+
+  const cancelEdit = () => {
+    editingTransaction.value = null
+    editingAmount.value = 0
+  }
+
+  const saveEdit = () => {
+    if (!editingTransaction.value) return
+    if (editingAmount.value <= 0) {
+      showError('El monto debe ser mayor a 0')
+      return
+    }
+    editTransactionMutation.mutate({
+      transactionId: editingTransaction.value.id,
+      amount: editingAmount.value,
+    })
+    cancelEdit()
+  }
+
+  const confirmDeleteTransaction = (txId: string) => {
+    if (window.confirm('¿Eliminar este cobro?\n\nSe revertirá el inventario si aplica. Esta acción no se puede deshacer.')) {
+      deleteTransactionMutation.mutate({ transactionId: txId })
+    }
+  }
+
   return {
     summaryBuckets,
     transactions,
@@ -587,6 +661,14 @@ function useFinancialSummary(
     productSalesBreakdown,
     productSalesDetails,
     isLoading,
+    editTransactionMutation,
+    deleteTransactionMutation,
+    editingTransaction,
+    editingAmount,
+    startEdit,
+    cancelEdit,
+    saveEdit,
+    confirmDeleteTransaction,
   }
 }
 
