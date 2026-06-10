@@ -270,7 +270,7 @@ const canSell = computed(() => {
 
 const sellMutation = useMutation({
   mutationFn: () =>
-    sellProduct(props.businessId, selected.value!.id, quantity.value, notes.value, null, unitPrice.value),
+    sellProduct(props.businessId, selected.value!.id, quantity.value, notes.value, null, unitPrice.value, exchangeRate.value),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: inventarioKeys.all(props.businessId) })
     queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(props.businessId) })

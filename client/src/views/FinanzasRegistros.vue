@@ -37,7 +37,7 @@
               <td class="py-3 font-medium text-text">{{ expense.name }}</td>
               <td class="py-3 text-text-secondary">{{ expense.category }}</td>
               <td class="py-3 text-right">
-                <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESInline(expense.amount) : formatUSD(expense.amount) }}</div>
+                <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</div>
                 <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : 'Bs ' + formatVESInline(expense.amount) }}</div>
               </td>
             </tr>
@@ -294,7 +294,7 @@ const route = useRoute()
 const router = useRouter()
 const { authStore } = useAuth()
 const businessStore = useBusinessStore()
-const { formatUSD, formatVESInline } = useCurrency()
+const { formatUSD, formatVESInline, formatVESEs } = useCurrency()
 const terminology = businessStore.terminology
 
 const selectedPeriod = ref<PeriodValue>('month')

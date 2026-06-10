@@ -103,6 +103,7 @@ export async function recordMovement(
     quantity: number
     notes: string
     unitCost?: number
+    exchangeRate?: number
   },
 ): Promise<void> {
   const supabaseUser = mutate.auth?.currentUser
@@ -116,6 +117,7 @@ export async function recordMovement(
       movement_type: params.movementType,
       quantity: params.quantity,
       unit_cost: params.unitCost ?? 0,
+      exchange_rate_used: params.exchangeRate ?? 1,
       notes: params.notes,
       created_by: supabaseUser?.id ?? null,
     })

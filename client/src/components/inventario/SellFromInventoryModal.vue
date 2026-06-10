@@ -72,7 +72,7 @@ const emit = defineEmits<{
 }>()
 
 const { authStore } = useAuth()
-const { formatUSD, formatVES } = useCurrency()
+const { formatUSD, formatVES, exchangeRate } = useCurrency()
 const { success, error: showError } = useNotification()
 const businessId = authStore.businessId
 
@@ -86,7 +86,7 @@ const saleTotalUsd = computed(() => {
 
 const saleMutation = useMutation({
   mutationFn: (params: { productId: string; quantity: number; notes: string; unitPrice: number; variantId?: string | null }) =>
-    sellProduct(businessId!, params.productId, params.quantity, params.notes, params.variantId, params.unitPrice),
+    sellProduct(businessId!, params.productId, params.quantity, params.notes, params.variantId, params.unitPrice, exchangeRate.value),
   onSuccess: () => {
     emit('saved')
     doClose()

@@ -20,6 +20,7 @@ export type UnifiedTransaction = {
   method: string
   amount: number
   type: 'ingreso' | 'nomina' | 'gasto'
+  exchangeRateUsed?: number
 }
 
 export type EmployeeEarningSummary = {
@@ -48,6 +49,7 @@ type TransactionRow = {
   service: string
   method: string
   amount: number
+  exchangeRateUsed: number
 }
 
 export type ProductSaleDetail = {
@@ -264,6 +266,7 @@ function useFinancialSummary(
           total_amount,
           method,
           employee_percentage,
+          exchange_rate_used,
           appointments (
             client_id,
             service_id,
@@ -283,6 +286,7 @@ function useFinancialSummary(
 
       const raw = (data ?? []) as Array<
         Transaction & {
+          exchange_rate_used?: number | null
           appointments?: {
             client_id: string | null
             service_id: string | null
@@ -351,7 +355,7 @@ function useFinancialSummary(
       endExclusive.setDate(endExclusive.getDate() + 1)
       const { data, error } = await supabase
         .from('inventory_movements')
-        .select('product_id, variant_id, movement_type, quantity, unit_cost, created_at, products ( name )')
+        .select('product_id, variant_id, movement_type, quantity, unit_cost, exchange_rate_used, created_at, products ( name )')
         .eq('business_id', businessId.value!)
         .eq('movement_type', 'sale')
         .gte('created_at', cfg.start.toISOString())
@@ -373,6 +377,7 @@ function useFinancialSummary(
       service: row.appointments?.services?.name ?? '—',
       method: formatMethod(row.method),
       amount: row.total_amount,
+      exchangeRateUsed: row.exchange_rate_used ?? 1,
     }))
   )
 
@@ -385,6 +390,16 @@ function useFinancialSummary(
       const qty = Math.abs(Number(r.quantity ?? 0))
       const price = Number(r.unit_cost ?? 0)
       return acc + qty * price
+    }, 0)
+  })
+
+  const vesProductSalesTotal = computed(() => {
+    const rows = rawInventoryMovements.value ?? []
+    return rows.reduce((acc: number, r: any) => {
+      const qty = Math.abs(Number(r.quantity ?? 0))
+      const price = Number(r.unit_cost ?? 0)
+      const rate = Number(r.exchange_rate_used ?? 1)
+      return acc + qty * price * rate
     }, 0)
   })
 
@@ -427,6 +442,7 @@ function useFinancialSummary(
         method: formatMethod(tx.method),
         amount: tx.total_amount,
         type: 'ingreso',
+        exchangeRateUsed: tx.exchange_rate_used ?? 1,
         sortDate: tx.paid_at ?? tx.created_at,
       })
     }
@@ -533,6 +549,10 @@ function useFinancialSummary(
 
   const incomeTotal = computed(() =>
     summaryBuckets.value.reduce((acc, row) => acc + row.total_amount, 0)
+  )
+
+  const vesIncomeTotal = computed(() =>
+    rawTransactions.value.reduce((acc, tx) => acc + (tx.total_amount * (tx.exchange_rate_used ?? 1)), 0)
   )
 
   const servicesRevenue = computed<ServiceRevenue[]>(() => {
@@ -652,12 +672,14 @@ function useFinancialSummary(
     allTransactions: unifiedTransactions,
     transactionsAll,
     incomeTotal,
+    vesIncomeTotal,
     servicesRevenue,
     chartData,
     employeePayments,
     employeeEarningsByEmployee,
     appointmentIncomeDetails,
     productSalesTotal,
+    vesProductSalesTotal,
     productSalesBreakdown,
     productSalesDetails,
     isLoading,

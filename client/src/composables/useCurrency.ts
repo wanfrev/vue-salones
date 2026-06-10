@@ -19,20 +19,22 @@ export function useCurrency() {
     }).format(value)
   }
 
-  const formatVES = (value: number) => {
-    const vesValue = value * exchangeRate.value
-    return `Bs ${new Intl.NumberFormat('es-VE', {
+  const formatVESEs = (vesValue: number) =>
+    `Bs ${new Intl.NumberFormat('es-VE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(vesValue)}`
+
+  const formatVES = (value: number, rate?: number) => {
+    return formatVESEs(value * (rate ?? exchangeRate.value))
   }
 
-  const formatDual = (value: number) => {
-    return `${formatUSD(value)} / ${formatVES(value)}`
+  const formatDual = (value: number, rate?: number) => {
+    return `${formatUSD(value)} / ${formatVES(value, rate)}`
   }
 
-  const formatVESInline = (usdValue: number) => {
-    const vesValue = usdValue * exchangeRate.value
+  const formatVESInline = (usdValue: number, rate?: number) => {
+    const vesValue = usdValue * (rate ?? exchangeRate.value)
     return new Intl.NumberFormat('es-VE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -63,6 +65,7 @@ export function useCurrency() {
     currency,
     formatUSD,
     formatVES,
+    formatVESEs,
     formatDual,
     formatVESInline,
     setExchangeRate,

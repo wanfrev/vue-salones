@@ -199,6 +199,7 @@ export const sellProduct = async (
   notes: string,
   variantId?: string | null,
   unitPrice?: number,
+  exchangeRate?: number,
 ): Promise<void> => {
   const locationId = await getDefaultLocation(businessId)
   const existing = await getStockRecord(businessId, productId, locationId, variantId)
@@ -221,5 +222,6 @@ export const sellProduct = async (
     quantity: -quantity,
     notes: notes || 'Venta directa',
     unitCost: unitPrice,
+    exchangeRate: exchangeRate ?? 1,
   })
 }

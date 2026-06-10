@@ -61,7 +61,7 @@
         </div>
         <div class="flex items-center justify-between">
           <div>
-            <span class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESInline(expense.amount) : formatUSD(expense.amount) }}</span>
+            <span class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</span>
             <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : 'Bs ' + formatVESInline(expense.amount) }}</div>
           </div>
           <button @click="expensesCtx.openEdit(expense)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary" title="Editar gasto">
@@ -96,7 +96,7 @@
               ]">{{ expense.category }}</span>
             </td>
             <td class="py-3 text-right">
-              <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESInline(expense.amount) : formatUSD(expense.amount) }}</div>
+              <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</div>
               <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : 'Bs ' + formatVESInline(expense.amount) }}</div>
             </td>
             <td class="py-3 text-center">
@@ -209,7 +209,7 @@ const emit = defineEmits<{
   'view-all': []
 }>()
 
-const { formatUSD, formatVESInline } = useCurrency()
+const { formatUSD, formatVESInline, formatVESEs } = useCurrency()
 
 const expensesCtx = useExpenses(computed(() => props.businessId))
 

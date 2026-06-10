@@ -147,7 +147,7 @@
         </div>
         <div class="text-right shrink-0">
           <div class="text-lg font-bold text-info">{{ formatUSD(productSalesTotal) }}</div>
-          <div class="text-[11px] text-text-muted">Bs {{ formatVESInline(productSalesTotal) }}</div>
+          <div class="text-[11px] text-text-muted">Bs {{ formatVESEs(vesProductSalesTotal) }}</div>
         </div>
       </div>
 
@@ -268,7 +268,7 @@
             <div class="font-semibold text-sm tabular-nums" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
               {{ tx.type === 'ingreso' ? '+' : '-' }}{{ formatUSD(tx.amount) }}
             </div>
-            <div class="text-xs text-text-muted tabular-nums">Bs {{ formatVESInline(tx.amount) }}</div>
+            <div class="text-xs text-text-muted tabular-nums">Bs {{ formatVESInline(tx.amount, tx.exchangeRateUsed) }}</div>
           </div>
         </div>
       </div>
@@ -305,7 +305,7 @@
               <div class="font-semibold tabular-nums" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
                 {{ tx.type === 'ingreso' ? '+' : '-' }}{{ formatUSD(tx.amount) }}
               </div>
-              <div class="text-xs text-text-muted tabular-nums">Bs {{ formatVESInline(tx.amount) }}</div>
+              <div class="text-xs text-text-muted tabular-nums">Bs {{ formatVESInline(tx.amount, tx.exchangeRateUsed) }}</div>
             </td>
           </tr>
         </tbody>
@@ -346,7 +346,7 @@ import { employeePaymentKeys } from '../services/employeePaymentsService'
 
 const { authStore } = useAuth()
 const businessStore = useBusinessStore()
-const { formatUSD, formatVESInline } = useCurrency()
+const { formatUSD, formatVESInline, formatVESEs } = useCurrency()
 const route = useRoute()
 const router = useRouter()
 const queryClient = useQueryClient()
@@ -462,6 +462,7 @@ const appointmentChargesTotal = computed(() =>
 )
 
 const productSalesTotal = summaryCtx.productSalesTotal
+const vesProductSalesTotal = summaryCtx.vesProductSalesTotal
 const productSalesBreakdown = summaryCtx.productSalesBreakdown
 const appointmentIncomeRows = computed(() => summaryCtx.appointmentIncomeDetails.value.slice(0, 8))
 const productSalesRows = computed(() => summaryCtx.productSalesDetails.value.slice(0, 8))
