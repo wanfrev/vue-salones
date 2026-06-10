@@ -298,6 +298,16 @@ const calendarEvents = computed<EventInput[]>(() => {
   return events
 })
 
+watch(calendarEvents, (newEvents) => {
+  const api = calendarRef.value?.getApi()
+  if (api) {
+    api.removeAllEvents()
+    for (const event of newEvents) {
+      api.addEvent(event)
+    }
+  }
+})
+
 const calendarOptions = computed<CalendarOptions>(() => ({
   plugins: [timeGridPlugin, dayGridPlugin, interactionPlugin],
   initialView: isMobile.value ? mobileView.value : 'timeGridWeek',
