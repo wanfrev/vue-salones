@@ -572,7 +572,7 @@ const validateForm = (): boolean => {
 
   if (!formData.value.time) {
     errors.value.time = 'Selecciona una hora'
-  } else if (isTimeInPast(formData.value.date, formData.value.time)) {
+  } else if (!modalData.value?.cita?.id && isTimeInPast(formData.value.date, formData.value.time)) {
     errors.value.time = 'La hora no puede ser en el pasado'
   }
 
