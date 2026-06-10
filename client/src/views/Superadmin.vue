@@ -11,7 +11,8 @@
         </div>
         <button
           type="button"
-          class="rounded-lg border border-border bg-surface px-3 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
+          class="rounded-lg border border-border bg-surface px-3 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="loading"
           @click="logout"
         >
           Cerrar sesion
@@ -177,7 +178,7 @@ import lumaLogoLight from '../assets/Luma.svg'
 import lumaLogoDark from '../assets/Luma blanco.svg'
 import type { Business } from '../types/database'
 
-const { logout } = useAuth()
+const { logout, loading } = useAuth()
 const { success, error } = useNotification()
 const queryClient = useQueryClient()
 const themeStore = useThemeStore()

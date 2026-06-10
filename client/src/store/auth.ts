@@ -140,16 +140,19 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const signOut = async () => {
-    if (loading.value) return
-    loading.value = true
+    if (!session.value && !user.value) return
     try {
+      loading.value = true
       clearAuthState()
       queryClient.clear()
       const { useBusinessStore } = await import('./business')
       useBusinessStore().clearBusiness()
       await supabase.auth.signOut()
+    } catch {
+      // signOut from Supabase failed, but local state is already cleared
     } finally {
       loading.value = false
+      initialized.value = false
     }
   }
 

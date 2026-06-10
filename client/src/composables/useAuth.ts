@@ -23,8 +23,13 @@ export const useAuth = () => {
   }
 
   const logout = async () => {
-    await authStore.signOut()
-    router.replace('/')
+    try {
+      await authStore.signOut()
+    } catch {
+      // local state cleared in signOut
+    } finally {
+      router.replace('/')
+    }
   }
 
   return {

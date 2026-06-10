@@ -16,7 +16,7 @@
       </div>
       <div class="flex items-center gap-2">
         <slot name="header-actions" />
-        <button @click="logout" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary">
+        <button @click="logout" :disabled="loading" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary disabled:opacity-50 disabled:cursor-not-allowed">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
@@ -46,7 +46,7 @@ import lumaLogoLight from '../../assets/Luma.svg'
 import lumaLogoDark from '../../assets/Luma blanco.svg'
 import Sidebar from './Sidebar.vue'
 
-const { logout } = useAuth()
+const { logout, loading } = useAuth()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
 const businessStore = useBusinessStore()
