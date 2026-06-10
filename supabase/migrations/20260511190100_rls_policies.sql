@@ -356,4 +356,4 @@ create policy transactions_update on public.transactions
 drop policy if exists transactions_delete on public.transactions;
 create policy transactions_delete on public.transactions
   for delete to authenticated
-  using (public.is_superadmin());
+  using (public.is_superadmin() or public.is_admin_of(business_id));
