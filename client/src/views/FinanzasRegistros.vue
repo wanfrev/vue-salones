@@ -105,9 +105,16 @@
                 <td class="py-3 font-medium text-text">{{ ep.employeeName }}</td>
                 <td class="py-3 text-text-secondary">{{ formatMethod(ep.paymentMethod) }}</td>
                 <td class="py-3 text-right font-medium text-danger">{{ formatUSD(ep.amount) }}</td>
+                <td class="py-3 text-center">
+                  <button @click="handleDeletePayment(ep.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar pago">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </td>
               </tr>
               <tr v-if="paymentsCtx.paymentsMade.value.length === 0">
-                <td colspan="4" class="py-6 text-center text-sm text-text-muted">No hay pagos registrados en este periodo.</td>
+                <td colspan="5" class="py-6 text-center text-sm text-text-muted">No hay pagos registrados en este periodo.</td>
               </tr>
             </tbody>
           </table>
@@ -436,5 +443,9 @@ const goBack = () => {
     name: 'admin-finanzas',
     query: { period: selectedPeriod.value, month: selectedMonth.value },
   })
+}
+
+const handleDeletePayment = (id: string) => {
+  paymentsCtx.handleDelete(id)
 }
 </script>

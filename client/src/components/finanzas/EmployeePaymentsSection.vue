@@ -64,14 +64,21 @@
         <h4 class="text-base font-semibold text-text">Pago de nómina</h4>
         <span class="text-xs text-text-muted">{{ paymentsMade.length }} pago(s)</span>
       </div>
-      <div class="lg:hidden space-y-2 mb-3">
+       <div class="lg:hidden space-y-2 mb-3">
         <div v-for="ep in visiblePaymentsMade" :key="ep.id" class="rounded-lg border border-border-subtle bg-bg-secondary p-3">
           <div class="flex items-start justify-between mb-1">
             <div>
               <div class="text-xs text-text-muted">{{ ep.paymentDate }}</div>
               <div class="font-medium text-text text-sm">{{ ep.employeeName }}</div>
             </div>
-            <span class="text-xs text-text-muted shrink-0">{{ formatMethod(ep.paymentMethod) }}</span>
+            <div class="flex items-center gap-1 shrink-0">
+              <span class="text-xs text-text-muted">{{ formatMethod(ep.paymentMethod) }}</span>
+              <button @click="handleDeletePayment(ep.id)" class="rounded-md p-1 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar pago">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-xs text-text-muted">Monto</span>
@@ -90,6 +97,7 @@
               <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">{{ terminology.employee || 'Empleado' }}</th>
               <th class="pb-2 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
               <th class="pb-2 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
+              <th class="pb-2 text-center text-xs font-semibold uppercase text-text-muted w-10">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border-subtle">
@@ -100,6 +108,13 @@
               <td class="py-2 text-right">
                 <div class="font-medium text-danger">{{ formatUSD(ep.amount) }}</div>
                 <div class="text-xs text-text-muted">{{ formatVESInline(ep.amount) }} Bs</div>
+              </td>
+              <td class="py-2 text-center">
+                <button @click="handleDeletePayment(ep.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar pago">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               </td>
             </tr>
           </tbody>
@@ -372,5 +387,9 @@ const handleSavePayment = async () => {
   } catch {
     // Error handled by composable
   }
+}
+
+const handleDeletePayment = (id: string) => {
+  paymentsCtx.handleDelete(id)
 }
 </script>

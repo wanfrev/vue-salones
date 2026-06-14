@@ -65,11 +65,13 @@ export const createAuthUser = async (input: CreateUserInput): Promise<CreateUser
 }
 
 export const updateAuthUser = async (userId: string, input: {
+  email?: string
   password?: string
   user_metadata?: Record<string, unknown>
 }): Promise<void> => {
   const { data, error } = await invokeWithSessionRefresh('update', {
     user_id: userId,
+    email: input.email,
     password: input.password,
     user_metadata: input.user_metadata,
   })

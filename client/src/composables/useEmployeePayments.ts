@@ -5,6 +5,7 @@ import { useNotification } from './useNotification'
 import {
   listEmployeePayments,
   createEmployeePayment,
+  deleteEmployeePayment,
   employeePaymentKeys,
 } from '../services/employeePaymentsService'
 
@@ -124,10 +125,32 @@ export function useEmployeePayments(
     }
   }
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteEmployeePayment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'] })
+      success('Pago eliminado correctamente')
+    },
+    onError: (err) => {
+      showError(err instanceof Error ? err.message : 'Error al eliminar el pago')
+    },
+  })
+
+  const handleDelete = (id: string) => {
+    const msg = '¿Eliminar este pago?\n\nEsta acción no se puede deshacer.'
+    if (window.confirm(msg)) {
+      deleteMutation.mutate(id)
+    }
+  }
+
   return {
     paymentsMade,
     isLoading,
     createMutation,
+    deleteMutation,
     paymentError,
     showPaymentModal,
     paymentForm,
@@ -135,5 +158,6 @@ export function useEmployeePayments(
     openModal,
     closeModal,
     handleSave,
+    handleDelete,
   }
 }

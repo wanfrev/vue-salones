@@ -137,6 +137,19 @@ serve(async (req) => {
         }
       }
 
+      if (body.email) {
+        const { error: emailErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+          email: body.email,
+          email_confirm: true,
+        })
+        if (emailErr) {
+          return new Response(JSON.stringify({ error: emailErr.message }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+      }
+
       if (Object.keys(userMetadata).length > 0) {
         const { error: metaErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
           user_metadata: userMetadata,

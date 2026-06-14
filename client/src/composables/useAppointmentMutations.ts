@@ -93,7 +93,11 @@ export function useAppointmentMutations(options: {
   }
 
   const handleSaveCita = async (data: CitaFormData & { id?: string; clientPhone?: string }) => {
-    await saveCitaMutation.mutateAsync(data)
+    try {
+      await saveCitaMutation.mutateAsync(data)
+    } catch {
+      // Error handled by onError callback
+    }
   }
 
   const handleStatusChange = async ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }) => {

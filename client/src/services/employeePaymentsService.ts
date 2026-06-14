@@ -52,6 +52,14 @@ export const listEmployeePayments = async (
   }))
 }
 
+export const deleteEmployeePayment = async (id: string): Promise<void> => {
+  const { error } = await mutate
+    .from('employee_payments')
+    .delete()
+    .eq('id', id)
+  if (error) handleDbError(error, 'Error al eliminar el pago')
+}
+
 export const createEmployeePayment = async (
   businessId: string,
   employeeId: string,

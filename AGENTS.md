@@ -388,3 +388,9 @@ supabase gen types typescript --local > client/src/types/database.ts
 ```bash
 cd client && npm run build
 ```
+
+### Edge Functions
+```bash
+supabase functions deploy manage-user
+```
+La función `manage-user` gestiona la creación, actualización (incluyendo email) y eliminación de usuarios en Supabase Auth. Debe desplegarse después de cualquier cambio en `supabase/functions/manage-user/index.ts`.

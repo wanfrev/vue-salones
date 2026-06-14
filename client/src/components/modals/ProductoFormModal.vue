@@ -272,6 +272,8 @@ const validateForm = (): boolean => {
 }
 
 const handleSubmit = async () => {
+  if (props.isSaving) return
+
   if (!validateForm()) {
     showError('Por favor corrige los errores en el formulario')
     return

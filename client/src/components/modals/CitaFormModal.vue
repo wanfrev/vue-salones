@@ -285,7 +285,7 @@ const onClientNameFocus = () => {
   }
 }
 
-const isLoading = ref(false)
+const isLoading = computed(() => saveInProgress.value)
 const isEditing = computed(() => !!modalData.value?.cita)
 
 const serviceOptions = computed(() =>

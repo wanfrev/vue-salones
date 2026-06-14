@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { mutate } from '../lib/typedSupabase'
 import type { UpdateFor } from '../types/helpers'
-import { createAuthUser, deleteAuthUser } from './adminService'
+import { createAuthUser, deleteAuthUser, updateAuthUser } from './adminService'
 import { mapEmpleadoFormToProfileUpdate, mapEmpleadoFormToScheduleBlocks, mapProfileToEmpleado } from '../mappers/equipoMapper'
 import type { EmployeeProfile } from '../mappers/equipoMapper'
 import type { Empleado, EmpleadoFormData } from '../types/empleado'
@@ -60,6 +60,10 @@ export const saveEmpleado = async (
     .eq('id', data.id)
 
   if (profileError) throw profileError
+
+  if (data.email) {
+    await updateAuthUser(data.id, { email: data.email })
+  }
 
   const { error: deleteScheduleError } = await supabase
     .from('employee_schedules')

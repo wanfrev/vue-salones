@@ -95,6 +95,7 @@
         <div class="min-w-0 flex-1 pt-0.5">
           <h3 class="font-semibold text-text">{{ member.name }}</h3>
           <p class="text-xs text-text-muted">{{ member.role }}</p>
+          <p v-if="member.email" class="text-xs text-text-muted truncate mt-0.5">{{ member.email }}</p>
         </div>
       </div>
 

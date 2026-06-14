@@ -105,7 +105,6 @@
           />
 
           <FormInput
-            v-if="!isEditing"
             v-model="formData.email"
             label="Email"
             type="email"
@@ -249,7 +248,7 @@ const errors = ref<Partial<Record<keyof EmpleadoFormData, string>>>({})
 const isFormValid = computed(() => {
   const nameValid = formData.value.name.trim().length >= 2
   const roleValid = formData.value.role !== ''
-  const emailValid = isEditing.value || formData.value.email.trim().length >= 5
+  const emailValid = formData.value.email.trim().length >= 5
   const passwordValid = isEditing.value || formData.value.password.length >= 4
   return nameValid && roleValid && emailValid && passwordValid
 })
@@ -314,12 +313,13 @@ const validateForm = (): boolean => {
     errors.value.baseSalary = 'El sueldo base no puede ser negativo'
   }
 
+  if (!formData.value.email.trim()) {
+    errors.value.email = 'El email es obligatorio'
+  } else if (!isValidEmail(formData.value.email)) {
+    errors.value.email = 'El email no es válido'
+  }
+
   if (!isEditing.value) {
-    if (!formData.value.email.trim()) {
-      errors.value.email = 'El email es obligatorio'
-    } else if (!isValidEmail(formData.value.email)) {
-      errors.value.email = 'El email no es válido'
-    }
     if (formData.value.password.length < 4) {
       errors.value.password = 'La contraseña debe tener al menos 4 caracteres'
     }
