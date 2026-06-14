@@ -59,6 +59,7 @@
   <div class="mb-5 lg:mb-8">
     <KpiCards
       :income-total="incomeTotal"
+      :ves-income-total="vesIncomeTotal"
       :expense-total="expenseTotal"
       :net-total="netTotal"
       :margin="marginTotal"
@@ -80,7 +81,7 @@
         </div>
         <div class="text-right shrink-0">
           <div class="text-lg font-bold text-success">{{ formatUSD(appointmentChargesTotal) }}</div>
-          <div class="text-[11px] text-text-muted">{{ formatVESInline(appointmentChargesTotal) }} Bs</div>
+          <div class="text-[11px] text-text-muted">{{ formatVESEs(vesIncomeTotal) }}</div>
         </div>
       </div>
 
@@ -420,6 +421,7 @@ const paymentsCtx = useEmployeePayments(businessId, periodDates)
 const rateCtx = useExchangeRate()
 
 const incomeTotal = summaryCtx.incomeTotal
+const vesIncomeTotal = summaryCtx.vesIncomeTotal
 const expenseTotal = expensesCtx.expenseTotal
 const netTotal = computed(() => incomeTotal.value - expenseTotal.value)
 const marginTotal = computed(() => (incomeTotal.value > 0 ? (netTotal.value / incomeTotal.value) * 100 : 0))

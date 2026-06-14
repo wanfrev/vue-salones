@@ -10,6 +10,7 @@
         <div class="min-w-0">
           <p class="text-[11px] font-medium uppercase tracking-wider text-text-muted sm:text-xs">Ingresos</p>
           <p class="text-lg font-bold text-text tabular-nums sm:text-xl lg:text-2xl">{{ formatUSD(incomeTotal) }}</p>
+          <p class="text-[11px] text-text-muted tabular-nums">{{ formatVESEs(vesIncomeTotal) }}</p>
         </div>
       </div>
     </div>
@@ -63,12 +64,13 @@ import { useCurrency } from '../../composables/useCurrency'
 
 defineProps<{
   incomeTotal: number
+  vesIncomeTotal: number
   expenseTotal: number
   netTotal: number
   margin: number
 }>()
 
-const { formatUSD } = useCurrency()
+const { formatUSD, formatVESEs } = useCurrency()
 
 const formatPercentage = (value: number) => `${value.toFixed(1)}%`
 </script>
