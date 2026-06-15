@@ -15,6 +15,14 @@ interface EmployeeOption {
   name: string
 }
 
+function localDateStr(): string {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export function useEmployeePayments(
   businessId: import('vue').Ref<string | null>,
   periodDates?: import('vue').Ref<{ start: string; end: string }>,
@@ -71,7 +79,7 @@ export function useEmployeePayments(
     employeeId: '',
     amount: 0,
     method: 'cash',
-    date: new Date().toISOString().slice(0, 10),
+    date: localDateStr(),
     notes: '',
     currency: 'USD' as 'USD' | 'VES',
   })
@@ -98,7 +106,7 @@ export function useEmployeePayments(
       employeeId: '',
       amount: 0,
       method: 'cash',
-      date: new Date().toISOString().slice(0, 10),
+      date: localDateStr(),
       notes: '',
       currency: 'USD',
     }

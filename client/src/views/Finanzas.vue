@@ -455,8 +455,8 @@ const invalidateAll = () => {
 }
 
 const onExpenseSaved = () => invalidateAll()
-const onPaymentSaved = () => {
-  queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
+const onPaymentSaved = async () => {
+  await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
 }
 
 const appointmentChargesTotal = computed(() =>
