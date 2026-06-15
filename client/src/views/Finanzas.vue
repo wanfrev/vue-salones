@@ -324,7 +324,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
-import { useBusinessStore } from '../store/business'
+
 import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { useExpenses } from '../composables/useExpenses'
 import { useExchangeRate } from '../composables/useExchangeRate'
@@ -334,7 +334,7 @@ import ExpensesSection from '../components/finanzas/ExpensesSection.vue'
 import { expensesKeys } from '../services/expensesService'
 
 const { authStore } = useAuth()
-const businessStore = useBusinessStore()
+
 const { formatUSD, formatVESInline, formatVESEs } = useCurrency()
 const route = useRoute()
 const router = useRouter()
