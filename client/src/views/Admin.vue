@@ -1,33 +1,6 @@
 <template>
   <div>
-    <!-- Tabs -->
-    <div class="mb-4 flex gap-2">
-      <button
-        @click="activeTab = 'agenda'"
-        :class="[
-          'rounded-lg px-4 py-2 text-sm font-medium transition-theme',
-          activeTab === 'agenda'
-            ? 'bg-primary text-text-inverse shadow-sm shadow-primary/20'
-            : 'border border-border bg-surface text-text-secondary hover:bg-bg-secondary hover:text-text'
-        ]"
-      >
-        Agenda del Día
-      </button>
-      <button
-        @click="activeTab = 'historial-cobros'"
-        :class="[
-          'rounded-lg px-4 py-2 text-sm font-medium transition-theme',
-          activeTab === 'historial-cobros'
-            ? 'bg-primary text-text-inverse shadow-sm shadow-primary/20'
-            : 'border border-border bg-surface text-text-secondary hover:bg-bg-secondary hover:text-text'
-        ]"
-      >
-        Historial de Cobros
-      </button>
-    </div>
 
-    <!-- Tab: Agenda del Día -->
-    <template v-if="activeTab === 'agenda'">
       <!-- Header -->
       <header class="mb-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -157,98 +130,6 @@
           @delete="handleDeleteCita"
         />
       </section>
-    </template>
-
-    <!-- Tab: Historial de Cobros -->
-    <template v-else>
-      <header class="mb-5 lg:mb-6">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary mb-1.5">
-              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>Historial de Cobros</span>
-            </div>
-            <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">Cobros de Citas</h1>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="flex rounded-xl border border-border bg-surface p-0.5 sm:p-1 shadow-sm">
-              <button v-for="period in periods" :key="period.value"
-                @click="cobrosSelectedPeriod = period.value"
-                :class="['rounded-lg px-3 py-1.5 text-xs font-medium transition-theme sm:px-4',
-                  cobrosSelectedPeriod === period.value ? 'bg-primary text-text-inverse shadow-sm shadow-primary/20' : 'text-text-secondary hover:text-text hover:bg-bg-secondary'
-                ]">{{ period.label }}</button>
-            </div>
-            <div class="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-border bg-surface px-2.5 py-1.5 shadow-sm">
-              <label for="cobros-month-picker" class="text-xs font-medium text-text-muted hidden sm:inline">Mes</label>
-              <input
-                id="cobros-month-picker"
-                v-model="cobrosSelectedMonth"
-                type="month"
-                class="rounded-md border border-border bg-surface px-2 py-1 text-xs text-text outline-none transition-theme focus:border-primary w-28 sm:w-auto"
-                @change="cobrosSelectedPeriod = 'month'"
-              />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div class="rounded-xl border border-border bg-surface shadow-sm">
-        <div class="flex items-center gap-3 border-b border-border-subtle bg-gradient-to-r from-success/[0.03] to-transparent px-4 sm:px-5 py-3 sm:py-3.5">
-          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success shrink-0">
-            <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div class="min-w-0 flex-1">
-            <h3 class="text-sm font-semibold text-text">Cobros del período</h3>
-            <p class="text-xs text-text-secondary">Ingresos por servicios</p>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-lg font-bold text-success whitespace-nowrap">{{ formatUSD(cobrosTotal) }}</div>
-            <div class="text-[11px] text-text-muted font-medium">{{ cobrosRows.length }} cobros</div>
-          </div>
-        </div>
-
-        <div class="p-4 sm:p-5">
-          <div v-if="cobrosRows.length" class="overflow-x-auto">
-            <table class="w-full">
-              <thead>
-                <tr class="border-b border-border-subtle">
-                  <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Fecha</th>
-                  <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Cliente</th>
-                  <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Empleado</th>
-                  <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Servicio</th>
-                  <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Método</th>
-                  <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Monto</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-border-subtle">
-                <tr v-for="item in cobrosRows" :key="item.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
-                  <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ item.date }}</td>
-                  <td class="px-3 py-3 font-medium text-text">{{ item.client }}</td>
-                  <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ item.employee }}</td>
-                  <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ item.service }}</td>
-                  <td class="px-3 py-3">
-                    <span class="inline-flex items-center rounded-md bg-bg-secondary px-2 py-0.5 text-[11px] font-medium text-text-secondary">{{ item.breakdownLabel || item.method }}</span>
-                  </td>
-                  <td class="px-3 py-3 text-right font-semibold text-success tabular-nums whitespace-nowrap">{{ formatUSD(item.amount) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-else class="flex flex-col items-center justify-center py-12 text-center">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
-              <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <p class="text-sm text-text-muted">No hay cobros en este período</p>
-          </div>
-        </div>
-      </div>
-    </template>
 
     <!-- Modals -->
     <CitaFormModal
@@ -265,7 +146,6 @@
 import { ref, computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
-import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
 import { downloadCsv } from '../lib/csv'
 import { exportCitasToCsv, listCitas, agendaKeys } from '../services/agendaService'
@@ -273,7 +153,6 @@ import { equipoKeys, listEquipo } from '../services/equipoService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { useBusinessStore } from '../store/business'
 import { useAppointmentMutations } from '../composables/useAppointmentMutations'
-import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { toISODate } from '../lib/formatters'
 import { CitaFormModal } from '../components/modals'
 import AgendaListView from '../components/agenda/AgendaListView.vue'
@@ -282,10 +161,6 @@ import type { Cita } from '../types/cita'
 const { authStore } = useAuth()
 const { success } = useNotification()
 const businessStore = useBusinessStore()
-const { formatUSD } = useCurrency()
-
-// Tabs
-const activeTab = ref<'agenda' | 'historial-cobros'>('agenda')
 
 // --- Agenda del Día ---
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
@@ -391,28 +266,4 @@ const handleExport = () => {
   success('Citas exportadas correctamente')
 }
 
-// --- Historial de Cobros ---
-const currentMonthKey = () => {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-}
-const periods = [
-  { label: 'Mes', value: 'month' as const },
-  { label: 'Trimestre', value: 'quarter' as const },
-  { label: 'Año', value: 'year' as const },
-]
-const cobrosSelectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
-const cobrosSelectedMonth = ref<string>(currentMonthKey())
-
-const summaryCtx = useFinancialSummary(
-  businessId,
-  cobrosSelectedPeriod,
-  ref([]),
-  cobrosSelectedMonth,
-)
-
-const cobrosRows = computed(() => summaryCtx.appointmentIncomeDetails.value)
-const cobrosTotal = computed(() =>
-  summaryCtx.appointmentIncomeDetails.value.reduce((acc, row) => acc + Number(row.amount ?? 0), 0)
-)
 </script>
