@@ -20,20 +20,49 @@
           </svg>
           <span class="hidden sm:inline">Nuevo producto</span>
         </button>
-        <button
-          @click="showMovements = !showMovements"
-          class="flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary shadow-sm transition-all duration-200 hover:bg-bg-secondary hover:shadow-md"
-        >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-          {{ showMovements ? 'Ver stock' : 'Movimientos' }}
-        </button>
       </div>
     </div>
   </header>
 
-  <div v-if="!showMovements" class="space-y-4">
+  <!-- Sub-tabs: Stock / Movimientos / Historial de Ventas -->
+  <div class="mb-4 flex gap-2">
+    <button
+      @click="activeTab = 'stock'"
+      :class="[
+        'rounded-lg px-3 py-1.5 text-xs font-medium transition-theme',
+        activeTab === 'stock'
+          ? 'bg-primary text-text-inverse shadow-sm shadow-primary/20'
+          : 'border border-border bg-surface text-text-secondary hover:bg-bg-secondary hover:text-text'
+      ]"
+    >
+      Stock
+    </button>
+    <button
+      @click="activeTab = 'movements'"
+      :class="[
+        'rounded-lg px-3 py-1.5 text-xs font-medium transition-theme',
+        activeTab === 'movements'
+          ? 'bg-primary text-text-inverse shadow-sm shadow-primary/20'
+          : 'border border-border bg-surface text-text-secondary hover:bg-bg-secondary hover:text-text'
+      ]"
+    >
+      Movimientos
+    </button>
+    <button
+      @click="activeTab = 'sales-history'"
+      :class="[
+        'rounded-lg px-3 py-1.5 text-xs font-medium transition-theme',
+        activeTab === 'sales-history'
+          ? 'bg-primary text-text-inverse shadow-sm shadow-primary/20'
+          : 'border border-border bg-surface text-text-secondary hover:bg-bg-secondary hover:text-text'
+      ]"
+    >
+      Historial de Ventas
+    </button>
+  </div>
+
+  <!-- Tab: Stock -->
+  <div v-if="activeTab === 'stock'" class="space-y-4">
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div class="relative flex-1 max-w-md">
         <input
@@ -148,7 +177,8 @@
     </div>
   </div>
 
-  <div v-else class="space-y-4">
+  <!-- Tab: Movimientos -->
+  <div v-if="activeTab === 'movements'" class="space-y-4">
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div class="relative flex-1 max-w-md">
         <input
@@ -267,6 +297,86 @@
     </div>
   </div>
 
+  <!-- Tab: Historial de Ventas -->
+  <div v-if="activeTab === 'sales-history'" class="space-y-4">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="text-base font-semibold text-text">Ventas de Productos</h2>
+        <p class="text-xs text-text-muted">Ingresos por venta de productos</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="flex rounded-xl border border-border bg-surface p-0.5 sm:p-1 shadow-sm">
+          <button v-for="period in salesPeriods" :key="period.value"
+            @click="salesSelectedPeriod = period.value"
+            :class="['rounded-lg px-3 py-1.5 text-xs font-medium transition-theme sm:px-4',
+              salesSelectedPeriod === period.value ? 'bg-primary text-text-inverse shadow-sm shadow-primary/20' : 'text-text-secondary hover:text-text hover:bg-bg-secondary'
+            ]">{{ period.label }}</button>
+        </div>
+        <div class="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-border bg-surface px-2.5 py-1.5 shadow-sm">
+          <label for="sales-month-picker" class="text-xs font-medium text-text-muted hidden sm:inline">Mes</label>
+          <input
+            id="sales-month-picker"
+            v-model="salesSelectedMonth"
+            type="month"
+            class="rounded-md border border-border bg-surface px-2 py-1 text-xs text-text outline-none transition-theme focus:border-primary w-28 sm:w-auto"
+            @change="salesSelectedPeriod = 'month'"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-border bg-surface shadow-sm">
+      <div class="flex items-center gap-3 border-b border-border-subtle bg-gradient-to-r from-info/[0.03] to-transparent px-4 sm:px-5 py-3 sm:py-3.5">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-info/10 text-info shrink-0">
+          <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-sm font-semibold text-text">Historial de Ventas</h3>
+          <p class="text-xs text-text-secondary">Ventas de productos del período</p>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-lg font-bold text-info whitespace-nowrap">{{ formatUSD(salesTotal) }}</div>
+          <div class="text-[11px] text-text-muted font-medium">{{ salesRows.length }} ventas</div>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5">
+        <div v-if="salesRows.length" class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-border-subtle">
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Fecha</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Producto</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Cant.</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Precio</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Total</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-subtle">
+              <tr v-for="row in salesRows" :key="row.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
+                <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ row.date }}</td>
+                <td class="px-3 py-3 font-medium text-text">{{ row.product }}</td>
+                <td class="px-3 py-3 text-right tabular-nums text-text-secondary">{{ row.quantity }}</td>
+                <td class="px-3 py-3 text-right tabular-nums text-text-secondary whitespace-nowrap hidden sm:table-cell">{{ formatUSD(row.unitPrice) }}</td>
+                <td class="px-3 py-3 text-right font-semibold text-info tabular-nums whitespace-nowrap">{{ formatUSD(row.total) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="flex flex-col items-center justify-center py-12 text-center">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
+            <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <p class="text-sm text-text-muted">No hay ventas en este período</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <StockAdjustModal
     :is-open="adjustModalOpen"
     :item="adjustItem"
@@ -289,8 +399,10 @@ import { ref, computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { formatDateTime } from '../lib/formatters'
 import { useAuth } from '../composables/useAuth'
+import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
 import { useInventoryAdjustment } from '../composables/useInventoryAdjustment'
+import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { inventarioKeys, listInventario, listInventoryMovements } from '../services/inventarioService'
 import { productosKeys, saveProducto } from '../services/productosService'
 import { posKeys } from '../services/posService'
@@ -302,6 +414,7 @@ import type { ProductoFormData } from '../types/producto'
 const { authStore } = useAuth()
 const { success, error: showError } = useNotification()
 const queryClient = useQueryClient()
+const { formatUSD } = useCurrency()
 
 const {
   adjustModalOpen,
@@ -314,32 +427,35 @@ const {
   confirmAdjust,
 } = useInventoryAdjustment()
 
-const showMovements = ref(false)
+const activeTab = ref<'stock' | 'movements' | 'sales-history'>('stock')
 const searchQuery = ref('')
 const movementSearch = ref('')
 const businessId = computed(() => authStore.businessId)
 const productoModalRef = ref<InstanceType<typeof ProductoFormModal> | null>(null)
 
+// --- Stock ---
 const { data: inventarioData } = useQuery({
   queryKey: computed(() => inventarioKeys.all(businessId.value)),
   queryFn: () => listInventario(businessId.value!),
   enabled: computed(() => !!businessId.value),
 })
 
-const { data: movementsData } = useQuery({
-  queryKey: computed(() => inventarioKeys.movements(businessId.value)),
-  queryFn: () => listInventoryMovements(businessId.value!),
-  enabled: computed(() => !!businessId.value),
-})
-
 const inventario = computed(() => inventarioData.value ?? [])
-const movements = computed(() => movementsData.value ?? [])
 
 const filteredInventario = computed(() => {
   if (!searchQuery.value) return inventario.value
   const q = searchQuery.value.toLowerCase()
   return inventario.value.filter(i => i.productName.toLowerCase().includes(q) || i.productSku.toLowerCase().includes(q))
 })
+
+// --- Movimientos ---
+const { data: movementsData } = useQuery({
+  queryKey: computed(() => inventarioKeys.movements(businessId.value)),
+  queryFn: () => listInventoryMovements(businessId.value!),
+  enabled: computed(() => !!businessId.value),
+})
+
+const movements = computed(() => movementsData.value ?? [])
 
 const filteredMovements = computed(() => {
   if (!movementSearch.value) return movements.value
@@ -362,7 +478,7 @@ const formatMovementType = (type: string) => {
   return map[type] ?? type
 }
 
-// Producto form modal
+// --- Producto form modal ---
 const saveProductoMutation = useMutation({
   mutationFn: (data: ProductoFormData & { id?: string }) => saveProducto(businessId.value!, data),
   onSuccess: () => {
@@ -386,4 +502,26 @@ const handleSaveProducto = async (data: ProductoFormData & { id?: string }) => {
     await saveProductoMutation.mutateAsync(data)
   } catch { /* handled by mutation onError */ }
 }
+
+// --- Historial de Ventas ---
+const salesPeriods = [
+  { label: 'Mes', value: 'month' as const },
+  { label: 'Trimestre', value: 'quarter' as const },
+  { label: 'Año', value: 'year' as const },
+]
+const salesSelectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
+const now = new Date()
+const salesSelectedMonth = ref<string>(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`)
+
+const salesSummaryCtx = useFinancialSummary(
+  businessId,
+  salesSelectedPeriod,
+  ref([]),
+  salesSelectedMonth,
+)
+
+const salesRows = computed(() => salesSummaryCtx.productSalesDetails.value)
+const salesTotal = computed(() =>
+  salesSummaryCtx.productSalesDetails.value.reduce((acc, row) => acc + Number(row.total ?? 0), 0)
+)
 </script>
