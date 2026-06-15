@@ -184,49 +184,111 @@
     </div>
   </div>
 
-  <!-- Gastos del Mes -->
-  <div class="mb-5 lg:mb-6">
-    <ExpensesSection
-      :expenses="expenses"
-      :business-id="authStore.businessId"
-      :is-loading="expensesCtx.isLoading.value"
-      :error="expensesCtx.queryError.value ? (expensesCtx.queryError.value as Error).message : null"
-      @saved="onExpenseSaved"
-      @view-all="goToAllRecords('gastos')"
-    />
-  </div>
+  <!-- Detalle de Movimientos del Período -->
+  <div class="mb-5 rounded-xl border border-border bg-surface shadow-sm">
+    <!-- Header -->
+    <div class="flex flex-col gap-4 border-b border-border-subtle px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h3 class="text-base font-semibold text-text flex items-center gap-2">
+          <svg class="h-4.5 w-4.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Detalle de Movimientos
+        </h3>
+        <p class="text-xs text-text-muted mt-0.5">Desglose analítico del período</p>
+      </div>
 
-  <!-- Income Breakdown -->
-  <div class="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2 lg:gap-6">
-    <div class="group flex flex-col rounded-xl border border-border bg-surface shadow-sm transition-theme hover:shadow-md hover:border-border-strong h-full">
-      <div class="flex items-center gap-3 border-b border-border-subtle bg-gradient-to-r from-success/[0.03] to-transparent px-4 sm:px-5 py-3 sm:py-3.5">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success shrink-0">
-          <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <!-- Segmented Control -->
+      <div class="bg-bg-secondary p-1 rounded-xl border border-border-subtle inline-flex items-center gap-0.5 self-start sm:self-auto">
+        <button
+          v-for="tab in detailTabs"
+          :key="tab.key"
+          @click="activeDetailTab = tab.key"
+          :class="[
+            'px-3.5 py-2 text-xs font-medium rounded-lg transition-all duration-200 flex items-center gap-2',
+            activeDetailTab === tab.key
+              ? 'bg-surface text-text shadow-sm shadow-black/5 border border-border font-semibold'
+              : 'text-text-secondary hover:text-text hover:bg-surface/40'
+          ]"
+        >
+          <!-- tab icon -->
+          <svg v-if="tab.key === 'cobros'" class="h-3.5 w-3.5" :class="activeDetailTab === 'cobros' ? 'text-success' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <svg v-else-if="tab.key === 'ventas'" class="h-3.5 w-3.5" :class="activeDetailTab === 'ventas' ? 'text-info' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <svg v-else class="h-3.5 w-3.5" :class="activeDetailTab === 'gastos' ? 'text-danger' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          <span class="hidden sm:inline">{{ tab.label }}</span>
+          <span class="sm:hidden">{{ tab.shortLabel }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Summary Banner -->
+    <div class="mx-5 mt-4 mb-0 rounded-xl border border-border-subtle p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" :class="[
+      activeDetailTab === 'cobros' ? 'bg-gradient-to-r from-success/[0.04] to-transparent' :
+      activeDetailTab === 'ventas' ? 'bg-gradient-to-r from-info/[0.04] to-transparent' :
+      'bg-gradient-to-r from-danger/[0.04] to-transparent'
+    ]">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 rounded-lg border shrink-0" :class="[
+          activeDetailTab === 'cobros' ? 'bg-success/10 border-success/10 text-success' :
+          activeDetailTab === 'ventas' ? 'bg-info/10 border-info/10 text-info' :
+          'bg-danger/10 border-danger/10 text-danger'
+        ]">
+          <svg v-if="activeDetailTab === 'cobros'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <svg v-else-if="activeDetailTab === 'ventas'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-sm font-semibold text-text">Cobros de Citas</h3>
-          <p class="text-xs text-text-secondary">Ingresos por servicios del período</p>
+        <div>
+          <span class="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Total {{ activeDetailTab === 'cobros' ? 'Cobrado' : activeDetailTab === 'ventas' ? 'Vendido' : 'Gastado' }}</span>
+          <div class="flex items-baseline gap-2 mt-0.5">
+            <span class="text-2xl font-bold text-text tracking-tight tabular-nums">{{ formatUSD(detailTabTotal) }}</span>
+            <span class="text-xs text-text-muted font-mono">{{ detailTabCount }} {{ activeDetailTab === 'cobros' ? 'cobros' : activeDetailTab === 'ventas' ? 'ventas' : 'gastos' }}</span>
+          </div>
         </div>
-        <div class="text-right shrink-0">
-          <div class="text-lg font-bold text-success whitespace-nowrap">{{ formatUSD(appointmentChargesTotal) }}</div>
-          <div class="text-[11px] text-text-muted font-medium whitespace-nowrap">{{ formatVESEs(vesIncomeTotal) }}</div>
-        </div>
+      </div>
+
+      <div class="flex items-center gap-2 self-end sm:self-auto">
         <button
+          v-if="activeDetailTab === 'gastos'"
+          @click="expensesCtx.openNew()"
+          class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-text-inverse transition-theme hover:bg-primary-hover shadow-sm shadow-primary/20"
+        >
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 4v16m8-8H4" />
+          </svg>
+          <span class="hidden sm:inline">Registrar gasto</span>
+          <span class="sm:hidden">+ Gasto</span>
+        </button>
+        <button
+          v-if="canViewDetailTab"
           type="button"
-          class="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:text-text hover:border-border-strong shrink-0"
-          @click="goToAllRecords('cobros')"
+          class="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:text-text hover:border-border-strong"
+          @click="goToDetailTab"
         >
           Ver todos
-          <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 5l7 7-7 7" />
           </svg>
         </button>
       </div>
+    </div>
 
-      <div class="p-4 sm:p-5 flex-1 flex flex-col">
-        <div v-if="appointmentIncomeRows.length" class="overflow-x-auto flex-1">
+    <!-- Table Content -->
+    <div class="p-5">
+      <!-- Tab: Cobros de Citas -->
+      <div v-if="activeDetailTab === 'cobros'">
+        <div v-if="allCobrosRows.length" class="overflow-x-auto">
           <table class="w-full">
             <thead>
               <tr class="border-b border-border-subtle">
@@ -239,7 +301,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-border-subtle">
-              <tr v-for="item in appointmentIncomeRows" :key="item.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
+              <tr v-for="item in allCobrosRows" :key="item.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
                 <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ item.date }}</td>
                 <td class="px-3 py-3 font-medium text-text">{{ item.client }}</td>
                 <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ item.employee }}</td>
@@ -252,7 +314,7 @@
             </tbody>
           </table>
         </div>
-        <div v-else class="flex flex-col items-center justify-center py-8 text-center flex-1">
+        <div v-else class="flex flex-col items-center justify-center py-12 text-center">
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
             <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -261,37 +323,10 @@
           <p class="text-sm text-text-muted">No hay cobros en este período</p>
         </div>
       </div>
-    </div>
 
-    <div class="group flex flex-col rounded-xl border border-border bg-surface shadow-sm transition-theme hover:shadow-md hover:border-border-strong h-full">
-      <div class="flex items-center gap-3 border-b border-border-subtle bg-gradient-to-r from-info/[0.03] to-transparent px-4 sm:px-5 py-3 sm:py-3.5">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-info/10 text-info shrink-0">
-          <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
-        </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-sm font-semibold text-text">Ventas de Productos</h3>
-          <p class="text-xs text-text-secondary">Ingresos por venta de productos del período</p>
-        </div>
-        <div class="text-right shrink-0">
-          <div class="text-lg font-bold text-info whitespace-nowrap">{{ formatUSD(productSalesTotal) }}</div>
-          <div class="text-[11px] text-text-muted font-medium whitespace-nowrap">{{ formatVESEs(vesProductSalesTotal) }}</div>
-        </div>
-        <button
-          type="button"
-          class="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:text-text hover:border-border-strong shrink-0"
-          @click="goToAllRecords('ventas-productos')"
-        >
-          Ver todos
-          <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-
-      <div class="p-4 sm:p-5 flex-1 flex flex-col">
-        <div v-if="productSalesRows.length" class="overflow-x-auto flex-1">
+      <!-- Tab: Ventas de Productos -->
+      <div v-else-if="activeDetailTab === 'ventas'">
+        <div v-if="allVentasRows.length" class="overflow-x-auto">
           <table class="w-full">
             <thead>
               <tr class="border-b border-border-subtle">
@@ -303,7 +338,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-border-subtle">
-              <tr v-for="row in productSalesRows" :key="row.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
+              <tr v-for="row in allVentasRows" :key="row.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
                 <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ row.date }}</td>
                 <td class="px-3 py-3 font-medium text-text">{{ row.product }}</td>
                 <td class="px-3 py-3 text-right tabular-nums text-text-secondary">{{ row.quantity }}</td>
@@ -313,7 +348,7 @@
             </tbody>
           </table>
         </div>
-        <div v-else class="flex flex-col items-center justify-center py-8 text-center flex-1">
+        <div v-else class="flex flex-col items-center justify-center py-12 text-center">
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
             <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -321,10 +356,10 @@
           </div>
           <p class="text-sm text-text-muted">No hay ventas en este período</p>
         </div>
-        <div v-if="productSalesBreakdown.length" class="mt-3 rounded-lg bg-bg-secondary p-3">
+        <div v-if="productSalesBreakdown.length" class="mt-4 rounded-lg bg-bg-secondary p-3">
           <p class="text-xs font-medium text-text-secondary mb-1.5">Productos principales</p>
           <div class="space-y-1">
-            <div v-for="(p, idx) in productSalesBreakdown.slice(0,3)" :key="p.name" class="flex items-center justify-between text-xs">
+            <div v-for="(p, idx) in productSalesBreakdown.slice(0,5)" :key="p.name" class="flex items-center justify-between text-xs">
               <span class="text-text-secondary truncate">
                 <span class="font-medium text-text-muted">{{ idx + 1 }}.</span> {{ p.name }}
               </span>
@@ -333,8 +368,149 @@
           </div>
         </div>
       </div>
+
+      <!-- Tab: Gastos Operativos -->
+      <div v-else>
+        <div v-if="isLoadingExpenses" class="flex items-center justify-center gap-2 py-12 text-sm text-text-muted">
+          <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          Cargando gastos...
+        </div>
+        <div v-else-if="expensesError" class="flex flex-col items-center justify-center py-12 text-center">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-danger/10 mb-2">
+            <svg class="h-5 w-5 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <p class="text-sm text-danger">{{ expensesError }}</p>
+        </div>
+        <div v-else-if="allGastosRows.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
+            <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
+            </svg>
+          </div>
+          <p class="text-sm text-text-muted">No hay gastos en este período</p>
+        </div>
+        <div v-else class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-border-subtle">
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Fecha</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Concepto</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Categoría</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Monto</th>
+                <th class="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Acción</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-subtle">
+              <tr v-for="expense in allGastosRows" :key="expense.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
+                <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ expense.date }}</td>
+                <td class="px-3 py-3 font-medium text-text">{{ expense.name }}</td>
+                <td class="px-3 py-3">
+                  <span :class="[
+                    'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                    expense.category === 'Fijos' ? 'bg-info/10 text-info' :
+                    expense.category === 'Insumos' ? 'bg-warning/10 text-warning' :
+                    'bg-primary/10 text-primary'
+                  ]">{{ expense.category }}</span>
+                </td>
+                <td class="px-3 py-3 text-right">
+                  <div class="font-medium text-text whitespace-nowrap">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</div>
+                  <div class="text-[11px] text-text-muted whitespace-nowrap">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount) + ' Bs' }}</div>
+                </td>
+                <td class="px-3 py-3 text-center">
+                  <div class="flex items-center justify-center gap-1">
+                    <button @click="expensesCtx.openEdit(expense)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary" title="Editar gasto">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button @click="expensesCtx.handleDelete(expense.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar gasto">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- Expense Modal (Teleported) -->
+  <Teleport to="body">
+    <div v-if="expensesCtx.showExpenseModal.value"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      @click.self="expensesCtx.closeModal"
+    >
+      <div class="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-text">{{ expensesCtx.editingExpenseId.value ? 'Editar gasto' : 'Registrar gasto' }}</h2>
+          <p class="text-sm text-text-muted">{{ expensesCtx.editingExpenseId.value ? 'Modifica los datos del egreso' : 'Agrega un egreso al negocio' }}</p>
+        </div>
+        <form class="space-y-4" @submit.prevent="handleExpenseSave">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text" for="exp-name">Concepto</label>
+            <input id="exp-name" v-model="expensesCtx.expenseForm.value.name" type="text"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+              placeholder="Ej: Renta del local" required />
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text" for="exp-category">Categoría</label>
+              <select id="exp-category" v-model="expensesCtx.expenseForm.value.category"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
+                <option value="Fijos">Fijos</option>
+                <option value="Insumos">Insumos</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text" for="exp-amount">Monto</label>
+              <input id="exp-amount" v-model.number="expensesCtx.expenseForm.value.amount" type="number" min="0" step="0.01"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                placeholder="0.00" required />
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text" for="exp-currency">Moneda</label>
+              <select id="exp-currency" v-model="expensesCtx.expenseForm.value.currency"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
+                <option value="USD">USD $</option>
+                <option value="VES">Bs</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text" for="exp-date">Fecha</label>
+            <input id="exp-date" v-model="expensesCtx.expenseForm.value.date" type="date"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30" required />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text" for="exp-notes">Notas</label>
+            <textarea id="exp-notes" v-model="expensesCtx.expenseForm.value.notes" rows="2"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+              placeholder="Opcional" />
+          </div>
+          <p v-if="expensesCtx.saveError.value" class="text-sm text-danger">{{ expensesCtx.saveError.value }}</p>
+          <div class="flex items-center justify-end gap-3">
+            <button type="button"
+              class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
+              @click="expensesCtx.closeModal">Cancelar</button>
+            <button type="submit" :disabled="expensesCtx.saveMutation.isPending.value"
+              class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
+              {{ expensesCtx.saveMutation.isPending.value ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </Teleport>
   </template>
 
 <script setup lang="ts">
@@ -349,7 +525,6 @@ import { useExpenses } from '../composables/useExpenses'
 import { useExchangeRate } from '../composables/useExchangeRate'
 import ExchangeRateCard from '../components/finanzas/ExchangeRateCard.vue'
 import KpiCards from '../components/finanzas/KpiCards.vue'
-import ExpensesSection from '../components/finanzas/ExpensesSection.vue'
 import { expensesKeys } from '../services/expensesService'
 
 const { authStore } = useAuth()
@@ -419,17 +594,61 @@ const invalidateAll = () => {
   queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value] })
 }
 
-const onExpenseSaved = () => invalidateAll()
+const handleExpenseSave = async () => {
+  try {
+    await expensesCtx.handleSave()
+    invalidateAll()
+  } catch {
+    // Error handled by composable's onError + saveError
+  }
+}
 
-const appointmentChargesTotal = computed(() =>
-  summaryCtx.transactions.value
-    .filter(tx => tx.type === 'ingreso')
-    .reduce((acc, tx) => acc + Number(tx.amount ?? 0), 0)
-)
+// --- Detalle de Movimientos Tabs ---
+const detailTabs = [
+  { key: 'cobros' as const, label: 'Cobros de Citas', shortLabel: 'Cobros' },
+  { key: 'ventas' as const, label: 'Ventas de Productos', shortLabel: 'Ventas' },
+  { key: 'gastos' as const, label: 'Gastos Operativos', shortLabel: 'Gastos' },
+]
+const activeDetailTab = ref<'cobros' | 'ventas' | 'gastos'>('cobros')
 
-const productSalesTotal = summaryCtx.productSalesTotal
-const vesProductSalesTotal = summaryCtx.vesProductSalesTotal
+const allCobrosRows = computed(() => summaryCtx.appointmentIncomeDetails.value)
+const allVentasRows = computed(() => summaryCtx.productSalesDetails.value)
+const allGastosRows = computed(() => expenses.value)
+
+const detailTabTotal = computed(() => {
+  if (activeDetailTab.value === 'cobros') {
+    return allCobrosRows.value.reduce((acc, row) => acc + Number(row.amount ?? 0), 0)
+  }
+  if (activeDetailTab.value === 'ventas') {
+    return allVentasRows.value.reduce((acc, row) => acc + Number(row.total ?? 0), 0)
+  }
+  return allGastosRows.value.reduce((acc, row) => acc + row.amount, 0)
+})
+
+const detailTabCount = computed(() => {
+  if (activeDetailTab.value === 'cobros') return allCobrosRows.value.length
+  if (activeDetailTab.value === 'ventas') return allVentasRows.value.length
+  return allGastosRows.value.length
+})
+
+const canViewDetailTab = computed(() => {
+  if (activeDetailTab.value === 'cobros') return allCobrosRows.value.length > 8
+  if (activeDetailTab.value === 'ventas') return allVentasRows.value.length > 8
+  return allGastosRows.value.length > 8
+})
+
+const goToDetailTab = () => {
+  if (activeDetailTab.value === 'cobros') {
+    goToAllRecords('cobros')
+  } else if (activeDetailTab.value === 'ventas') {
+    goToAllRecords('ventas-productos')
+  } else {
+    goToAllRecords('gastos')
+  }
+}
+
+const isLoadingExpenses = computed(() => expensesCtx.isLoading.value)
+const expensesError = computed(() => expensesCtx.queryError.value ? (expensesCtx.queryError.value as Error).message : null)
+
 const productSalesBreakdown = summaryCtx.productSalesBreakdown
-const appointmentIncomeRows = computed(() => summaryCtx.appointmentIncomeDetails.value.slice(0, 8))
-const productSalesRows = computed(() => summaryCtx.productSalesDetails.value.slice(0, 8))
 </script>
