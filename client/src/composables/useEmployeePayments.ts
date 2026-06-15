@@ -6,6 +6,7 @@ import { useCurrency } from './useCurrency'
 import {
   listEmployeePayments,
   createEmployeePayment,
+  updateEmployeePayment,
   deleteEmployeePayment,
   employeePaymentKeys,
 } from '../services/employeePaymentsService'
@@ -159,18 +160,92 @@ export function useEmployeePayments(
     }
   }
 
+  const editingPaymentId = ref<string | null>(null)
+
+  const updateMutation = useMutation({
+    mutationFn: (params: {
+      id: string
+      amount: number
+      method: string
+      notes: string
+      date: string
+      currency: 'USD' | 'VES'
+    }) => {
+      return updateEmployeePayment(params.id, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'] })
+      success('Pago actualizado correctamente')
+      closeModal()
+    },
+    onError: (err) => {
+      showError(err instanceof Error ? err.message : 'Error al actualizar el pago')
+    },
+  })
+
+  const openEditModal = (payment: {
+    id: string
+    amount: number
+    originalAmount: number
+    currency: 'USD' | 'VES'
+    paymentMethod: string
+    paymentDate: string
+    notes: string | null
+  }) => {
+    editingPaymentId.value = payment.id
+    paymentForm.value = {
+      employeeId: '',
+      amount: payment.currency === 'VES' ? payment.originalAmount : payment.amount,
+      method: payment.paymentMethod,
+      date: payment.paymentDate,
+      notes: payment.notes ?? '',
+      currency: payment.currency,
+    }
+    paymentError.value = ''
+    showPaymentModal.value = true
+  }
+
+  const handleUpdate = async () => {
+    if (updateMutation.isPending.value || !editingPaymentId.value) return
+    if (paymentForm.value.amount <= 0) {
+      paymentError.value = 'El monto debe ser mayor a 0'
+      return
+    }
+    paymentError.value = ''
+    try {
+      await updateMutation.mutateAsync({
+        id: editingPaymentId.value,
+        amount: paymentForm.value.amount,
+        method: paymentForm.value.method,
+        notes: paymentForm.value.notes,
+        date: paymentForm.value.date,
+        currency: paymentForm.value.currency,
+      })
+    } catch (err) {
+      paymentError.value = err instanceof Error ? err.message : 'Error al actualizar el pago'
+      throw err
+    }
+  }
+
   return {
     paymentsMade,
     isLoading,
     createMutation,
+    updateMutation,
     deleteMutation,
     paymentError,
     showPaymentModal,
     paymentForm,
     employeeList,
+    editingPaymentId,
     openModal,
+    openEditModal,
     closeModal,
     handleSave,
+    handleUpdate,
     handleDelete,
   }
 }

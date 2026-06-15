@@ -88,6 +88,45 @@ export const deleteEmployeePayment = async (id: string): Promise<void> => {
   if (error) handleDbError(error, 'Error al eliminar el pago')
 }
 
+export const updateEmployeePayment = async (
+  id: string,
+  amount: number,
+  paymentMethod: string,
+  notes: string,
+  paymentDate: string,
+  currency: 'USD' | 'VES' = 'USD',
+  exchangeRate?: number,
+): Promise<void> => {
+  if (!amount || amount <= 0) throw new Error('El monto debe ser mayor a 0')
+  if (!paymentDate) throw new Error('Selecciona una fecha')
+
+  const isVES = currency === 'VES'
+  const rate = isVES && exchangeRate && exchangeRate > 0 ? exchangeRate : 1
+  const usdAmount = isVES ? amount / rate : amount
+
+  let notesContent = notes || ''
+  if (isVES) {
+    notesContent = `[VES:${amount}]` + (notesContent ? ' ' + notesContent : '')
+  } else {
+    notesContent = `[USD:${amount}]` + (notesContent ? ' ' + notesContent : '')
+  }
+
+  const { error } = await mutate
+    .from('employee_payments')
+    .update({
+      amount: Math.round(usdAmount * 100) / 100,
+      payment_method: paymentMethod,
+      notes: notesContent || null,
+      payment_date: paymentDate,
+    })
+    .eq('id', id)
+
+  if (error) {
+    console.error('[updateEmployeePayment] supabase error:', error)
+    handleDbError(error, 'Error al actualizar el pago del empleado')
+  }
+}
+
 export const createEmployeePayment = async (
   businessId: string,
   employeeId: string,

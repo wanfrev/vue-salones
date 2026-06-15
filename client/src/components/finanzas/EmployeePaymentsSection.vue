@@ -73,6 +73,11 @@
             </div>
             <div class="flex items-center gap-1 shrink-0">
               <span class="text-xs text-text-muted">{{ formatMethod(ep.paymentMethod) }}</span>
+              <button @click="openEditPaymentModal(ep)" class="rounded-md p-1 text-text-muted transition-theme hover:bg-primary/10 hover:text-primary" title="Editar pago">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
               <button @click="handleDeletePayment(ep.id)" class="rounded-md p-1 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar pago">
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -110,11 +115,18 @@
                 <div class="text-xs text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount) + ' Bs' }}</div>
               </td>
               <td class="py-2 text-center">
-                <button @click="handleDeletePayment(ep.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar pago">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                <div class="flex items-center justify-center gap-1">
+                  <button @click="openEditPaymentModal(ep)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-primary/10 hover:text-primary" title="Editar pago">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button @click="handleDeletePayment(ep.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar pago">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -182,15 +194,15 @@
     >
       <div class="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
         <div class="mb-4">
-          <h2 class="text-lg font-semibold text-text">Registrar pago a {{ (terminology.employee || 'empleado').toLowerCase() }}</h2>
-          <p class="text-sm text-text-muted">Registra un adelanto, sueldo o comisión pagada</p>
+          <h2 class="text-lg font-semibold text-text">{{ paymentsCtx.editingPaymentId.value ? 'Editar pago' : 'Registrar pago' }}</h2>
+          <p class="text-sm text-text-muted">{{ paymentsCtx.editingPaymentId.value ? 'Modifica los datos del pago' : 'Registra un adelanto, sueldo o comisión pagada' }}</p>
         </div>
-        <form class="space-y-4" @submit.prevent="handleSavePayment">
+        <form class="space-y-4" @submit.prevent="handleSubmitPayment">
           <div v-if="paymentsCtx.paymentError.value" class="rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
-            <p class="font-medium">Error al registrar el pago</p>
+            <p class="font-medium">{{ paymentsCtx.editingPaymentId.value ? 'Error al actualizar' : 'Error al registrar' }}</p>
             <p class="mt-0.5">{{ paymentsCtx.paymentError.value }}</p>
           </div>
-          <div>
+          <div v-if="!paymentsCtx.editingPaymentId.value">
             <label class="mb-1 block text-sm font-medium text-text">{{ terminology.employee || 'Empleado' }}</label>
             <select v-model="paymentsCtx.paymentForm.value.employeeId" required @change="onEmployeeChange"
               class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
@@ -271,9 +283,9 @@
             <button type="button"
               class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
               @click="closePaymentModal">Cancelar</button>
-            <button type="submit" :disabled="paymentsCtx.createMutation.isPending.value"
+            <button type="submit" :disabled="paymentsCtx.createMutation.isPending.value || paymentsCtx.updateMutation.isPending.value"
               class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
-              {{ paymentsCtx.createMutation.isPending.value ? 'Guardando...' : 'Guardar pago' }}
+              {{ paymentsCtx.createMutation.isPending.value || paymentsCtx.updateMutation.isPending.value ? 'Guardando...' : (paymentsCtx.editingPaymentId.value ? 'Actualizar pago' : 'Guardar pago') }}
             </button>
           </div>
         </form>
@@ -394,6 +406,25 @@ const handleSavePayment = async () => {
     emit('saved')
   } catch {
     // Error handled by composable
+  }
+}
+
+const openEditPaymentModal = (payment: EmployeePaymentRecord) => {
+  paymentsCtx.openEditModal(payment)
+  selectedBalance.value = null
+}
+
+const handleSubmitPayment = async () => {
+  if (paymentsCtx.editingPaymentId.value) {
+    try {
+      await paymentsCtx.handleUpdate()
+      closePaymentModal()
+      emit('saved')
+    } catch {
+      // Error handled by composable
+    }
+  } else {
+    await handleSavePayment()
   }
 }
 
