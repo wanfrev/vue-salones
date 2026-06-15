@@ -14,6 +14,7 @@ export const useAuthStore = defineStore('auth', () => {
   const profile = ref<AuthProfile | null>(null)
   const initialized = ref(false)
   const loading = ref(false)
+  let authUnsubscribe: (() => void) | null = null
 
   const isAuthenticated = computed(() => !!session.value && !!user.value)
   const role = computed<Role | null>(() => profile.value?.role ?? null)
@@ -91,7 +92,8 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, nextSession: Session | null) => {
+      if (authUnsubscribe) authUnsubscribe()
+      const { data: subData } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, nextSession: Session | null) => {
         session.value = nextSession
         user.value = nextSession?.user ?? null
 
@@ -110,6 +112,7 @@ export const useAuthStore = defineStore('auth', () => {
           useBusinessStore().clearBusiness()
         }
       })
+      authUnsubscribe = subData.subscription.unsubscribe
     } finally {
       loading.value = false
       initialized.value = true
@@ -143,6 +146,10 @@ export const useAuthStore = defineStore('auth', () => {
     if (!session.value && !user.value) return
     try {
       loading.value = true
+      if (authUnsubscribe) {
+        authUnsubscribe()
+        authUnsubscribe = null
+      }
       clearAuthState()
       queryClient.clear()
       const { useBusinessStore } = await import('./business')
