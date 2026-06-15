@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
 import { saveCita, updateCitaStatus, updateAppointmentTime, deleteCita } from '../services/agendaService'
+import { mutate } from '../lib/typedSupabase'
 import type { CitaFormData } from '../types/cita'
 
 export function useAppointmentMutations(options: {
@@ -63,11 +64,19 @@ export function useAppointmentMutations(options: {
   const updateTimeMutation = useMutation({
     mutationFn: ({ id, start, end }: { id: string; start: string; end: string }) =>
       updateAppointmentTime(id, start, end),
-    onSuccess: () => {
-      invalidate()
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey: ['appointments'] })
+      const previousData = queryClient.getQueryData(['appointments'])
+      return { previousData, id }
     },
-    onError: (err) => {
+    onError: (err, _vars, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(['appointments'], context.previousData)
+      }
       showError(err instanceof Error ? err.message : 'Error al reagendar la cita')
+    },
+    onSettled: () => {
+      invalidate()
     },
   })
 
@@ -105,8 +114,15 @@ export function useAppointmentMutations(options: {
     success(`Estado actualizado a ${status}`)
   }
 
-  const handleEventChange = async ({ id, start, end }: { id: string; start: string; end: string }) => {
+  const handleEventChange = async ({ id, start, end, employeeId }: { id: string; start: string; end: string; employeeId?: string }) => {
     await updateTimeMutation.mutateAsync({ id, start, end })
+    if (employeeId && options.businessId.value) {
+      await mutate
+        .from('appointments')
+        .update({ employee_id: employeeId })
+        .eq('id', id)
+      invalidate()
+    }
     success('Cita reagendada correctamente')
   }
 

@@ -5,6 +5,7 @@
       @status-change="handleStatusChange"
       @event-change="handleEventChange"
       @slot-select="handleSlotSelect"
+      @checkout="handleCheckout"
     />
   </section>
 
@@ -19,6 +20,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
@@ -31,6 +33,7 @@ import { CitaFormModal } from '../components/modals'
 import type { Cita } from '../types/cita'
 
 const { authStore } = useAuth()
+const router = useRouter()
 useNotification()
 
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
@@ -81,5 +84,9 @@ const handleEventClick = (event: { id: string; title: string; start: Date; end: 
   if (event.citaData) {
     citaModalRef.value?.open(event.citaData)
   }
+}
+
+const handleCheckout = (appointmentId: string) => {
+  router.push({ name: 'admin-pos', query: { appointment: appointmentId } })
 }
 </script>

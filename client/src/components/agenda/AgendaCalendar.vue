@@ -52,11 +52,11 @@
       <div class="flex flex-wrap items-center gap-1 sm:gap-1.5">
         <div class="flex items-center gap-1 rounded-md px-1.5 py-0.5">
           <span class="h-2 w-2 rounded-full" style="background: var(--color-primary)"></span>
-          <span class="text-[10px] font-medium text-text-muted sm:text-[11px]">Confirmada</span>
+          <span class="text-[10px] font-medium text-text-muted sm:text-[11px]">En Silla</span>
         </div>
         <div class="flex items-center gap-1 rounded-md px-1.5 py-0.5">
           <span class="h-2 w-2 rounded-full" style="background: var(--color-success)"></span>
-          <span class="text-[10px] font-medium text-text-muted sm:text-[11px]">Pagada</span>
+          <span class="text-[10px] font-medium text-text-muted sm:text-[11px]">Cobrada</span>
         </div>
         <div class="flex items-center gap-1 rounded-md px-1.5 py-0.5">
           <span class="h-2 w-2 rounded-full" style="background: var(--color-warning)"></span>
@@ -75,9 +75,9 @@
         <button
           v-for="view in mobileViewOptions"
           :key="view.value"
-          @click="changeMobileView(view.value)"
+          @click="currentView = view.value"
           class="px-3 py-1.5 text-xs font-medium rounded-md transition-theme"
-          :class="mobileView === view.value
+          :class="currentView === view.value
             ? 'bg-primary text-text-inverse shadow-sm'
             : 'text-text-secondary hover:text-text'"
         >
@@ -87,14 +87,14 @@
     </div>
 
     <!-- Mobile: Date Selector Carousel -->
-    <div v-if="isMobile && mobileView === 'timeGridDay'" class="-mx-4 px-4 overflow-x-auto scrollbar-hide">
+    <div v-if="isMobile && currentView === 'day'" class="-mx-4 px-4 overflow-x-auto scrollbar-hide">
       <div class="flex gap-1.5 min-w-max pb-2">
         <button
           v-for="day in weekDays"
           :key="day.date"
-          @click="selectedDate = day.date"
+          @click="viewDate = day.jsDate"
           class="flex flex-col items-center rounded-lg px-3 py-1.5 min-w-[48px] transition-theme"
-          :class="day.date === selectedDate
+          :class="day.date === selectedDateIso
             ? 'bg-primary text-text-inverse shadow-sm shadow-primary/25'
             : day.isToday
               ? 'bg-primary-light text-primary border border-primary/20'
@@ -106,9 +106,114 @@
       </div>
     </div>
 
-    <!-- Calendario -->
-    <div class="flex-1 overflow-hidden rounded-lg border border-border bg-surface shadow-sm sm:rounded-xl">
-      <FullCalendar ref="calendarRef" :options="calendarOptions" class="h-full" />
+    <!-- Calendario Vue-Cal -->
+    <div class="flex-1 overflow-hidden rounded-lg border border-border bg-surface shadow-sm sm:rounded-xl vue-cal-wrapper" :class="{ 'vuecal-mobile-scroll': isMobile && hasSchedules }">
+      <VueCal
+        v-model:events="displayEvents"
+        v-model:view="currentView"
+        v-model:view-date="viewDate"
+        :schedules="employeeSchedules"
+        :editable-events="editableConfig"
+        :views="['day', 'week', 'month']"
+        :time-from="420"
+        :time-to="1260"
+        :snap-to-interval="15"
+        :dark="isDark"
+        :locale="'es'"
+        :sticky-schedule-headers="true"
+        :hide-weekend="false"
+        @ready="onReady"
+        @event-drag-end="onEventDragEnd"
+        @event-resize-end="onEventResizeEnd"
+        @event-drop="onEventDrop"
+        @cell-click="onCellClick"
+        @event-click="onEventClick"
+      >
+        <template #event="{ event, view }">
+          <div
+            class="agenda-event-card"
+            :class="[`agenda-status-${event._customStatus}`, view.isMonth ? 'agenda-event-month' : '']"
+            @click.stop
+          >
+            <!-- Header row: time + status dot + group badge -->
+            <div class="agenda-event-header">
+              <button
+                class="agenda-event-dot"
+                :class="`dot-status-${event._customStatus}`"
+                :title="event._statusLabel"
+                @click.stop="toggleStatusDropdown(event)"
+              />
+              <span v-if="!view.isMonth" class="agenda-event-time">{{ event._.startTimeFormatted24 }}</span>
+              <span v-if="event._hasGroup" class="agenda-event-group" title="Multiples servicios">+</span>
+              <div class="agenda-event-actions">
+                <!-- Checkout Express -->
+                <button
+                  v-if="event._customStatus !== 'paid' && event._customStatus !== 'cancelled' && !view.isMonth"
+                  class="agenda-event-checkout"
+                  title="Cobrar cita"
+                  @click.stop="emitCheckout(event)"
+                >
+                  <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Body: client name + service badge + employee avatar -->
+            <div class="agenda-event-body">
+              <div class="agenda-event-client">{{ event.title }}</div>
+              <div v-if="!view.isMonth" class="agenda-event-meta">
+                <span class="agenda-event-service">{{ event._serviceName }}</span>
+                <span v-if="event._employeeInitials" class="agenda-event-employee">{{ event._employeeInitials }}</span>
+              </div>
+            </div>
+
+            <!-- Status icon (bottom right) -->
+            <div v-if="!view.isMonth" class="agenda-event-status-icon">
+              <!-- Pending: clock -->
+              <svg v-if="event._customStatus === 'pending'" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <!-- Confirmed: salon/chair -->
+              <svg v-else-if="event._customStatus === 'confirmed'" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+              <!-- Paid: check -->
+              <svg v-else-if="event._customStatus === 'paid'" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <!-- Cancelled: X -->
+              <svg v-else class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+
+            <!-- Status Dropdown (teleported to body) -->
+            <Teleport to="body">
+              <div
+                v-if="activeDropdown?.id === event._.id"
+                class="agenda-status-dropdown"
+                :style="dropdownStyle"
+              >
+                <button
+                  v-for="opt in STATUS_OPTIONS"
+                  :key="opt.value"
+                  class="agenda-status-option"
+                  :class="{ 'agenda-status-option-active': event._customStatus === opt.value }"
+                  @click.stop="changeStatus(event, opt.value)"
+                >
+                  <span class="agenda-status-dot" :class="`dot-status-${opt.value}`" />
+                  <span class="agenda-status-label">{{ opt.label }}</span>
+                  <span v-if="event._customStatus === opt.value" class="agenda-status-check">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+                  </span>
+                </button>
+              </div>
+            </Teleport>
+          </div>
+        </template>
+      </VueCal>
     </div>
   </div>
 </template>
@@ -116,12 +221,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import FullCalendar from '@fullcalendar/vue3'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import type { CalendarOptions, EventInput } from '@fullcalendar/core'
-import { getStatusLabel, normalizeAppointmentStatus, dateToHHmm, toISODate } from '../../lib/formatters'
+import VueCal from 'vue-cal'
+import 'vue-cal/dist/vuecal.css'
+import { getStatusLabel, normalizeAppointmentStatus, dateToHHmm, toISODate, getInitials } from '../../lib/formatters'
 import { useAgenda } from '../../composables/useAgenda'
 import { useAuthStore } from '../../store/auth'
 import { isAdminPanelRole } from '../../constants/roles'
@@ -130,7 +232,8 @@ import type { Cita } from '../../types/cita'
 const route = useRoute()
 const authStore = useAuthStore()
 const isAdmin = computed(() => isAdminPanelRole(authStore.role ?? undefined))
-const calendarRef = ref<InstanceType<typeof FullCalendar> | null>(null)
+const isDark = computed(() => document.documentElement.classList.contains('dark'))
+
 const emit = defineEmits<{
   eventClick: [event: {
     id: string
@@ -141,8 +244,9 @@ const emit = defineEmits<{
     citaData?: Omit<Cita, 'paymentStatus' | 'statusLabel' | 'statusColor'>
   }]
   statusChange: [payload: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }]
-  eventChange: [payload: { id: string; start: string; end: string }]
+  eventChange: [payload: { id: string; start: string; end: string; employeeId?: string }]
   slotSelect: [payload: { start: Date; end: Date }]
+  checkout: [appointmentId: string]
 }>()
 
 const {
@@ -151,33 +255,38 @@ const {
   employees,
   loadingEmployees,
   services,
-  schedules,
   appointments,
 } = useAgenda()
 
+// --- Responsive ---
 const isMobile = ref(window.innerWidth < 1024)
 const onResize = () => { isMobile.value = window.innerWidth < 1024 }
 onMounted(() => window.addEventListener('resize', onResize))
 onUnmounted(() => window.removeEventListener('resize', onResize))
 
-const selectedDate = ref(toISODate(new Date()))
+// --- View State ---
+type ViewType = 'day' | 'week' | 'month'
+const currentView = ref<ViewType>(isMobile.value ? 'day' : 'week')
+const viewDate = ref(new Date())
+const selectedDateIso = ref(toISODate(new Date()))
 
-type MobileView = 'timeGridDay' | 'timeGridWeek' | 'dayGridMonth'
-const mobileView = ref<MobileView>('timeGridDay')
 const mobileViewOptions = [
-  { value: 'timeGridDay' as const, label: 'Dia' },
-  { value: 'timeGridWeek' as const, label: 'Semana' },
-  { value: 'dayGridMonth' as const, label: 'Mes' },
+  { value: 'day' as const, label: 'Dia' },
+  { value: 'week' as const, label: 'Semana' },
+  { value: 'month' as const, label: 'Mes' },
 ]
 
-const changeMobileView = (view: MobileView) => {
-  mobileView.value = view
-  const api = calendarRef.value?.getApi()
-  if (api) api.changeView(view)
-}
+watch(isMobile, (mobile) => {
+  currentView.value = mobile ? 'day' : 'week'
+})
 
+watch(() => viewDate.value, (date) => {
+  selectedDateIso.value = toISODate(date)
+})
+
+// --- Week days carousel ---
 const weekDays = computed(() => {
-  const selected = new Date(selectedDate.value + 'T12:00:00')
+  const selected = new Date(selectedDateIso.value + 'T12:00:00')
   const startOfWeek = new Date(selected)
   startOfWeek.setDate(selected.getDate() - selected.getDay())
   const days = []
@@ -189,6 +298,7 @@ const weekDays = computed(() => {
     const dateStr = toISODate(date)
     days.push({
       date: dateStr,
+      jsDate: new Date(date),
       label: dayNames[date.getDay()],
       number: date.getDate(),
       isToday: dateStr === todayStr,
@@ -197,66 +307,62 @@ const weekDays = computed(() => {
   return days
 })
 
-watch(isMobile, (mobile) => {
-  const api = calendarRef.value?.getApi()
-  if (api) api.changeView(mobile ? mobileView.value : 'timeGridWeek')
+// --- Employee schedules as columns ---
+const hasSchedules = computed(() => {
+  const emps = employees.value ?? []
+  return isAdmin.value && (selectedEmployeeId.value === 'all' || emps.length > 1)
 })
 
-watch(selectedDate, (date) => {
-  const api = calendarRef.value?.getApi()
-  if (api) api.gotoDate(date)
+const employeeSchedules = computed(() => {
+  const emps = employees.value ?? []
+  if (!hasSchedules.value) return undefined
+  if (selectedEmployeeId.value !== 'all') {
+    const emp = emps.find(e => e.id === selectedEmployeeId.value)
+    if (emp) return [{ id: emp.id, label: emp.full_name, class: 'vc-schedule-employee' }]
+    return undefined
+  }
+  return emps.map(emp => ({
+    id: emp.id,
+    label: emp.full_name,
+    class: 'vc-schedule-employee',
+  }))
 })
 
-onMounted(() => {
-  if (!isAdmin.value && authStore.profile?.id) {
-    selectedEmployeeId.value = authStore.profile.id
-  }
-  const employeeParam = route.query.employee as string | undefined
-  if (employeeParam) selectedEmployeeId.value = employeeParam
-  if (isMobile.value) {
-    const api = calendarRef.value?.getApi()
-    if (api) {
-      const now = new Date()
-      api.scrollToTime({ hours: now.getHours(), minutes: now.getMinutes() })
-    }
-  }
-})
-
-const getStatusBorderColor = (status: string) => {
-  switch (status) {
-    case 'paid': return 'var(--color-success)'
-    case 'pending': return 'var(--color-warning)'
-    case 'cancelled':
-    case 'no_show': return 'var(--color-danger)'
-    case 'confirmed':
-    default: return 'var(--color-primary)'
-  }
-}
-
-const getStatusDotColor = (status: string) => getStatusBorderColor(status)
-
-const STATUS_OPTIONS: { value: string; label: string }[] = [
+// --- Status helpers ---
+const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pendiente' },
   { value: 'confirmed', label: 'Confirmada' },
   { value: 'paid', label: 'Pagada' },
   { value: 'cancelled', label: 'Cancelada' },
-]
+] as const
 
-const calendarEvents = computed<EventInput[]>(() => {
-  const events: EventInput[] = []
+// --- Editable config ---
+const editableConfig = computed(() => isAdmin.value
+  ? { drag: true, resize: true, create: true, delete: false }
+  : { drag: false, resize: false, create: false, delete: false }
+)
 
-  if (schedules.value) {
-    schedules.value.forEach(sched => {
-      events.push({
-        groupId: `sched-${sched.id}`,
-        daysOfWeek: [sched.weekday],
-        startTime: sched.start_time,
-        endTime: sched.end_time,
-        display: 'background',
-        color: 'var(--color-bg-secondary)',
-      })
-    })
-  }
+// --- Event mapping ---
+interface AgendaEvent {
+  _eid?: undefined
+  start: string | Date
+  end: string | Date
+  id?: string
+  title?: string
+  content?: string
+  class?: string
+  schedule?: string | number
+  _customStatus?: string
+  _statusLabel?: string
+  _hasGroup?: boolean
+  _serviceName?: string
+  _employeeName?: string
+  _employeeInitials?: string
+  _rawAppt?: any
+}
+
+const displayEvents = computed<AgendaEvent[]>(() => {
+  const events: AgendaEvent[] = []
 
   if (appointments.value) {
     const renderedGroups = new Set<string>()
@@ -271,643 +377,358 @@ const calendarEvents = computed<EventInput[]>(() => {
       const employee = employees.value?.find(e => e.id === appt.employee_id)
       const clientName = appt.clients?.full_name || ''
       const title = clientName || 'Cliente'
+      const serviceName = service?.name || 'Servicio'
+      const employeeName = employee?.full_name || 'Empleado'
+      const employeeInitials = employeeName !== 'Empleado' ? getInitials(employeeName) : ''
 
       events.push({
-        id: appt.id,
-        title,
         start: appt.start_time,
         end: appt.end_time,
-        color: 'transparent',
-        borderColor: 'transparent',
-        classNames: ['agenda-event', `agenda-status-${visualStatus}`],
-        extendedProps: {
-          ...appt,
-          status: visualStatus,
-          serviceName: service?.name,
-          servicePrice: service?.price,
-          serviceDuration: service?.duration_minutes,
-          employeeName: employee?.full_name,
-          clientName,
-          statusLabel: getStatusLabel(visualStatus),
-          borderColor: getStatusBorderColor(visualStatus),
-        }
-      })
+        id: appt.id,
+        title,
+        schedule: hasSchedules.value ? appt.employee_id : undefined,
+        class: `vc-event-agenda vc-status-${visualStatus}`,
+        _customStatus: visualStatus,
+        _statusLabel: getStatusLabel(visualStatus),
+        _hasGroup: !!groupId,
+        _serviceName: serviceName,
+        _employeeName: employeeName,
+        _employeeInitials: employeeInitials,
+        _rawAppt: appt,
+      } as any)
     })
   }
 
   return events
 })
 
-watch(calendarEvents, (newEvents) => {
-  const api = calendarRef.value?.getApi()
-  if (api) {
-    api.removeAllEvents()
-    for (const event of newEvents) {
-      api.addEvent(event)
+// --- Calendar ready ---
+const onReady = (ctx: { view: { start: Date; end: Date } }) => {
+  setDateRange(ctx.view.start, ctx.view.end)
+}
+
+// --- Event drag/resize ---
+const onEventDragEnd = ({ event }: { event: any }) => {
+  emit('eventChange', {
+    id: event.id,
+    start: new Date(event.start).toISOString(),
+    end: new Date(event.end).toISOString(),
+  })
+}
+
+const onEventResizeEnd = ({ event }: { event: any }) => {
+  emit('eventChange', {
+    id: event.id,
+    start: new Date(event.start).toISOString(),
+    end: new Date(event.end).toISOString(),
+  })
+}
+
+// --- Event dropped onto different schedule (employee change) ---
+const onEventDrop = ({ event }: { event: any; cell: { start: Date; end: Date }; external: boolean }) => {
+  emit('eventChange', {
+    id: event.id,
+    start: new Date(event.start).toISOString(),
+    end: new Date(event.end).toISOString(),
+    employeeId: event.schedule ? String(event.schedule) : undefined,
+  })
+}
+
+// --- Cell click (slot select) ---
+const onCellClick = ({ cell }: { cell: { start: Date; end: Date } }) => {
+  // Ignore clicks on existing events
+  emit('slotSelect', { start: cell.start, end: cell.end })
+}
+
+// --- Event click ---
+const onEventClick = (event: any, nativeEvent: MouseEvent) => {
+  const target = nativeEvent?.target as HTMLElement
+  if (target?.closest('.agenda-event-dot') || target?.closest('.agenda-event-checkout') || target?.closest('.agenda-status-dropdown')) {
+    return
+  }
+
+  const raw = event._rawAppt
+  if (!raw) return
+
+  const start = new Date(raw.start_time)
+  const end = new Date(raw.end_time)
+  const service = services.value?.find(s => s.id === raw.service_id)
+  const duration = service?.duration_minutes || Math.round((end.getTime() - start.getTime()) / 60000)
+  const citaStatus = (event._customStatus || 'confirmed') as Cita['status']
+
+  emit('eventClick', {
+    id: raw.id,
+    title: event.title,
+    start,
+    end,
+    status: event._customStatus,
+    citaData: {
+      id: raw.id,
+      clientId: raw.client_id,
+      clientName: event.title,
+      serviceId: raw.service_id,
+      service: service?.name || 'Servicio',
+      employeeId: raw.employee_id,
+      employee: event._employeeName || 'Empleado',
+      groupId: raw.group_id || undefined,
+      date: toISODate(start),
+      time: dateToHHmm(start),
+      duration,
+      price: Number(service?.price ?? 0),
+      status: citaStatus,
+      notes: raw.internal_notes || '',
+    },
+  })
+}
+
+// --- Checkout Express ---
+const emitCheckout = (event: any) => {
+  const raw = event._rawAppt
+  if (raw?.id) {
+    emit('checkout', raw.id)
+  }
+}
+
+// --- Status dropdown ---
+const activeDropdown = ref<{ id: string | number; event: any } | null>(null)
+const dropdownStyle = ref<Record<string, string>>({})
+
+const toggleStatusDropdown = (event: any) => {
+  if (activeDropdown.value?.id === event._.id) {
+    activeDropdown.value = null
+    return
+  }
+
+  const dot = document.activeElement as HTMLElement
+  const rect = dot?.getBoundingClientRect()
+  if (rect) {
+    dropdownStyle.value = {
+      position: 'fixed',
+      top: `${rect.bottom + 4}px`,
+      left: `${rect.left - 8}px`,
+      zIndex: '100',
     }
   }
+
+  activeDropdown.value = { id: event._.id, event }
+}
+
+const changeStatus = (event: any, status: string) => {
+  emit('statusChange', {
+    id: event.id,
+    status: status as 'pending' | 'confirmed' | 'cancelled' | 'paid',
+  })
+  activeDropdown.value = null
+}
+
+const onDocumentClick = (e: MouseEvent) => {
+  if (activeDropdown.value && !(e.target as HTMLElement)?.closest('.agenda-event-dot') && !(e.target as HTMLElement)?.closest('.agenda-status-dropdown')) {
+    activeDropdown.value = null
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', onDocumentClick)
+
+  if (!isAdmin.value && authStore.profile?.id) {
+    selectedEmployeeId.value = authStore.profile.id
+  }
+  const employeeParam = route.query.employee as string | undefined
+  if (employeeParam) selectedEmployeeId.value = employeeParam
 })
 
-const calendarOptions = computed<CalendarOptions>(() => ({
-  plugins: [timeGridPlugin, dayGridPlugin, interactionPlugin],
-  initialView: isMobile.value ? mobileView.value : 'timeGridWeek',
-  headerToolbar: isMobile.value ? {
-    left: 'prev,next',
-    center: 'title',
-    right: 'today'
-  } : {
-    left: 'prev,next today',
-    center: 'title',
-    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-  },
-  slotMinTime: '07:00:00',
-  slotMaxTime: '21:00:00',
-  allDaySlot: false,
-  selectable: true,
-  selectMirror: true,
-  editable: true,
-  eventDurationEditable: true,
-  eventStartEditable: true,
-  events: calendarEvents.value,
-  eventContent: (arg) => {
-    const extProps = arg.event.extendedProps as any
-    const serviceName = extProps?.serviceName || 'Servicio'
-    const employeeName = extProps?.employeeName || ''
-    const timeText = arg.timeText
-    const titleText = arg.event.title
-    const isMonthView = arg.view.type === 'dayGridMonth'
-    const borderColor = extProps?.borderColor || 'var(--color-primary)'
-
-    const container = document.createElement('div')
-    container.className = isMonthView ? 'agenda-card agenda-card-month' : 'agenda-card'
-    container.style.borderLeftColor = borderColor
-
-    const header = document.createElement('div')
-    header.className = 'agenda-card-header'
-
-    const statusDot = document.createElement('button')
-    statusDot.className = 'agenda-card-status-dot'
-    statusDot.setAttribute('data-action', 'toggle-status-dropdown')
-    statusDot.style.background = borderColor
-    statusDot.title = extProps?.statusLabel || ''
-
-    const time = document.createElement('span')
-    time.className = 'agenda-card-time'
-    time.textContent = timeText || ''
-
-    const groupBadge = extProps?.group_id
-      ? (() => {
-          const badge = document.createElement('span')
-          badge.className = 'agenda-card-group'
-          badge.textContent = '+'
-          badge.title = 'Multiples servicios'
-          return badge
-        })()
-      : null
-
-    header.appendChild(statusDot)
-    if (timeText) header.appendChild(time)
-    if (groupBadge) header.appendChild(groupBadge)
-
-    const body = document.createElement('div')
-    body.className = 'agenda-card-body'
-
-    const client = document.createElement('div')
-    client.className = 'agenda-card-client'
-    client.textContent = titleText
-
-    const details = document.createElement('div')
-    details.className = 'agenda-card-details'
-    details.textContent = employeeName ? `${serviceName} · ${employeeName}` : serviceName
-
-    body.appendChild(client)
-    body.appendChild(details)
-
-    container.appendChild(header)
-    container.appendChild(body)
-
-    return { domNodes: [container] }
-  },
-  datesSet: (arg) => {
-    setDateRange(arg.start, arg.end)
-  },
-  slotDuration: '00:15:00',
-  slotLabelInterval: '01:00:00',
-  expandRows: true,
-  handleWindowResize: true,
-  windowResizeDelay: 100,
-  eventClick: (arg) => {
-    const target = (arg.jsEvent?.target as HTMLElement)
-    if (target?.closest('[data-action="toggle-status-dropdown"]') || target?.closest('.agenda-status-dropdown')) {
-      return
-    }
-    const ext = arg.event.extendedProps as any
-    const start = arg.event.start!
-    const end = arg.event.end!
-    const duration = ext.serviceDuration || Math.round((end.getTime() - start.getTime()) / 60000)
-    const date = toISODate(start)
-    const time = dateToHHmm(start)
-    const citaStatus = (ext?.status || 'confirmed') as Cita['status']
-    emit('eventClick', {
-      id: arg.event.id,
-      title: arg.event.title,
-      start,
-      end,
-      status: ext?.status,
-      citaData: {
-        id: arg.event.id,
-        clientId: ext.client_id,
-        clientName: arg.event.title,
-        serviceId: ext.service_id,
-        service: ext.serviceName || 'Servicio',
-        employeeId: ext.employee_id,
-        employee: ext.employeeName || 'Empleado',
-        groupId: ext.group_id || undefined,
-        date,
-        time,
-        duration,
-        price: Number(ext.servicePrice ?? 0),
-        status: citaStatus,
-        notes: ext.internal_notes || '',
-      },
-    })
-  },
-  eventDidMount: (info) => {
-    const el = info.el as HTMLElement
-    const status = (info.event.extendedProps as any)?.status as string | undefined
-    if (status) el.setAttribute('data-status', status)
-
-    const statusDot = el.querySelector('[data-action="toggle-status-dropdown"]') as HTMLElement
-    if (!statusDot) return
-
-    let dropdown: HTMLElement | null = null
-
-    const openDropdown = () => {
-      if (dropdown) {
-        closeDropdown()
-        return
-      }
-
-      dropdown = document.createElement('div')
-      dropdown.className = 'agenda-status-dropdown'
-
-      STATUS_OPTIONS.forEach(opt => {
-        const item = document.createElement('button')
-        item.className = 'agenda-status-option'
-        if (status === opt.value) item.classList.add('agenda-status-option-active')
-
-        const dot = document.createElement('span')
-        dot.className = 'agenda-status-dot'
-        dot.style.background = getStatusDotColor(opt.value)
-
-        const label = document.createElement('span')
-        label.className = 'agenda-status-label'
-        label.textContent = opt.label
-
-        const check = document.createElement('span')
-        check.className = 'agenda-status-check'
-        check.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>'
-
-        item.appendChild(dot)
-        item.appendChild(label)
-        if (status === opt.value) item.appendChild(check)
-
-        item.addEventListener('click', (e) => {
-          e.stopPropagation()
-          emit('statusChange', { id: info.event.id, status: opt.value as any })
-          closeDropdown()
-        })
-
-        dropdown!.appendChild(item)
-      })
-
-      el.style.position = 'relative'
-      el.appendChild(dropdown)
-    }
-
-    const closeDropdown = () => {
-      if (dropdown) {
-        dropdown.remove()
-        dropdown = null
-      }
-    }
-
-    statusDot.addEventListener('mousedown', (e) => {
-      e.stopPropagation()
-      e.preventDefault()
-      openDropdown()
-    })
-
-    const closeOnOutsideClick = (e: MouseEvent) => {
-      if (dropdown && !el.contains(e.target as Node)) closeDropdown()
-    }
-    document.addEventListener('click', closeOnOutsideClick)
-
-    const cleanup = () => {
-      document.removeEventListener('click', closeOnOutsideClick)
-    }
-    el.addEventListener('mouseleave', () => closeDropdown())
-
-    const observer = new MutationObserver(() => {
-      if (!document.contains(el)) {
-        closeDropdown()
-        observer.disconnect()
-        cleanup()
-      }
-    })
-    observer.observe(document.body, { childList: true, subtree: true })
-  },
-  eventDrop: (arg) => {
-    emit('eventChange', {
-      id: arg.event.id,
-      start: arg.event.start!.toISOString(),
-      end: arg.event.end!.toISOString(),
-    })
-  },
-  eventResize: (arg) => {
-    emit('eventChange', {
-      id: arg.event.id,
-      start: arg.event.start!.toISOString(),
-      end: arg.event.end!.toISOString(),
-    })
-  },
-  select: (arg) => {
-    emit('slotSelect', { start: arg.start, end: arg.end })
-  },
-  locale: 'es',
-  buttonText: {
-    today: 'Hoy',
-    month: 'Mes',
-    week: 'Semana',
-    day: 'Dia'
-  }
-}))
+onUnmounted(() => {
+  document.removeEventListener('click', onDocumentClick)
+})
 </script>
 
 <style>
 /* ============================================================
-   FULLCALENDAR BASE
+   VUE-CAL BASE THEME — mapped to app design tokens
    ============================================================ */
 
-.fc {
-  font-family: var(--font-sans);
-  color: var(--color-text);
+:root {
+  --vc-bg: var(--color-surface);
+  --vc-text: var(--color-text);
+  --vc-text-light: var(--color-text-secondary);
+  --vc-text-lighter: var(--color-text-muted);
+  --vc-border: var(--color-border);
+  --vc-border-light: var(--color-border-subtle);
+  --vc-header-bg: var(--color-bg-secondary);
+  --vc-header-text: var(--color-text-muted);
+  --vc-weekend-bg: var(--color-bg);
+  --vc-today-bg: var(--color-primary-light);
+  --vc-highlight: var(--color-primary-light);
+  --vc-event-bg: var(--color-surface);
+  --vc-event-text: var(--color-text);
+  --vc-resize-handle: var(--color-primary);
 }
 
-.fc .fc-toolbar.fc-header-toolbar {
-  margin-bottom: 0;
-  padding: 0.5rem 0.5rem 0.25rem;
-}
-
-@media (min-width: 640px) {
-  .fc .fc-toolbar.fc-header-toolbar {
-    padding: 0.75rem 0.75rem 0.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .fc .fc-toolbar.fc-header-toolbar {
-    padding: 0.75rem 1rem 0.5rem;
-  }
-}
-
-.fc .fc-toolbar {
+.vue-cal-wrapper {
+  min-height: 0;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  flex-direction: column;
 }
 
-.fc .fc-toolbar-chunk {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-@media (min-width: 640px) {
-  .fc .fc-toolbar {
-    flex-wrap: nowrap;
-  }
-  .fc .fc-toolbar-chunk:first-child {
-    flex: 0 0 auto;
-    justify-content: flex-start;
-  }
-  .fc .fc-toolbar-chunk:nth-child(2) {
-    flex: 1 1 auto;
-    justify-content: center;
-  }
-  .fc .fc-toolbar-chunk:last-child {
-    flex: 0 0 auto;
-    justify-content: flex-end;
-  }
-}
-
-@media (max-width: 639px) {
-  .fc .fc-toolbar {
-    justify-content: center;
-    gap: 0.25rem;
-  }
-  .fc .fc-toolbar-chunk {
-    gap: 0.15rem;
-  }
-  .fc .fc-toolbar-chunk:first-child {
-    order: 2;
-    justify-content: center;
-  }
-  .fc .fc-toolbar-chunk:nth-child(2) {
-    order: 1;
-    width: 100%;
-    justify-content: center;
-    margin-bottom: 0.25rem;
-  }
-  .fc .fc-toolbar-chunk:last-child {
-    order: 3;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
+.vue-cal-wrapper .vuecal {
+  height: 100%;
+  min-height: 0;
 }
 
 /* ============================================================
-   TOOLBAR BUTTONS
+   TOOLBAR & HEADERS
    ============================================================ */
 
-.fc .fc-button-primary {
-  background: var(--color-surface) !important;
-  border: 1px solid var(--color-border) !important;
-  border-radius: 0.5rem !important;
-  padding: 0.25rem 0.5rem !important;
-  font-weight: 500 !important;
-  font-size: 0.6875rem !important;
-  color: var(--color-text-secondary) !important;
-  box-shadow: none !important;
-  transition: all 0.15s ease !important;
-  text-transform: none !important;
-  letter-spacing: 0 !important;
+.vuecal__header {
+  background: var(--vc-header-bg, var(--color-bg-secondary));
+  border-bottom: 1px solid var(--color-border);
 }
 
-@media (min-width: 640px) {
-  .fc .fc-button-primary {
-    padding: 0.3rem 0.625rem !important;
-    font-size: 0.75rem !important;
-  }
-}
-
-.fc .fc-button-primary:hover {
-  background: var(--color-bg-secondary) !important;
-  border-color: var(--color-border-strong) !important;
-  color: var(--color-text) !important;
-}
-
-.fc .fc-button-primary:not(:disabled):active,
-.fc .fc-button-primary:not(:disabled).fc-button-active {
-  background: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-  color: var(--color-text-inverse) !important;
-  box-shadow: none !important;
-}
-
-.fc .fc-button-primary:disabled {
-  opacity: 0.4 !important;
-}
-
-.fc .fc-prev-button,
-.fc .fc-next-button {
-  padding: 0.25rem !important;
-  background: var(--color-surface) !important;
-  border: 1px solid var(--color-border) !important;
-  color: var(--color-text-secondary) !important;
-}
-
-.fc .fc-prev-button:hover,
-.fc .fc-next-button:hover {
-  background: var(--color-bg-secondary) !important;
-  border-color: var(--color-border-strong) !important;
-  color: var(--color-text) !important;
-}
-
-.fc .fc-prev-button .fc-icon,
-.fc .fc-next-button .fc-icon {
-  font-size: 0.875rem !important;
-}
-
-@media (min-width: 640px) {
-  .fc .fc-prev-button,
-  .fc .fc-next-button {
-    padding: 0.3rem 0.5rem !important;
-  }
-  .fc .fc-prev-button .fc-icon,
-  .fc .fc-next-button .fc-icon {
-    font-size: 1rem !important;
-  }
-}
-
-.fc .fc-today-button {
-  font-weight: 600 !important;
-}
-
-.fc .fc-button-group {
-  display: flex;
-  gap: 0;
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.fc .fc-button-group .fc-button-primary {
-  border-radius: 0 !important;
-  margin: 0 !important;
-}
-
-.fc .fc-button-group .fc-button-primary:first-child {
-  border-top-left-radius: 0.5rem !important;
-  border-bottom-left-radius: 0.5rem !important;
-}
-
-.fc .fc-button-group .fc-button-primary:last-child {
-  border-top-right-radius: 0.5rem !important;
-  border-bottom-right-radius: 0.5rem !important;
-}
-
-.fc .fc-button-group .fc-button-primary.fc-button-active {
-  background: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-  color: var(--color-text-inverse) !important;
-}
-
-.fc .fc-toolbar-title {
+.vuecal__title {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-text);
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  padding: 0 0.5rem;
-  letter-spacing: -0.01em;
+}
+
+@media (min-width: 640px) { .vuecal__title { font-size: 0.9375rem; } }
+
+.vuecal__title-bar button {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-weight: 500;
+  font-size: 0.6875rem;
+  color: var(--color-text-secondary);
+  transition: all 0.15s ease;
+}
+
+.vuecal__title-bar button:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.vuecal__title-bar button.vuecal--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.vuecal__arrow { color: var(--color-text-secondary); }
+.vuecal__arrow:hover { color: var(--color-text); }
+
+.vuecal__cell-header {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  padding: 0.5rem 0.25rem;
 }
 
 @media (min-width: 640px) {
-  .fc .fc-toolbar-title {
-    font-size: 0.9375rem;
-    padding: 0 0.75rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .fc .fc-toolbar-title {
-    font-size: 1rem;
-  }
+  .vuecal__cell-header { font-size: 0.75rem; padding: 0.625rem 0.5rem; }
 }
 
 /* ============================================================
-   GRID & SLOTS
+   TIME GRID
    ============================================================ */
 
-.fc-theme-standard .fc-scrollgrid {
-  border: none;
-  border-radius: 0;
-  overflow: hidden;
-}
-
-.fc-theme-standard .fc-scrollgrid-section > td {
-  border: none;
-}
-
-.fc-theme-standard td,
-.fc-theme-standard th {
-  border-color: var(--color-border-subtle);
-}
-
-.fc .fc-col-header-cell {
-  background: var(--color-bg-secondary);
-  padding: 0.5rem 0.25rem !important;
-  font-weight: 600;
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  border-bottom: 1px solid var(--color-border) !important;
-}
-
-@media (min-width: 640px) {
-  .fc .fc-col-header-cell {
-    padding: 0.625rem 0.5rem !important;
-    font-size: 0.75rem;
-  }
-}
-
-.fc .fc-col-header-cell-cushion {
-  color: var(--color-text-muted);
-  text-decoration: none !important;
-  font-weight: 600;
-}
-
-.fc .fc-timegrid-slot {
-  height: 2rem !important;
-  border-color: var(--color-border-subtle) !important;
-}
-
-@media (min-width: 640px) {
-  .fc .fc-timegrid-slot {
-    height: 3rem !important;
-  }
-}
-
-@media (min-width: 1024px) {
-  .fc .fc-timegrid-slot {
-    height: 3.5rem !important;
-  }
-}
-
-.fc .fc-timegrid-slot-label {
+.vuecal__time-column .vuecal__time-header-label {
   font-size: 0.625rem;
   color: var(--color-text-muted);
   font-weight: 500;
-  vertical-align: middle;
-  border-color: var(--color-border-subtle) !important;
   font-variant-numeric: tabular-nums;
-}
-
-@media (min-width: 640px) {
-  .fc .fc-timegrid-slot-label {
-    font-size: 0.6875rem;
-  }
-}
-
-.fc .fc-timegrid-slot-label-cushion {
   padding: 0.25rem 0.5rem;
 }
 
 @media (min-width: 640px) {
-  .fc .fc-timegrid-slot-label-cushion {
-    padding: 0.375rem 0.75rem;
-  }
+  .vuecal__time-column .vuecal__time-header-label { font-size: 0.6875rem; }
 }
 
-.fc .fc-timegrid-col {
-  border-color: var(--color-border-subtle) !important;
+.vuecal__cells.day-view .vuecal__cell { min-height: 2.5rem; }
+@media (min-width: 640px) {
+  .vuecal__cells.day-view .vuecal__cell { min-height: 3.5rem; }
 }
 
-.fc .fc-timegrid-col.fc-day-today {
-  background: var(--color-primary-light);
-  background: color-mix(in srgb, var(--color-primary-light) 40%, transparent);
+.vuecal__cell.today { background: var(--color-primary-light); }
+
+/* ============================================================
+   SCHEDULE HEADERS
+   ============================================================ */
+
+.vuecal__schedule-header {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.375rem 0.5rem;
 }
 
 /* ============================================================
-   EVENT CARDS - REDESIGNED
+   AGENDA EVENT CARDS — Premium Design
    ============================================================ */
 
-.fc-v-event {
+.vuecal__event {
   border: none !important;
+  background: transparent !important;
   border-radius: 0 !important;
   padding: 0 !important;
-  box-shadow: none !important;
-  background: transparent !important;
   overflow: visible !important;
 }
 
-.fc-v-event:hover {
-  transform: none !important;
-}
-
-.fc-v-event::after {
-  display: none !important;
-}
-
-.fc-v-event .fc-event-main {
-  padding: 0 !important;
-}
-
-.fc-v-event .fc-event-title-container {
-  display: none !important;
-}
-
-/* Event Card Component */
-.agenda-card {
+.agenda-event-card {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  background: var(--color-surface);
-  border-left: 3px solid var(--color-primary);
   border-radius: 0.375rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-left: 3px solid transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.15s ease, transform 0.15s ease;
   cursor: pointer;
 }
 
-.agenda-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+.agenda-event-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
   transform: translateY(-1px);
 }
 
-.agenda-card-month {
-  border-left-width: 2px;
-  border-radius: 0.25rem;
+/* Status backgrounds */
+.agenda-status-pending {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.04));
+  border-left-color: var(--color-warning) !important;
 }
 
-.agenda-card-header {
+.agenda-status-confirmed {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0.04));
+  border-left-color: var(--color-primary) !important;
+}
+
+.agenda-status-paid {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(34, 197, 94, 0.04));
+  border-left-color: var(--color-success) !important;
+}
+
+.agenda-status-cancelled,
+.agenda-status-no_show {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.02));
+  border-left-color: var(--color-danger) !important;
+  opacity: 0.65;
+}
+
+/* Status dots */
+.dot-status-pending { background: var(--color-warning) !important; }
+.dot-status-confirmed { background: var(--color-primary) !important; }
+.dot-status-paid { background: var(--color-success) !important; }
+.dot-status-cancelled { background: var(--color-danger) !important; }
+.dot-status-no_show { background: var(--color-danger) !important; }
+
+/* Event card internals */
+.agenda-event-header {
   display: flex;
   align-items: center;
   gap: 0.375rem;
@@ -915,7 +736,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   min-width: 0;
 }
 
-.agenda-card-status-dot {
+.agenda-event-dot {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 999px;
@@ -924,14 +745,15 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   padding: 0;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background: var(--color-primary);
 }
 
-.agenda-card-status-dot:hover {
+.agenda-event-dot:hover {
   transform: scale(1.3);
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
 }
 
-.agenda-card-time {
+.agenda-event-time {
   font-size: 0.5625rem;
   font-weight: 600;
   color: var(--color-text-muted);
@@ -942,13 +764,9 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   text-overflow: ellipsis;
 }
 
-@media (min-width: 640px) {
-  .agenda-card-time {
-    font-size: 0.625rem;
-  }
-}
+@media (min-width: 640px) { .agenda-event-time { font-size: 0.625rem; } }
 
-.agenda-card-group {
+.agenda-event-group {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -962,19 +780,53 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   flex-shrink: 0;
 }
 
-.agenda-card-body {
+.agenda-event-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Checkout button */
+.agenda-event-checkout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: none;
+  border-radius: 0.25rem;
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--color-success);
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.agenda-event-card:hover .agenda-event-checkout {
+  opacity: 1;
+}
+
+.agenda-event-checkout:hover {
+  background: var(--color-success);
+  color: white;
+  transform: scale(1.1);
+}
+
+.agenda-event-body {
   flex: 1;
   min-width: 0;
   padding: 0.125rem 0.375rem 0.25rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.0625rem;
+  gap: 0.125rem;
 }
 
-.agenda-card-client {
+.agenda-event-client {
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text);
   line-height: 1.2;
   overflow: hidden;
@@ -982,64 +834,92 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   white-space: nowrap;
 }
 
-@media (min-width: 640px) {
-  .agenda-card-client {
-    font-size: 0.75rem;
-  }
+@media (min-width: 640px) { .agenda-event-client { font-size: 0.75rem; } }
+
+.agenda-event-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
-.agenda-card-details {
+.agenda-event-service {
   font-size: 0.5625rem;
   font-weight: 500;
-  color: var(--color-text-muted);
-  line-height: 1.2;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  padding: 0.0625rem 0.375rem;
+  border-radius: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
+}
+
+.agenda-event-employee {
+  font-size: 0.5rem;
+  font-weight: 700;
+  color: var(--color-text-inverse);
+  background: var(--color-primary);
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 @media (min-width: 640px) {
-  .agenda-card-details {
-    font-size: 0.625rem;
-  }
+  .agenda-event-service { font-size: 0.625rem; }
+  .agenda-event-employee { width: 1.125rem; height: 1.125rem; font-size: 0.5625rem; }
 }
 
+/* Status icon (bottom-right corner) */
+.agenda-event-status-icon {
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.25rem;
+  opacity: 0.25;
+}
+
+.agenda-status-pending .agenda-event-status-icon { color: var(--color-warning); }
+.agenda-status-confirmed .agenda-event-status-icon { color: var(--color-primary); }
+.agenda-status-paid .agenda-event-status-icon { color: var(--color-success); }
+.agenda-status-cancelled .agenda-event-status-icon,
+.agenda-status-no_show .agenda-event-status-icon { color: var(--color-danger); }
+
 /* Month view compact */
-.agenda-card-month .agenda-card-header {
+.agenda-event-month .agenda-event-header {
   padding: 0.125rem 0.25rem 0;
 }
 
-.agenda-card-month .agenda-card-body {
+.agenda-event-month .agenda-event-body {
   padding: 0 0.25rem 0.125rem;
 }
 
-.agenda-card-month .agenda-card-client {
+.agenda-event-month .agenda-event-client {
   font-size: 0.625rem;
 }
 
-.agenda-card-month .agenda-card-details {
+.agenda-event-month .agenda-event-meta,
+.agenda-event-month .agenda-event-time,
+.agenda-event-month .agenda-event-status-icon,
+.agenda-event-month .agenda-event-actions {
   display: none;
 }
 
-.agenda-card-month .agenda-card-time {
-  font-size: 0.5rem;
-}
-
 /* ============================================================
-   STATUS DROPDOWN
+   STATUS DROPDOWN (teleported to body)
    ============================================================ */
 
 .agenda-status-dropdown {
-  position: absolute;
-  top: 0;
-  left: 0.75rem;
-  z-index: 100;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   padding: 0.25rem;
-  min-width: 120px;
+  min-width: 130px;
   animation: agenda-dropdown-in 0.12s ease-out;
 }
 
@@ -1065,24 +945,18 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   text-align: left;
 }
 
-.agenda-status-option:hover {
-  background: var(--color-bg-secondary);
-}
-
-.agenda-status-option-active {
-  background: var(--color-bg-secondary);
-}
+.agenda-status-option:hover { background: var(--color-bg-secondary); }
+.agenda-status-option-active { background: var(--color-bg-secondary); }
 
 .agenda-status-dot {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 999px;
   flex-shrink: 0;
+  background: var(--color-primary);
 }
 
-.agenda-status-label {
-  flex: 1;
-}
+.agenda-status-label { flex: 1; }
 
 .agenda-status-check {
   width: 0.75rem;
@@ -1091,236 +965,59 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   color: var(--color-primary);
 }
 
-.agenda-status-check svg {
-  width: 100%;
-  height: 100%;
-}
-
-/* ============================================================
-   BACKGROUND EVENTS (SCHEDULES)
-   ============================================================ */
-
-.fc .fc-bg-event {
-  opacity: 0.35;
-  border-radius: 0;
-}
-
-/* ============================================================
-   SELECTION & TODAY
-   ============================================================ */
-
-.fc .fc-highlight {
-  background: var(--color-primary-light) !important;
-  opacity: 0.5;
-}
-
-.fc .fc-cell-shaded,
-.fc .fc-day-disabled {
-  background: var(--color-bg);
-}
-
-.fc .fc-day-today {
-  background: var(--color-primary-light) !important;
-}
-
-.fc .fc-day-today .fc-col-header-cell-cushion {
-  color: var(--color-primary);
-  font-weight: 700;
-}
-
-/* ============================================================
-   MONTH VIEW
-   ============================================================ */
-
-.fc-daygrid-day {
-  min-height: 3rem;
-}
-
-@media (min-width: 640px) {
-  .fc-daygrid-day {
-    min-height: 5rem;
-  }
-}
-
-.fc-daygrid-day-number {
-  font-weight: 500;
-  padding: 0.25rem;
-  font-size: 0.6875rem;
-  color: var(--color-text);
-}
-
-@media (min-width: 640px) {
-  .fc-daygrid-day-number {
-    padding: 0.375rem;
-    font-size: 0.75rem;
-  }
-}
-
-.fc-daygrid-day.fc-day-today {
-  background: var(--color-primary-light) !important;
-}
-
-.fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
-  border-radius: 50%;
-  width: 1.25rem;
-  height: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.625rem;
-}
-
-@media (min-width: 640px) {
-  .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-    width: 1.375rem;
-    height: 1.375rem;
-    font-size: 0.6875rem;
-  }
-}
-
-.fc-daygrid-event {
-  border-radius: 0.2rem;
-  font-size: 0.6rem;
-  font-weight: 500;
-  padding: 0.05rem 0.2rem;
-  margin-top: 1px;
-}
-
-@media (min-width: 640px) {
-  .fc-daygrid-event {
-    border-radius: 0.25rem;
-    font-size: 0.625rem;
-    padding: 0.0625rem 0.25rem;
-  }
-}
-
-.fc .fc-more-link {
-  color: var(--color-primary);
-  font-weight: 500;
-  font-size: 0.625rem;
-  padding: 0.1rem 0.2rem;
-  border-radius: 0.25rem;
-  transition: all 0.15s;
-}
-
-@media (min-width: 640px) {
-  .fc .fc-more-link {
-    font-size: 0.6875rem;
-    padding: 0.125rem 0.3rem;
-    border-radius: 0.25rem;
-  }
-}
-
-.fc .fc-more-link:hover {
-  background: var(--color-primary-light);
-}
-
-.fc .fc-popover {
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-xl);
-  background: var(--color-surface);
-}
-
-.fc .fc-popover-header {
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem 0.5rem 0 0;
-}
-
-.fc .fc-popover-title {
-  font-weight: 600;
-  font-size: 0.8125rem;
-}
-
-.fc .fc-popover-body {
-  background: var(--color-surface);
-}
-
-/* ============================================================
-   MOBILE ADJUSTMENTS
-   ============================================================ */
-
-@media (max-width: 480px) {
-  .fc .fc-toolbar-title {
-    font-size: 0.7rem;
-  }
-  .fc .fc-col-header-cell {
-    font-size: 0.5625rem;
-    padding: 0.25rem 0.1rem !important;
-  }
-  .fc .fc-timegrid-slot-label {
-    font-size: 0.5rem;
-  }
-  .fc-daygrid-day {
-    min-height: 2.5rem;
-  }
-  .agenda-card {
-    border-left-width: 2px;
-    border-radius: 0.25rem;
-  }
-  .agenda-card-client {
-    font-size: 0.625rem;
-  }
-  .agenda-card-details {
-    font-size: 0.5rem;
-  }
-}
+.agenda-status-check svg { width: 100%; height: 100%; }
 
 /* ============================================================
    DARK MODE
    ============================================================ */
 
-.dark .fc-theme-standard .fc-scrollgrid {
-  border-color: var(--color-border);
+.vuecal--dark-theme {
+  --vc-bg: var(--color-surface);
+  --vc-header-bg: var(--color-bg-secondary);
+  --vc-weekend-bg: var(--color-bg);
+  --vc-border: var(--color-border);
+  --vc-border-light: var(--color-border-subtle);
 }
 
-.dark .fc-theme-standard td,
-.dark .fc-theme-standard th {
-  border-color: var(--color-border);
+.vuecal--dark-theme .agenda-event-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+.vuecal--dark-theme .agenda-event-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
-.dark .fc .fc-col-header-cell {
-  background: var(--color-bg-secondary);
+.vuecal--dark-theme .agenda-status-pending {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.03));
 }
-
-.dark .fc .fc-cell-shaded,
-.dark .fc .fc-day-disabled {
-  background: var(--color-bg);
+.vuecal--dark-theme .agenda-status-confirmed {
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(129, 140, 248, 0.03));
 }
-
-.dark .fc .fc-timegrid-slot-label {
-  color: var(--color-text-muted);
+.vuecal--dark-theme .agenda-status-paid {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.03));
 }
-
-.dark .agenda-card {
-  background: var(--color-surface-elevated);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
-.dark .agenda-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.dark .fc-daygrid-day-number {
-  color: var(--color-text);
+.vuecal--dark-theme .agenda-status-cancelled {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.02));
 }
 
 /* ============================================================
-   SCROLLBAR HIDE UTILITY
+   MOBILE HORIZONTAL SCROLL (schedules on small screens)
    ============================================================ */
 
 @media (max-width: 1023px) {
+  .vuecal-mobile-scroll .vuecal__cells.day-view {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vuecal-mobile-scroll .vuecal__cell-split {
+    min-width: 220px;
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
 }
 </style>

@@ -1,12 +1,13 @@
 <template>
   <AppLayout>
     <div class="h-[calc(100vh-120px)] min-h-[500px] max-lg:h-[calc(100vh-200px)]">
-      <AgendaCalendar
-        @event-click="handleEventClick"
-        @status-change="handleStatusChange"
-        @event-change="handleEventChange"
-        @slot-select="handleSlotSelect"
-      />
+        <AgendaCalendar
+          @event-click="handleEventClick"
+          @status-change="handleStatusChange"
+          @event-change="handleEventChange"
+          @slot-select="handleSlotSelect"
+          @checkout="handleCheckout"
+        />
     </div>
   </AppLayout>
 
@@ -21,6 +22,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { useNotification } from '../../composables/useNotification'
 import { useAuthStore } from '../../store/auth'
@@ -34,6 +36,7 @@ import { CitaFormModal } from '../../components/modals'
 import type { Cita } from '../../types/cita'
 
 const authStore = useAuthStore()
+const router = useRouter()
 useNotification()
 
 const businessId = computed(() => authStore.businessId)
@@ -70,6 +73,10 @@ const handleEventClick = (event: { id: string; title: string; start: Date; end: 
   if (event.citaData) {
     citaModalRef.value?.open(event.citaData)
   }
+}
+
+const handleCheckout = (appointmentId: string) => {
+  router.push({ name: 'admin-pos', query: { appointment: appointmentId } })
 }
 
 const {
