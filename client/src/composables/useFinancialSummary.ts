@@ -5,6 +5,7 @@ import { formatMethod, formatDate } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
 import { updateTransaction, deleteTransaction } from '../services/posService'
 import type { Transaction, EmployeePayment, Expense, PaymentMethod } from '../types/database'
+import type { PaymentBreakdownItem } from '../types/pos'
 
 const toYmd = (d: Date) => {
   const yyyy = d.getFullYear()
@@ -21,6 +22,7 @@ export type UnifiedTransaction = {
   amount: number
   type: 'ingreso' | 'nomina' | 'gasto'
   exchangeRateUsed?: number
+  breakdownLabel?: string
   _currency?: 'USD' | 'VES'
   _originalAmount?: number
 }
@@ -53,6 +55,7 @@ type TransactionRow = {
   rawMethod: PaymentMethod
   amount: number
   exchangeRateUsed: number
+  breakdownLabel: string
 }
 
 export type ProductSaleDetail = {
@@ -173,6 +176,17 @@ const formatBucketLabel = (date: Date, bucket: 'day' | 'week' | 'month') => {
   return formatDate(date)
 }
 
+function formatBreakdownLabel(breakdown: PaymentBreakdownItem[] | null | undefined): string {
+  if (!breakdown || !Array.isArray(breakdown) || breakdown.length <= 1) return ''
+  return breakdown.map(p => {
+    const methodName = formatMethod(p.method)
+    const amount = p.currency === 'VES'
+      ? `${new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(p.inputAmount)} Bs`
+      : `$${p.inputAmount.toFixed(2)}`
+    return `${methodName} ${amount}`
+  }).join(' / ')
+}
+
 
 
 function buildExpenseBuckets(rows: { date: string; amount: number }[], bucket: 'day' | 'week' | 'month') {
@@ -270,6 +284,7 @@ function useFinancialSummary(
           method,
           employee_percentage,
           exchange_rate_used,
+          payments_breakdown,
           appointments (
             client_id,
             service_id,
@@ -372,17 +387,22 @@ function useFinancialSummary(
   })
 
   const transactionsAll = computed<TransactionRow[]>(() =>
-    rawTransactions.value.map(row => ({
-      id: row.id,
-      date: formatDate(row.paid_at ?? row.created_at),
-      client: row.appointments?.clients?.full_name ?? '—',
-      employee: row.appointments?.employee_profile?.full_name ?? '—',
-      service: row.appointments?.services?.name ?? '—',
-      method: formatMethod(row.method),
-      rawMethod: row.method as PaymentMethod,
-      amount: row.total_amount,
-      exchangeRateUsed: row.exchange_rate_used ?? 1,
-    }))
+    rawTransactions.value.map(row => {
+      const breakdown = (row as any).payments_breakdown as PaymentBreakdownItem[] | null
+      const breakdownLabel = formatBreakdownLabel(breakdown)
+      return {
+        id: row.id,
+        date: formatDate(row.paid_at ?? row.created_at),
+        client: row.appointments?.clients?.full_name ?? '—',
+        employee: row.appointments?.employee_profile?.full_name ?? '—',
+        service: row.appointments?.services?.name ?? '—',
+        method: breakdownLabel || formatMethod(row.method),
+        rawMethod: row.method as PaymentMethod,
+        amount: row.total_amount,
+        exchangeRateUsed: row.exchange_rate_used ?? 1,
+        breakdownLabel,
+      }
+    })
   )
 
   const appointmentIncomeDetails = computed(() => transactionsAll.value)
@@ -439,14 +459,17 @@ function useFinancialSummary(
 
     // Appointment payments (income)
     for (const tx of rawTransactions.value) {
+      const breakdown = (tx as any).payments_breakdown as PaymentBreakdownItem[] | null
+      const breakdownLabel = formatBreakdownLabel(breakdown)
       result.push({
         id: tx.id,
         date: formatDate(tx.paid_at ?? tx.created_at),
         description: (tx.appointments?.clients?.full_name ?? '—') + ' · ' + (tx.appointments?.services?.name ?? '—'),
-        method: formatMethod(tx.method),
+        method: breakdownLabel || formatMethod(tx.method),
         amount: tx.total_amount,
         type: 'ingreso',
         exchangeRateUsed: tx.exchange_rate_used ?? 1,
+        breakdownLabel,
         sortDate: tx.paid_at ?? tx.created_at,
       })
     }

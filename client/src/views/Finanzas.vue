@@ -105,7 +105,7 @@
                 <td class="px-2 py-2.5 text-text-secondary hidden sm:table-cell">{{ item.employee }}</td>
                 <td class="px-2 py-2.5 text-text-secondary hidden sm:table-cell">{{ item.service }}</td>
                 <td class="px-2 py-2.5">
-                  <span class="inline-flex items-center rounded-md bg-bg-secondary px-2 py-0.5 text-[11px] font-medium text-text-muted">{{ item.method }}</span>
+                  <span class="inline-flex items-center rounded-md bg-bg-secondary px-2 py-0.5 text-[11px] font-medium text-text-muted">{{ item.breakdownLabel || item.method }}</span>
                 </td>
                 <td class="px-2 py-2.5 text-right font-semibold text-success tabular-nums">{{ formatUSD(item.amount) }}</td>
               </tr>
