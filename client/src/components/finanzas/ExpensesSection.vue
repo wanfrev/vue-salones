@@ -12,12 +12,22 @@
           <p class="text-xs text-text-secondary">Egresos fijos y variables</p>
         </div>
       </div>
-      <button @click="expensesCtx.openNew" class="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-text-inverse transition-theme hover:bg-primary-hover">
-        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-        <span class="hidden sm:inline">Registrar gasto</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          v-if="canViewAllExpenses"
+          type="button"
+          class="rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:text-text hover:border-border-strong"
+          @click="emit('view-all')"
+        >
+          Ver todos
+        </button>
+        <button @click="expensesCtx.openNew" class="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-text-inverse transition-theme hover:bg-primary-hover">
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          <span class="hidden sm:inline">Registrar gasto</span>
+        </button>
+      </div>
     </div>
 
     <div v-if="isLoading" class="py-8 text-center flex-1 flex items-center justify-center">
@@ -69,8 +79,8 @@
         </div>
         <div class="flex items-center justify-between">
           <div>
-            <span class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</span>
-            <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount) + ' Bs' }}</div>
+            <span class="font-medium text-text whitespace-nowrap">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</span>
+            <div class="text-xs text-text-muted whitespace-nowrap">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount) + ' Bs' }}</div>
           </div>
           <div class="flex items-center gap-1">
           <button @click="expensesCtx.openEdit(expense)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary" title="Editar gasto">
@@ -111,8 +121,8 @@
               ]">{{ expense.category }}</span>
             </td>
             <td class="py-3 text-right">
-              <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</div>
-              <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount) + ' Bs' }}</div>
+              <div class="font-medium text-text whitespace-nowrap">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</div>
+              <div class="text-xs text-text-muted whitespace-nowrap">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount) + ' Bs' }}</div>
             </td>
             <td class="py-3 text-center">
               <div class="flex items-center justify-center gap-1">
@@ -131,15 +141,6 @@
           </tr>
         </tbody>
       </table>
-    </div>
-    <div v-if="canViewAllExpenses" class="mt-auto shrink-0 flex justify-center border-t border-border-subtle px-4 sm:px-5 py-3">
-      <button
-        type="button"
-        class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-bg-secondary"
-        @click="emit('view-all')"
-      >
-        Ver todos
-      </button>
     </div>
   </template>
 </div>

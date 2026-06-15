@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+  <div class="grid grid-cols-2 gap-2 sm:gap-3" :class="exchangeRateSlot ? 'lg:grid-cols-5' : 'lg:grid-cols-4'">
     <div class="group rounded-xl border border-border bg-surface p-3 shadow-sm transition-theme hover:shadow-md hover:border-success/30 sm:p-4">
       <div class="flex items-center gap-2.5 sm:gap-3">
         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success shrink-0 sm:h-10 sm:w-10 transition-theme group-hover:bg-success/15 group-hover:scale-105">
@@ -56,10 +56,13 @@
         </div>
       </div>
     </div>
+
+    <slot name="exchange-rate" />
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, useSlots } from 'vue'
 import { useCurrency } from '../../composables/useCurrency'
 
 defineProps<{
@@ -69,6 +72,9 @@ defineProps<{
   netTotal: number
   margin: number
 }>()
+
+const slots = useSlots()
+const exchangeRateSlot = computed(() => !!slots['exchange-rate'])
 
 const { formatUSD, formatVESEs } = useCurrency()
 
