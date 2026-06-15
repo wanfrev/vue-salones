@@ -153,38 +153,8 @@
               <td class="py-3 font-medium text-text">{{ row.client }}</td>
               <td class="py-3 text-text">{{ row.employee }}</td>
               <td class="py-3 text-text-secondary">{{ row.service }}</td>
-              <td class="py-3 text-text-secondary">
-                <template v-if="summaryCtx.editingTransaction.value?.id === row.id">
-                  <select
-                    v-model="summaryCtx.editingMethod.value"
-                    class="rounded-md border border-border bg-input px-2 py-1 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option v-for="opt in summaryCtx.paymentMethodOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-                  </select>
-                </template>
-                <span v-else>{{ row.method }}</span>
-              </td>
-              <td class="py-3 text-right">
-                <template v-if="summaryCtx.editingTransaction.value?.id === row.id">
-                  <div class="flex items-center gap-1 justify-end">
-                    <input
-                      type="number"
-                      :value="summaryCtx.editingAmount.value"
-                      @input="summaryCtx.editingAmount.value = Number(($event.target as HTMLInputElement).value)"
-                      class="w-24 rounded-md border border-border bg-input px-2 py-1 text-right text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary"
-                      min="0.01"
-                      step="0.01"
-                    />
-                    <button type="button" class="rounded-md bg-success/10 p-1 text-success transition-theme hover:bg-success/20" title="Guardar" @click="summaryCtx.saveEdit()">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                    </button>
-                    <button type="button" class="rounded-md bg-danger/10 p-1 text-danger transition-theme hover:bg-danger/20" title="Cancelar" @click="summaryCtx.cancelEdit()">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  </div>
-                </template>
-                <span v-else class="font-medium text-success">{{ formatUSD(row.amount) }}</span>
-              </td>
+              <td class="py-3 text-text-secondary">{{ row.method }}</td>
+              <td class="py-3 text-right font-medium text-success">{{ formatUSD(row.amount) }}</td>
               <td class="py-3 text-right">
                 <div class="flex items-center gap-1 justify-end">
                   <button
@@ -273,37 +243,9 @@
                   {{ tx.type === 'ingreso' ? 'Ingreso' : tx.type === 'nomina' ? 'Nomina' : 'Gasto' }}
                 </span>
               </td>
-              <td class="py-3 text-text-secondary">
-                <template v-if="summaryCtx.editingTransaction.value?.id === tx.id && tx.type === 'ingreso'">
-                  <select
-                    v-model="summaryCtx.editingMethod.value"
-                    class="rounded-md border border-border bg-input px-2 py-1 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option v-for="opt in summaryCtx.paymentMethodOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-                  </select>
-                </template>
-                <span v-else>{{ tx.method }}</span>
-              </td>
+              <td class="py-3 text-text-secondary">{{ tx.method }}</td>
               <td class="py-3 text-right font-medium" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
-                <template v-if="summaryCtx.editingTransaction.value?.id === tx.id && tx.type === 'ingreso'">
-                  <div class="flex items-center gap-1 justify-end">
-                    <input
-                      type="number"
-                      :value="summaryCtx.editingAmount.value"
-                      @input="summaryCtx.editingAmount.value = Number(($event.target as HTMLInputElement).value)"
-                      class="w-24 rounded-md border border-border bg-input px-2 py-1 text-right text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary"
-                      min="0.01"
-                      step="0.01"
-                    />
-                    <button type="button" class="rounded-md bg-success/10 p-1 text-success transition-theme hover:bg-success/20" title="Guardar" @click="summaryCtx.saveEdit()">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                    </button>
-                    <button type="button" class="rounded-md bg-danger/10 p-1 text-danger transition-theme hover:bg-danger/20" title="Cancelar" @click="summaryCtx.cancelEdit()">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  </div>
-                </template>
-                <span v-else>{{ tx.type === 'ingreso' ? '' : '-' }}{{ formatUSD(tx.amount) }}</span>
+                {{ tx.type === 'ingreso' ? '' : '-' }}{{ formatUSD(tx.amount) }}
               </td>
               <td class="py-3 text-right">
                 <div v-if="tx.type === 'ingreso'" class="flex items-center gap-1 justify-end">
@@ -399,6 +341,99 @@
             <button type="submit" :disabled="paymentsCtx.updateMutation.isPending.value"
               class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
               {{ paymentsCtx.updateMutation.isPending.value ? 'Guardando...' : 'Actualizar pago' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </Teleport>
+
+  <Teleport to="body">
+    <div v-if="summaryCtx.showEditModal.value"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      @click.self="summaryCtx.cancelEdit()"
+    >
+      <div class="w-full max-w-lg rounded-2xl border border-border bg-surface p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-text">Editar cobro</h2>
+          <p class="text-sm text-text-muted" v-if="summaryCtx.editingTransaction.value">
+            {{ summaryCtx.editingTransaction.value.client }} · {{ summaryCtx.editingTransaction.value.service }} · {{ summaryCtx.editingTransaction.value.date }}
+          </p>
+        </div>
+
+        <form class="space-y-4" @submit.prevent="summaryCtx.saveEdit()">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text">Método de pago</label>
+            <select
+              :value="summaryCtx.editingMethod.value"
+              @change="summaryCtx.setEditingMethod(($event.target as HTMLSelectElement).value as any)"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+            >
+              <option v-for="opt in summaryCtx.paymentMethodOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+            </select>
+          </div>
+
+          <div v-if="summaryCtx.isEditingMixed.value" class="space-y-3 rounded-lg border border-border-subtle bg-bg-secondary p-3">
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-medium text-text">Desglose de pagos</label>
+              <button type="button" @click="summaryCtx.addBreakdownItem()"
+                class="rounded-lg border border-primary/30 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary transition-theme hover:bg-primary/10">
+                + Agregar método
+              </button>
+            </div>
+            <div v-for="(item, idx) in summaryCtx.editingBreakdown.value" :key="idx"
+              class="flex items-center gap-2 rounded-lg border border-border-subtle bg-surface p-2">
+              <select
+                :value="item.method"
+                @change="summaryCtx.updateBreakdownItem(idx, 'method', ($event.target as HTMLSelectElement).value as any)"
+                class="rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30 flex-1 min-w-0"
+              >
+                <option v-for="opt in summaryCtx.paymentMethodOptions.filter(o => o.value !== 'mixed')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+              </select>
+              <input
+                type="number"
+                :value="item.amount"
+                @input="summaryCtx.updateBreakdownItem(idx, 'amount', Number(($event.target as HTMLInputElement).value))"
+                class="w-28 rounded-lg border border-border bg-surface px-2 py-1.5 text-right text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+              />
+              <span class="text-xs font-medium text-text-muted w-8 text-center">USD</span>
+              <button v-if="summaryCtx.editingBreakdown.value.length > 1" type="button" @click="summaryCtx.removeBreakdownItem(idx)"
+                class="rounded-lg p-1 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger shrink-0">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text">
+              {{ summaryCtx.isEditingMixed.value ? 'Total (calculado)' : 'Monto' }}
+            </label>
+            <input v-if="!summaryCtx.isEditingMixed.value"
+              v-model.number="summaryCtx.editingAmount.value"
+              type="number" min="0.01" step="0.01"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+              placeholder="0.00" required
+            />
+            <div v-else class="rounded-lg border border-border bg-bg-secondary px-3 py-2 text-lg font-bold text-text">
+              {{ formatUSD(summaryCtx.editingTotalAmount.value) }}
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-1">
+            <button type="button"
+              class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
+              @click="summaryCtx.cancelEdit()">
+              Cancelar
+            </button>
+            <button type="submit"
+              :disabled="summaryCtx.editTransactionMutation.isPending.value"
+              class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
+              {{ summaryCtx.editTransactionMutation.isPending.value ? 'Guardando...' : 'Guardar cambios' }}
             </button>
           </div>
         </form>

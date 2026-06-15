@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { mutate } from '../lib/typedSupabase'
 import { getDefaultLocation } from '../business/stockRules'
 import type { PaymentMethod } from '../types/database'
 import type { POSProductItem, PaymentBreakdownItem } from '../types/pos'
@@ -91,6 +92,7 @@ export const updateTransaction = async (params: {
   method?: PaymentMethod
   notes?: string
   exchangeRate?: number
+  paymentsBreakdown?: PaymentBreakdownItem[]
 }): Promise<void> => {
   const { error } = await supabase.rpc('update_transaction', {
     p_transaction_id: params.transactionId,
@@ -100,6 +102,14 @@ export const updateTransaction = async (params: {
     p_exchange_rate: params.exchangeRate ?? null,
   })
   if (error) throw error
+
+  if (params.paymentsBreakdown) {
+    const { error: bdError } = await mutate
+      .from('transactions')
+      .update({ payments_breakdown: params.paymentsBreakdown })
+      .eq('id', params.transactionId)
+    if (bdError) throw bdError
+  }
 }
 
 export const deleteTransaction = async (params: {

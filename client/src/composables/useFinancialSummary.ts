@@ -56,6 +56,7 @@ type TransactionRow = {
   amount: number
   exchangeRateUsed: number
   breakdownLabel: string
+  breakdown: PaymentBreakdownItem[] | null
 }
 
 export type ProductSaleDetail = {
@@ -401,6 +402,7 @@ function useFinancialSummary(
         amount: row.total_amount,
         exchangeRateUsed: row.exchange_rate_used ?? 1,
         breakdownLabel,
+        breakdown,
       }
     })
   )
@@ -645,6 +647,7 @@ function useFinancialSummary(
       method?: PaymentMethod
       notes?: string
       exchangeRate?: number
+      paymentsBreakdown?: PaymentBreakdownItem[]
     }) => updateTransaction(params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
@@ -676,9 +679,11 @@ function useFinancialSummary(
     },
   })
 
+  const showEditModal = ref(false)
   const editingTransaction = ref<TransactionRow | null>(null)
   const editingAmount = ref(0)
   const editingMethod = ref<PaymentMethod>('cash')
+  const editingBreakdown = ref<PaymentBreakdownItem[]>([])
 
   const paymentMethodOptions: { value: PaymentMethod; label: string }[] = [
     { value: 'cash', label: 'Efectivo' },
@@ -690,28 +695,97 @@ function useFinancialSummary(
     { value: 'other', label: 'Otro' },
   ]
 
+  const isEditingMixed = computed(() => editingMethod.value === 'mixed')
+
+  const editingTotalAmount = computed(() => {
+    if (editingMethod.value === 'mixed') {
+      return editingBreakdown.value.reduce((sum, item) => sum + item.amount, 0)
+    }
+    return editingAmount.value
+  })
+
   const startEdit = (tx: TransactionRow) => {
     editingTransaction.value = tx
     editingAmount.value = tx.amount
     editingMethod.value = tx.rawMethod
+
+    if (tx.breakdown && tx.breakdown.length > 0) {
+      editingBreakdown.value = tx.breakdown.map(item => ({ ...item }))
+    } else {
+      editingBreakdown.value = tx.rawMethod !== 'mixed'
+        ? []
+        : [{ method: 'cash' as PaymentMethod, inputAmount: tx.amount, currency: 'USD' as const, amount: tx.amount }]
+    }
+
+    showEditModal.value = true
   }
 
   const cancelEdit = () => {
+    showEditModal.value = false
     editingTransaction.value = null
     editingAmount.value = 0
     editingMethod.value = 'cash'
+    editingBreakdown.value = []
+  }
+
+  const setEditingMethod = (method: PaymentMethod) => {
+    editingMethod.value = method
+    if (method === 'mixed' && editingBreakdown.value.length === 0) {
+      editingBreakdown.value = [{ method: 'cash' as PaymentMethod, inputAmount: editingAmount.value, currency: 'USD' as const, amount: editingAmount.value }]
+    }
+    if (method !== 'mixed') {
+      editingAmount.value = editingTotalAmount.value
+    }
+  }
+
+  const updateBreakdownItem = (index: number, field: 'method' | 'amount', value: PaymentMethod | number) => {
+    const items = [...editingBreakdown.value]
+    if (field === 'method') {
+      items[index] = { ...items[index], method: value as PaymentMethod }
+    } else {
+      const numValue = value as number
+      items[index] = { ...items[index], inputAmount: numValue, amount: numValue }
+    }
+    editingBreakdown.value = items
+  }
+
+  const addBreakdownItem = () => {
+    editingBreakdown.value = [...editingBreakdown.value, { method: 'cash' as PaymentMethod, inputAmount: 0, currency: 'USD' as const, amount: 0 }]
+  }
+
+  const removeBreakdownItem = (index: number) => {
+    editingBreakdown.value = editingBreakdown.value.filter((_, i) => i !== index)
+    if (editingBreakdown.value.length <= 1 && editingMethod.value === 'mixed') {
+      editingMethod.value = editingBreakdown.value[0]?.method ?? 'cash'
+    }
   }
 
   const saveEdit = () => {
     if (!editingTransaction.value) return
-    if (editingAmount.value <= 0) {
+    const total = editingTotalAmount.value
+    if (total <= 0) {
       showError('El monto debe ser mayor a 0')
       return
     }
+
+    const effectiveMethod: PaymentMethod = editingBreakdown.value.length > 1
+      ? 'mixed'
+      : editingMethod.value
+
+    const breakdown = effectiveMethod === 'mixed' && editingBreakdown.value.length > 0
+      ? editingBreakdown.value.map(item => ({
+          method: item.method,
+          inputAmount: item.amount,
+          currency: item.currency,
+          amount: item.amount,
+        }))
+      : undefined
+
     editTransactionMutation.mutate({
       transactionId: editingTransaction.value.id,
-      amount: editingAmount.value,
-      method: editingMethod.value,
+      amount: total,
+      method: effectiveMethod,
+      paymentsBreakdown: breakdown as PaymentBreakdownItem[] | undefined,
     })
     cancelEdit()
   }
@@ -741,12 +815,20 @@ function useFinancialSummary(
     isLoading,
     editTransactionMutation,
     deleteTransactionMutation,
+    showEditModal,
     editingTransaction,
     editingAmount,
     editingMethod,
+    editingBreakdown,
+    isEditingMixed,
+    editingTotalAmount,
     paymentMethodOptions,
     startEdit,
     cancelEdit,
+    setEditingMethod,
+    updateBreakdownItem,
+    addBreakdownItem,
+    removeBreakdownItem,
     saveEdit,
     confirmDeleteTransaction,
   }
