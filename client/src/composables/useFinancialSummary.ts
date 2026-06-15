@@ -21,6 +21,8 @@ export type UnifiedTransaction = {
   amount: number
   type: 'ingreso' | 'nomina' | 'gasto'
   exchangeRateUsed?: number
+  _currency?: 'USD' | 'VES'
+  _originalAmount?: number
 }
 
 export type EmployeeEarningSummary = {
@@ -452,6 +454,19 @@ function useFinancialSummary(
     // Employee payments (nomina)
     const empPayments = rawEmployeePayments.value ?? []
     for (const ep of empPayments) {
+      let epCurrency: 'USD' | 'VES' = 'USD'
+      let epOriginalAmount = Number(ep.amount)
+      const epNotes = (ep.notes ?? '')
+      const vesMatch = epNotes.match(/^\[VES:(\d+(?:\.\d+)?)\]/)
+      if (vesMatch) {
+        epCurrency = 'VES'
+        epOriginalAmount = Number(vesMatch[1])
+      }
+      const usdMatch = !vesMatch && epNotes.match(/^\[USD:(\d+(?:\.\d+)?)\]/)
+      if (usdMatch) {
+        epCurrency = 'USD'
+        epOriginalAmount = Number(usdMatch[1])
+      }
       result.push({
         id: 'ep-' + ep.id,
         date: formatDate(ep.payment_date),
@@ -460,6 +475,8 @@ function useFinancialSummary(
         amount: ep.amount,
         type: 'nomina',
         sortDate: ep.payment_date,
+        _currency: epCurrency,
+        _originalAmount: epOriginalAmount,
       })
     }
 

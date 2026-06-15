@@ -267,9 +267,10 @@
           <span class="text-xs text-text-muted">{{ tx.method }}</span>
           <div class="text-right">
             <div class="font-semibold text-sm tabular-nums" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
-              {{ tx.type === 'ingreso' ? '+' : '-' }}{{ formatUSD(tx.amount) }}
+              {{ tx.type === 'ingreso' ? '+' : '-' }}{{ tx.type === 'nomina' && tx._currency === 'VES' ? formatVESEs(tx._originalAmount ?? tx.amount) : formatUSD(tx.amount) }}
             </div>
-            <div class="text-xs text-text-muted tabular-nums">{{ formatVESInline(tx.amount, tx.exchangeRateUsed) }} Bs</div>
+            <div v-if="tx.type === 'nomina' && tx._currency === 'VES'" class="text-xs text-text-muted tabular-nums">{{ formatUSD(tx.amount) }}</div>
+            <div v-else class="text-xs text-text-muted tabular-nums">{{ formatVESInline(tx.amount, tx.exchangeRateUsed) }} Bs</div>
           </div>
         </div>
       </div>
@@ -304,9 +305,10 @@
             </td>
             <td class="px-4 sm:px-5 py-3 text-right">
               <div class="font-semibold tabular-nums" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
-                {{ tx.type === 'ingreso' ? '+' : '-' }}{{ formatUSD(tx.amount) }}
+                {{ tx.type === 'ingreso' ? '+' : '-' }}{{ tx.type === 'nomina' && tx._currency === 'VES' ? formatVESEs(tx._originalAmount ?? tx.amount) : formatUSD(tx.amount) }}
               </div>
-              <div class="text-xs text-text-muted tabular-nums">{{ formatVESInline(tx.amount, tx.exchangeRateUsed) }} Bs</div>
+              <div v-if="tx.type === 'nomina' && tx._currency === 'VES'" class="text-xs text-text-muted tabular-nums">{{ formatUSD(tx.amount) }}</div>
+              <div v-else class="text-xs text-text-muted tabular-nums">{{ formatVESInline(tx.amount, tx.exchangeRateUsed) }} Bs</div>
             </td>
           </tr>
         </tbody>

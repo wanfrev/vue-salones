@@ -83,8 +83,8 @@
           <div class="flex items-center justify-between">
             <span class="text-xs text-text-muted">Monto</span>
             <div class="text-right">
-              <div class="font-medium text-danger text-sm">{{ formatUSD(ep.amount) }}</div>
-              <div class="text-xs text-text-muted">{{ formatVESInline(ep.amount) }} Bs</div>
+              <div class="font-medium text-danger text-sm">{{ ep.currency === 'VES' ? formatVESEs(ep.originalAmount) : formatUSD(ep.amount) }}</div>
+              <div class="text-xs text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount) + ' Bs' }}</div>
             </div>
           </div>
         </div>
@@ -106,8 +106,8 @@
               <td class="py-2 font-medium text-text">{{ ep.employeeName }}</td>
               <td class="py-2 text-text-secondary">{{ formatMethod(ep.paymentMethod) }}</td>
               <td class="py-2 text-right">
-                <div class="font-medium text-danger">{{ formatUSD(ep.amount) }}</div>
-                <div class="text-xs text-text-muted">{{ formatVESInline(ep.amount) }} Bs</div>
+                <div class="font-medium text-danger">{{ ep.currency === 'VES' ? formatVESEs(ep.originalAmount) : formatUSD(ep.amount) }}</div>
+                <div class="text-xs text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount) + ' Bs' }}</div>
               </td>
               <td class="py-2 text-center">
                 <button @click="handleDeletePayment(ep.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar pago">
@@ -228,12 +228,20 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-3 gap-3">
             <div>
-              <label class="mb-1 block text-sm font-medium text-text">Monto ($)</label>
+              <label class="mb-1 block text-sm font-medium text-text">Monto</label>
               <input v-model.number="paymentsCtx.paymentForm.value.amount" type="number" min="0.01" step="0.01"
                 class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
                 placeholder="0.00" required />
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text">Moneda</label>
+              <select v-model="paymentsCtx.paymentForm.value.currency"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
+                <option value="USD">USD $</option>
+                <option value="VES">Bs</option>
+              </select>
             </div>
             <div>
               <label class="mb-1 block text-sm font-medium text-text">Método</label>
@@ -299,7 +307,7 @@ const emit = defineEmits<{
   'view-all': []
 }>()
 
-const { formatUSD, formatVESInline } = useCurrency()
+const { formatUSD, formatVESInline, formatVESEs } = useCurrency()
 
 const paymentsCtx = useEmployeePayments(computed(() => props.businessId))
 

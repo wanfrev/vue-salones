@@ -12,6 +12,9 @@ export interface EmployeePaymentRecord {
   employeeId: string
   employeeName: string
   amount: number
+  currency: 'USD' | 'VES'
+  originalAmount: number
+  exchangeRateUsed: number
   paymentMethod: string
   notes: string | null
   paymentDate: string
@@ -41,15 +44,40 @@ export const listEmployeePayments = async (
     }
   >
 
-  return raw.map(row => ({
-    id: row.id,
-    employeeId: row.employee_id,
-    employeeName: row.employee_profile?.full_name ?? '—',
-    amount: Number(row.amount),
-    paymentMethod: row.payment_method,
-    notes: row.notes,
-    paymentDate: row.payment_date,
-  }))
+  return raw.map(row => {
+    let currency: 'USD' | 'VES' = 'USD'
+    let originalAmount = Number(row.amount)
+    let cleanNotes = (row.notes ?? '')
+
+    const vesMatch = cleanNotes.match(/^\[VES:(\d+(?:\.\d+)?)\]\s?(.*)/s)
+    if (vesMatch) {
+      currency = 'VES'
+      originalAmount = Number(vesMatch[1])
+      cleanNotes = vesMatch[2] || ''
+    }
+
+    const usdMatch = !vesMatch && cleanNotes.match(/^\[USD:(\d+(?:\.\d+)?)\]\s?(.*)/s)
+    if (usdMatch) {
+      currency = 'USD'
+      originalAmount = Number(usdMatch[1])
+      cleanNotes = usdMatch[2] || ''
+    }
+
+    return {
+      id: row.id,
+      employeeId: row.employee_id,
+      employeeName: row.employee_profile?.full_name ?? '—',
+      amount: Number(row.amount),
+      currency,
+      originalAmount,
+      exchangeRateUsed: Number(row.amount) > 0 && originalAmount > 0 && currency === 'VES'
+        ? originalAmount / Number(row.amount)
+        : 1,
+      paymentMethod: row.payment_method,
+      notes: cleanNotes,
+      paymentDate: row.payment_date,
+    }
+  })
 }
 
 export const deleteEmployeePayment = async (id: string): Promise<void> => {
@@ -67,6 +95,8 @@ export const createEmployeePayment = async (
   paymentMethod: string,
   notes: string,
   paymentDate: string,
+  currency: 'USD' | 'VES' = 'USD',
+  exchangeRate?: number,
 ): Promise<void> => {
   if (!businessId) throw new Error('Falta el negocio (businessId)')
   if (!employeeId) throw new Error('Selecciona un empleado')
@@ -81,14 +111,25 @@ export const createEmployeePayment = async (
     // Session not available
   }
 
+  const isVES = currency === 'VES'
+  const rate = isVES && exchangeRate && exchangeRate > 0 ? exchangeRate : 1
+  const usdAmount = isVES ? amount / rate : amount
+
+  let notesContent = notes || ''
+  if (isVES) {
+    notesContent = `[VES:${amount}]` + (notesContent ? ' ' + notesContent : '')
+  } else {
+    notesContent = `[USD:${amount}]` + (notesContent ? ' ' + notesContent : '')
+  }
+
   const { error } = await mutate
     .from('employee_payments')
     .insert({
       business_id: businessId,
       employee_id: employeeId,
-      amount,
+      amount: Math.round(usdAmount * 100) / 100,
       payment_method: paymentMethod,
-      notes: notes || null,
+      notes: notesContent || null,
       payment_date: paymentDate,
       created_by: userId,
     })

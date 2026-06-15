@@ -75,9 +75,9 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-border">
-            <tr v-for="p in payments" :key="p.id" class="transition-colors hover:bg-bg-secondary/50">
+            <tr v-for="p in paymentsWithCurrency" :key="p.id" class="transition-colors hover:bg-bg-secondary/50">
               <td class="px-4 py-2.5 text-text-secondary">{{ formatDate(p.payment_date) }}</td>
-              <td class="px-4 py-2.5 text-right font-semibold text-text">${{ Number(p.amount).toFixed(2) }}</td>
+              <td class="px-4 py-2.5 text-right font-semibold text-text">{{ p.displayAmount }}</td>
               <td class="px-4 py-2.5 text-text-secondary">{{ formatMethod(p.payment_method) }}</td>
             </tr>
           </tbody>
@@ -92,6 +92,7 @@ import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { formatMethod, formatDate, formatNumber } from '../../lib/formatters'
 import { useAuthStore } from '../../store/auth'
+import { useCurrency } from '../../composables/useCurrency'
 import { dashboardKeys, listEmployeeTransactions, listEmployeePayments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 
@@ -128,4 +129,29 @@ const { data: paymentsData } = useQuery({
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
 const payments = computed(() => paymentsData.value ?? [])
+const { formatUSD, formatVESEs } = useCurrency()
+
+const paymentsWithCurrency = computed(() => {
+  return (paymentsData.value ?? []).map((p: any) => {
+    let currency: 'USD' | 'VES' = 'USD'
+    let originalAmount = Number(p.amount)
+    const notes = p.notes ?? ''
+    const vesMatch = notes.match(/^\[VES:(\d+(?:\.\d+)?)\]/)
+    if (vesMatch) {
+      currency = 'VES'
+      originalAmount = Number(vesMatch[1])
+    }
+    const usdMatch = !vesMatch && notes.match(/^\[USD:(\d+(?:\.\d+)?)\]/)
+    if (usdMatch) {
+      currency = 'USD'
+      originalAmount = Number(usdMatch[1])
+    }
+    return {
+      ...p,
+      currency,
+      originalAmount,
+      displayAmount: currency === 'VES' ? formatVESEs(originalAmount) : formatUSD(Number(p.amount)),
+    }
+  })
+})
 </script>

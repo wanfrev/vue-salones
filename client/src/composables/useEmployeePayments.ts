@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { supabase } from '../lib/supabase'
 import { useNotification } from './useNotification'
+import { useCurrency } from './useCurrency'
 import {
   listEmployeePayments,
   createEmployeePayment,
@@ -20,6 +21,7 @@ export function useEmployeePayments(
 ) {
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
+  const { exchangeRate } = useCurrency()
 
   const { data: paymentsData, isLoading } = useQuery({
     queryKey: computed(() => [
@@ -44,9 +46,10 @@ export function useEmployeePayments(
       method: string
       notes: string
       date: string
+      currency: 'USD' | 'VES'
     }) => {
       if (!businessId.value) throw new Error('No hay negocio activo')
-      return createEmployeePayment(businessId.value, params.employeeId, params.amount, params.method, params.notes, params.date)
+      return createEmployeePayment(businessId.value, params.employeeId, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
@@ -70,6 +73,7 @@ export function useEmployeePayments(
     method: 'cash',
     date: new Date().toISOString().slice(0, 10),
     notes: '',
+    currency: 'USD' as 'USD' | 'VES',
   })
   const employeeList = ref<EmployeeOption[]>([])
 
@@ -96,6 +100,7 @@ export function useEmployeePayments(
       method: 'cash',
       date: new Date().toISOString().slice(0, 10),
       notes: '',
+      currency: 'USD',
     }
     paymentError.value = ''
     showPaymentModal.value = true

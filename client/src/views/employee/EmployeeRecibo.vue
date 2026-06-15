@@ -96,9 +96,9 @@
           <!-- Payments Received -->
           <div v-if="payments.length > 0" class="border-t border-border pt-4">
             <p class="text-xs font-semibold uppercase tracking-wider text-text-muted mb-3">Pagos realizados</p>
-            <div v-for="p in payments" :key="p.id" class="flex justify-between items-center py-2 border-b border-border last:border-b-0">
+            <div v-for="p in paymentsWithCurrency" :key="p.id" class="flex justify-between items-center py-2 border-b border-border last:border-b-0">
               <div>
-                <p class="text-sm font-medium text-text">${{ Number(p.amount).toFixed(2) }}</p>
+                <p class="text-sm font-medium text-text">{{ p.displayAmount }}</p>
                 <p class="text-xs text-text-muted">{{ formatDate(p.payment_date) }} · {{ formatMethod(p.payment_method) }}</p>
               </div>
               <span class="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success">Pagado</span>
@@ -130,6 +130,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { useAuthStore } from '../../store/auth'
 import { useBusinessStore } from '../../store/business'
 import { getInitials, formatMethod, formatDate } from '../../lib/formatters'
+import { useCurrency } from '../../composables/useCurrency'
 import { dashboardKeys, listEmployeeTransactions, listEmployeePayments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 
@@ -184,6 +185,31 @@ const { data: paymentsData } = useQuery({
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
 const payments = computed(() => paymentsData.value ?? [])
+const { formatUSD, formatVESEs } = useCurrency()
+
+const paymentsWithCurrency = computed(() => {
+  return (paymentsData.value ?? []).map((p: any) => {
+    let currency: 'USD' | 'VES' = 'USD'
+    let originalAmount = Number(p.amount)
+    const notes = p.notes ?? ''
+    const vesMatch = notes.match(/^\[VES:(\d+(?:\.\d+)?)\]/)
+    if (vesMatch) {
+      currency = 'VES'
+      originalAmount = Number(vesMatch[1])
+    }
+    const usdMatch = !vesMatch && notes.match(/^\[USD:(\d+(?:\.\d+)?)\]/)
+    if (usdMatch) {
+      currency = 'USD'
+      originalAmount = Number(usdMatch[1])
+    }
+    return {
+      ...p,
+      currency,
+      originalAmount,
+      displayAmount: currency === 'VES' ? formatVESEs(originalAmount) : formatUSD(Number(p.amount)),
+    }
+  })
+})
 
 const windowPrint = () => {
   window.print()

@@ -104,7 +104,10 @@
                 <td class="py-3 text-text-secondary whitespace-nowrap">{{ ep.paymentDate }}</td>
                 <td class="py-3 font-medium text-text">{{ ep.employeeName }}</td>
                 <td class="py-3 text-text-secondary">{{ formatMethod(ep.paymentMethod) }}</td>
-                <td class="py-3 text-right font-medium text-danger">{{ formatUSD(ep.amount) }}</td>
+                <td class="py-3 text-right">
+                  <div class="font-medium text-danger">{{ ep.currency === 'VES' ? formatVESEs(ep.originalAmount) : formatUSD(ep.amount) }}</div>
+                  <div class="text-xs text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount) + ' Bs' }}</div>
+                </td>
                 <td class="py-3 text-center">
                   <button @click="handleDeletePayment(ep.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar pago">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
