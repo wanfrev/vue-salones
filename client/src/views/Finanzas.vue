@@ -66,174 +66,8 @@
     />
   </div>
 
-  <!-- Income Breakdown -->
-  <div class="mb-5 grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2 lg:gap-6">
-    <div class="group flex flex-col rounded-xl border border-border bg-surface shadow-sm transition-theme hover:shadow-md hover:border-border-strong">
-      <div class="flex items-center gap-3 border-b border-border-subtle bg-gradient-to-r from-success/[0.03] to-transparent px-4 sm:px-5 py-3.5 sm:py-4">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success shrink-0">
-          <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-sm font-semibold text-text">Cobros de Citas</h3>
-          <p class="text-xs text-text-muted">Ingresos por servicios del período</p>
-        </div>
-        <div class="text-right shrink-0">
-          <div class="text-lg font-bold text-success">{{ formatUSD(appointmentChargesTotal) }}</div>
-          <div class="text-[11px] text-text-muted">{{ formatVESEs(vesIncomeTotal) }}</div>
-        </div>
-      </div>
-
-      <div class="p-4 sm:p-5">
-        <div v-if="appointmentIncomeRows.length" class="overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b border-border-subtle">
-                <th class="px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">Fecha</th>
-                <th class="px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">Cliente</th>
-                <th class="px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted hidden sm:table-cell">Empleado</th>
-                <th class="px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted hidden sm:table-cell">Servicio</th>
-                <th class="px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">Método</th>
-                <th class="px-2 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-text-muted">Monto</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-border-subtle">
-              <tr v-for="item in appointmentIncomeRows" :key="item.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
-                <td class="px-2 py-2.5 whitespace-nowrap text-text-muted">{{ item.date }}</td>
-                <td class="px-2 py-2.5 font-medium text-text">{{ item.client }}</td>
-                <td class="px-2 py-2.5 text-text-secondary hidden sm:table-cell">{{ item.employee }}</td>
-                <td class="px-2 py-2.5 text-text-secondary hidden sm:table-cell">{{ item.service }}</td>
-                <td class="px-2 py-2.5">
-                  <span class="inline-flex items-center rounded-md bg-bg-secondary px-2 py-0.5 text-[11px] font-medium text-text-muted">{{ item.breakdownLabel || item.method }}</span>
-                </td>
-                <td class="px-2 py-2.5 text-right font-semibold text-success tabular-nums">{{ formatUSD(item.amount) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div v-else class="flex flex-col items-center py-8 text-center">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
-            <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <p class="text-sm text-text-muted">No hay cobros en este período</p>
-        </div>
-        <div class="mt-3 flex justify-end pt-1">
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-primary/5 hover:border-primary/30"
-            @click="goToAllRecords('cobros')"
-          >
-            Ver todos
-            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="group flex flex-col rounded-xl border border-border bg-surface shadow-sm transition-theme hover:shadow-md hover:border-border-strong">
-      <div class="flex items-center gap-3 border-b border-border-subtle bg-gradient-to-r from-info/[0.03] to-transparent px-4 sm:px-5 py-3.5 sm:py-4">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-info/10 text-info shrink-0">
-          <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
-        </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-sm font-semibold text-text">Ventas de Productos</h3>
-          <p class="text-xs text-text-muted">Ingresos por venta de productos del período</p>
-        </div>
-        <div class="text-right shrink-0">
-          <div class="text-lg font-bold text-info">{{ formatUSD(productSalesTotal) }}</div>
-          <div class="text-[11px] text-text-muted">{{ formatVESEs(vesProductSalesTotal) }}</div>
-        </div>
-      </div>
-
-      <div class="p-4 sm:p-5">
-        <div v-if="productSalesRows.length" class="overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b border-border-subtle">
-                <th class="px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">Fecha</th>
-                <th class="px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-muted">Producto</th>
-                <th class="px-2 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-text-muted">Cant.</th>
-                <th class="px-2 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-text-muted hidden sm:table-cell">Precio</th>
-                <th class="px-2 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-text-muted">Total</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-border-subtle">
-              <tr v-for="row in productSalesRows" :key="row.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
-                <td class="px-2 py-2.5 whitespace-nowrap text-text-muted">{{ row.date }}</td>
-                <td class="px-2 py-2.5 font-medium text-text">{{ row.product }}</td>
-                <td class="px-2 py-2.5 text-right tabular-nums text-text-secondary">{{ row.quantity }}</td>
-                <td class="px-2 py-2.5 text-right tabular-nums text-text-secondary hidden sm:table-cell">{{ formatUSD(row.unitPrice) }}</td>
-                <td class="px-2 py-2.5 text-right font-semibold text-info tabular-nums">{{ formatUSD(row.total) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div v-else class="flex flex-col items-center py-8 text-center">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
-            <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-          </div>
-          <p class="text-sm text-text-muted">No hay ventas en este período</p>
-        </div>
-        <div v-if="productSalesBreakdown.length" class="mt-3 rounded-lg bg-bg-secondary p-3">
-          <p class="text-xs font-medium text-text-muted mb-1.5">Productos principales</p>
-          <div class="space-y-1">
-            <div v-for="(p, idx) in productSalesBreakdown.slice(0,3)" :key="p.name" class="flex items-center justify-between text-xs">
-              <span class="text-text-secondary truncate">
-                <span class="font-medium text-text-muted">{{ idx + 1 }}.</span> {{ p.name }}
-              </span>
-              <span class="font-medium text-info tabular-nums shrink-0 ml-2">{{ formatUSD(p.amount) }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="mt-3 flex justify-end pt-1">
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-primary/5 hover:border-primary/30"
-            @click="goToAllRecords('ventas-productos')"
-          >
-            Ver todos
-            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="mb-5 lg:mb-6">
-    <ExpensesSection
-      :expenses="expenses"
-      :business-id="authStore.businessId"
-      :is-loading="expensesCtx.isLoading.value"
-      :error="expensesCtx.queryError.value ? (expensesCtx.queryError.value as Error).message : null"
-      @saved="onExpenseSaved"
-      @view-all="goToAllRecords('gastos')"
-    />
-  </div>
-
-  <div class="mb-5 lg:mb-6">
-    <EmployeePaymentsSection
-      :employee-payments="summaryCtx.employeePayments.value"
-      :employee-earnings-by-employee="summaryCtx.employeeEarningsByEmployee.value"
-      :payments-made="paymentsCtx.paymentsMade.value"
-      :terminology="businessStore.terminology"
-      :business-id="authStore.businessId"
-      @saved="onPaymentSaved"
-      @view-all="goToAllRecords('pagos')"
-    />
-  </div>
-
-  <div class="rounded-xl border border-border bg-surface shadow-sm">
+  <!-- Transacciones Recientes -->
+  <div class="mb-5 rounded-xl border border-border bg-surface shadow-sm">
     <div class="border-b border-border-subtle px-4 sm:px-5 py-3.5 sm:py-4">
       <div class="flex items-center gap-2">
         <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -280,18 +114,18 @@
       <table class="w-full">
         <thead>
           <tr class="border-b border-border-subtle">
-            <th class="px-4 sm:px-5 pb-3 pt-2 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Fecha</th>
-            <th class="px-4 sm:px-5 pb-3 pt-2 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Descripción</th>
-            <th class="px-4 sm:px-5 pb-3 pt-2 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Tipo</th>
-            <th class="px-4 sm:px-5 pb-3 pt-2 text-left text-xs font-semibold uppercase tracking-wider text-text-muted">Método</th>
-            <th class="px-4 sm:px-5 pb-3 pt-2 text-right text-xs font-semibold uppercase tracking-wider text-text-muted">Monto</th>
+            <th class="px-4 pb-3 pt-2 text-left text-xs font-semibold uppercase tracking-wider text-text-secondary">Fecha</th>
+            <th class="px-4 pb-3 pt-2 text-left text-xs font-semibold uppercase tracking-wider text-text-secondary">Descripción</th>
+            <th class="px-4 pb-3 pt-2 text-left text-xs font-semibold uppercase tracking-wider text-text-secondary">Tipo</th>
+            <th class="px-4 pb-3 pt-2 text-left text-xs font-semibold uppercase tracking-wider text-text-secondary">Método</th>
+            <th class="px-4 pb-3 pt-2 text-right text-xs font-semibold uppercase tracking-wider text-text-secondary">Monto</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle">
           <tr v-for="tx in visibleTransactions" :key="tx.id" class="text-sm transition-theme hover:bg-bg-secondary/30">
-            <td class="px-4 sm:px-5 py-3 text-text-secondary whitespace-nowrap">{{ tx.date }}</td>
-            <td class="px-4 sm:px-5 py-3 font-medium text-text">{{ tx.description }}</td>
-            <td class="px-4 sm:px-5 py-3">
+            <td class="px-4 py-3.5 text-text-secondary whitespace-nowrap">{{ tx.date }}</td>
+            <td class="px-4 py-3.5 font-medium text-text">{{ tx.description }}</td>
+            <td class="px-4 py-3.5">
               <span :class="['rounded-full px-2.5 py-0.5 text-xs font-semibold',
                 tx.type === 'ingreso' ? 'bg-success/10 text-success' :
                 tx.type === 'nomina' ? 'bg-warning/10 text-warning' :
@@ -300,15 +134,14 @@
                 {{ tx.type === 'ingreso' ? 'Ingreso' : tx.type === 'nomina' ? 'Nómina' : 'Gasto' }}
               </span>
             </td>
-            <td class="px-4 sm:px-5 py-3">
-              <span class="inline-flex items-center rounded-md bg-bg-secondary px-2 py-0.5 text-xs font-medium text-text-muted">{{ tx.method }}</span>
+            <td class="px-4 py-3.5">
+              <span class="inline-flex items-center rounded-md bg-bg-secondary px-2 py-0.5 text-xs font-medium text-text-secondary">{{ tx.method }}</span>
             </td>
-            <td class="px-4 sm:px-5 py-3 text-right">
+            <td class="px-4 py-3.5 text-right">
               <div class="font-semibold tabular-nums" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
                 {{ tx.type === 'ingreso' ? '+' : '-' }}{{ tx.type === 'nomina' && tx._currency === 'VES' ? formatVESEs(tx._originalAmount ?? tx.amount) : formatUSD(tx.amount) }}
               </div>
-              <div v-if="tx.type === 'nomina' && tx._currency === 'VES'" class="text-xs text-text-muted tabular-nums">{{ formatUSD(tx.amount) }}</div>
-              <div v-else class="text-xs text-text-muted tabular-nums">{{ formatVESInline(tx.amount, tx.exchangeRateUsed) }} Bs</div>
+              <div class="text-xs text-text-muted tabular-nums">{{ formatVESInline(tx.amount, tx.exchangeRateUsed) }} Bs</div>
             </td>
           </tr>
         </tbody>
@@ -327,6 +160,162 @@
       </button>
     </div>
   </div>
+
+  <!-- Gastos del Mes -->
+  <div class="mb-5 lg:mb-6">
+    <ExpensesSection
+      :expenses="expenses"
+      :business-id="authStore.businessId"
+      :is-loading="expensesCtx.isLoading.value"
+      :error="expensesCtx.queryError.value ? (expensesCtx.queryError.value as Error).message : null"
+      @saved="onExpenseSaved"
+      @view-all="goToAllRecords('gastos')"
+    />
+  </div>
+
+  <!-- Income Breakdown -->
+  <div class="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2 lg:gap-6">
+    <div class="group flex flex-col rounded-xl border border-border bg-surface shadow-sm transition-theme hover:shadow-md hover:border-border-strong h-full">
+      <div class="flex items-center gap-3 border-b border-border-subtle bg-gradient-to-r from-success/[0.03] to-transparent px-4 sm:px-5 py-3 sm:py-3.5">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success shrink-0">
+          <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-sm font-semibold text-text">Cobros de Citas</h3>
+          <p class="text-xs text-text-secondary">Ingresos por servicios del período</p>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-lg font-bold text-success">{{ formatUSD(appointmentChargesTotal) }}</div>
+          <div class="text-[11px] text-text-muted font-medium">{{ formatVESEs(vesIncomeTotal) }}</div>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5 flex-1 flex flex-col">
+        <div v-if="appointmentIncomeRows.length" class="overflow-x-auto flex-1">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-border-subtle">
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Fecha</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Cliente</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Empleado</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Servicio</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Método</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Monto</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-subtle">
+              <tr v-for="item in appointmentIncomeRows" :key="item.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
+                <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ item.date }}</td>
+                <td class="px-3 py-3 font-medium text-text">{{ item.client }}</td>
+                <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ item.employee }}</td>
+                <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ item.service }}</td>
+                <td class="px-3 py-3">
+                  <span class="inline-flex items-center rounded-md bg-bg-secondary px-2 py-0.5 text-[11px] font-medium text-text-secondary">{{ item.breakdownLabel || item.method }}</span>
+                </td>
+                <td class="px-3 py-3 text-right font-semibold text-success tabular-nums">{{ formatUSD(item.amount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="flex flex-col items-center justify-center py-8 text-center flex-1">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
+            <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p class="text-sm text-text-muted">No hay cobros en este período</p>
+        </div>
+        <div class="mt-auto pt-3 flex justify-end">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-primary/5 hover:border-primary/30"
+            @click="goToAllRecords('cobros')"
+          >
+            Ver todos
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="group flex flex-col rounded-xl border border-border bg-surface shadow-sm transition-theme hover:shadow-md hover:border-border-strong h-full">
+      <div class="flex items-center gap-3 border-b border-border-subtle bg-gradient-to-r from-info/[0.03] to-transparent px-4 sm:px-5 py-3 sm:py-3.5">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-info/10 text-info shrink-0">
+          <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-sm font-semibold text-text">Ventas de Productos</h3>
+          <p class="text-xs text-text-secondary">Ingresos por venta de productos del período</p>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-lg font-bold text-info">{{ formatUSD(productSalesTotal) }}</div>
+          <div class="text-[11px] text-text-muted font-medium">{{ formatVESEs(vesProductSalesTotal) }}</div>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5 flex-1 flex flex-col">
+        <div v-if="productSalesRows.length" class="overflow-x-auto flex-1">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-border-subtle">
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Fecha</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Producto</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Cant.</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Precio</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Total</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-subtle">
+              <tr v-for="row in productSalesRows" :key="row.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
+                <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ row.date }}</td>
+                <td class="px-3 py-3 font-medium text-text">{{ row.product }}</td>
+                <td class="px-3 py-3 text-right tabular-nums text-text-secondary">{{ row.quantity }}</td>
+                <td class="px-3 py-3 text-right tabular-nums text-text-secondary hidden sm:table-cell">{{ formatUSD(row.unitPrice) }}</td>
+                <td class="px-3 py-3 text-right font-semibold text-info tabular-nums">{{ formatUSD(row.total) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="flex flex-col items-center justify-center py-8 text-center flex-1">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
+            <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <p class="text-sm text-text-muted">No hay ventas en este período</p>
+        </div>
+        <div v-if="productSalesBreakdown.length" class="mt-3 rounded-lg bg-bg-secondary p-3">
+          <p class="text-xs font-medium text-text-secondary mb-1.5">Productos principales</p>
+          <div class="space-y-1">
+            <div v-for="(p, idx) in productSalesBreakdown.slice(0,3)" :key="p.name" class="flex items-center justify-between text-xs">
+              <span class="text-text-secondary truncate">
+                <span class="font-medium text-text-muted">{{ idx + 1 }}.</span> {{ p.name }}
+              </span>
+              <span class="font-medium text-info tabular-nums shrink-0 ml-2">{{ formatUSD(p.amount) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-auto pt-3 flex justify-end">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-primary transition-theme hover:bg-primary/5 hover:border-primary/30"
+            @click="goToAllRecords('ventas-productos')"
+          >
+            Ver todos
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -338,14 +327,11 @@ import { useCurrency } from '../composables/useCurrency'
 import { useBusinessStore } from '../store/business'
 import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { useExpenses } from '../composables/useExpenses'
-import { useEmployeePayments } from '../composables/useEmployeePayments'
 import { useExchangeRate } from '../composables/useExchangeRate'
 import ExchangeRateCard from '../components/finanzas/ExchangeRateCard.vue'
 import KpiCards from '../components/finanzas/KpiCards.vue'
 import ExpensesSection from '../components/finanzas/ExpensesSection.vue'
-import EmployeePaymentsSection from '../components/finanzas/EmployeePaymentsSection.vue'
 import { expensesKeys } from '../services/expensesService'
-import { employeePaymentKeys } from '../services/employeePaymentsService'
 
 const { authStore } = useAuth()
 const businessStore = useBusinessStore()
@@ -378,48 +364,10 @@ if (typeof route.query.month === 'string' && /^\d{4}-\d{2}$/.test(route.query.mo
 
 const businessId = computed(() => authStore.businessId)
 
-const periodDates = computed(() => {
-  const monthMatch = selectedMonth.value.match(/^(\d{4})-(\d{2})$/)
-  const today = new Date()
-
-  const toYmd = (d: Date) => {
-    const yyyy = d.getFullYear()
-    const mm = String(d.getMonth() + 1).padStart(2, '0')
-    const dd = String(d.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
-  }
-
-  if (selectedPeriod.value === 'month' && monthMatch) {
-    const year = Number(monthMatch[1])
-    const monthIndex = Number(monthMatch[2]) - 1
-    const start = new Date(year, monthIndex, 1)
-    const endOfMonth = new Date(year, monthIndex + 1, 0)
-    const isCurrentMonth = year === today.getFullYear() && monthIndex === today.getMonth()
-    return {
-      start: toYmd(start),
-      end: toYmd(isCurrentMonth ? today : endOfMonth),
-    }
-  }
-
-  if (selectedPeriod.value === 'quarter') {
-    const quarterStart = Math.floor(today.getMonth() / 3) * 3
-    return {
-      start: toYmd(new Date(today.getFullYear(), quarterStart, 1)),
-      end: toYmd(today),
-    }
-  }
-
-  return {
-    start: toYmd(new Date(today.getFullYear(), 0, 1)),
-    end: toYmd(today),
-  }
-})
-
 const expensesCtx = useExpenses(businessId, selectedPeriod, selectedMonth)
 const expenses = expensesCtx.expenses
 
 const summaryCtx = useFinancialSummary(businessId, selectedPeriod, expenses, selectedMonth)
-const paymentsCtx = useEmployeePayments(businessId, periodDates)
 const rateCtx = useExchangeRate()
 
 const incomeTotal = summaryCtx.incomeTotal
@@ -447,17 +395,12 @@ const goToAllRecords = (tipo: 'gastos' | 'pagos' | 'transacciones' | 'cobros' | 
 
 const invalidateAll = () => {
   queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value) })
-  queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
   queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value] })
   queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value] })
   queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value] })
-  queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments', businessId.value] })
 }
 
 const onExpenseSaved = () => invalidateAll()
-const onPaymentSaved = async () => {
-  await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
-}
 
 const appointmentChargesTotal = computed(() =>
   summaryCtx.transactions.value

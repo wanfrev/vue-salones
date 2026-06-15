@@ -140,6 +140,18 @@
     </button>
   </div>
 
+  <!-- Employee Payments Summary -->
+  <div class="mb-5 lg:mb-6">
+    <EmployeePaymentsSection
+      :employee-payments="summaryCtx.employeePayments.value"
+      :employee-earnings-by-employee="summaryCtx.employeeEarningsByEmployee.value"
+      :payments-made="paymentsCtx.paymentsMade.value"
+      :terminology="businessStore.terminology"
+      :business-id="authStore.businessId"
+      @saved="onPaymentSaved"
+    />
+  </div>
+
   <!-- Team Schedule Overview -->
   <div class="rounded-xl border border-border bg-surface shadow-sm">
     <div class="border-b border-border-subtle px-4 sm:px-5 py-3.5 sm:py-4">
@@ -242,15 +254,57 @@ import { deleteEmpleado, equipoKeys, listEquipo, saveEmpleado } from '../service
 import { useBusinessStore } from '../store/business'
 import { getInitials } from '../lib/formatters'
 import { EmpleadoFormModal } from '../components/modals'
+import EmployeePaymentsSection from '../components/finanzas/EmployeePaymentsSection.vue'
+import { useFinancialSummary } from '../composables/useFinancialSummary'
+import { useEmployeePayments } from '../composables/useEmployeePayments'
+import { useQueryClient } from '@tanstack/vue-query'
+import { employeePaymentKeys } from '../services/employeePaymentsService'
 import type { Empleado, EmpleadoFormData } from '../types/empleado'
 
 const router = useRouter()
 const { authStore } = useAuth()
 const businessStore = useBusinessStore()
 const { info } = useNotification()
+const queryClient = useQueryClient()
 const empleadoModalRef = ref<InstanceType<typeof EmpleadoFormModal> | null>(null)
 
 const businessId = computed(() => authStore.businessId)
+
+// Period for employee payments summary (current month)
+const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
+const selectedMonth = computed(() => {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+})
+
+const periodDates = computed(() => {
+  const monthMatch = selectedMonth.value.match(/^(\d{4})-(\d{2})$/)
+  const today = new Date()
+  const toYmd = (d: Date) => {
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
+  if (monthMatch) {
+    const year = Number(monthMatch[1])
+    const monthIndex = Number(monthMatch[2]) - 1
+    const start = new Date(year, monthIndex, 1)
+    const endOfMonth = new Date(year, monthIndex + 1, 0)
+    const isCurrentMonth = year === today.getFullYear() && monthIndex === today.getMonth()
+    return { start: toYmd(start), end: toYmd(isCurrentMonth ? today : endOfMonth) }
+  }
+  return { start: toYmd(new Date(today.getFullYear(), 0, 1)), end: toYmd(today) }
+})
+
+const emptyExpenses = ref<{ date: string; amount: number }[]>([])
+const summaryCtx = useFinancialSummary(businessId, selectedPeriod, emptyExpenses, selectedMonth)
+const paymentsCtx = useEmployeePayments(businessId, periodDates)
+
+const onPaymentSaved = async () => {
+  await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
+  await queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value] })
+}
 
 const {
   items: team,
