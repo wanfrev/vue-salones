@@ -307,19 +307,3 @@ export const deleteCita = async (id: string): Promise<void> => {
 
   if (error) throw error
 }
-
-export const exportCitasToCsv = (citas: Cita[]) => {
-  return [
-    ['Cliente', 'Servicio', 'Empleado', 'Fecha', 'Hora', 'Duración', 'Precio', 'Estado'].join(','),
-    ...citas.map(cita => [
-      cita.clientName,
-      cita.service,
-      cita.employee,
-      cita.date,
-      cita.time,
-      cita.duration,
-      cita.price,
-      cita.status,
-    ].join(',')),
-  ].join('\n')
-}

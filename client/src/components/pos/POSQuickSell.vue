@@ -115,6 +115,22 @@
         </div>
       </div>
 
+      <div v-if="paymentMethod === 'other'" class="space-y-2">
+        <label class="block text-sm font-medium text-text">Moneda</label>
+        <div class="flex rounded-lg border border-border bg-bg-secondary/50 p-0.5">
+          <button
+            @click="otherCurrency = 'USD'"
+            class="flex-1 rounded-md py-1.5 text-xs font-medium transition-theme"
+            :class="otherCurrency === 'USD' ? 'bg-surface text-primary shadow-sm' : 'text-text-muted hover:text-text'"
+          >USD ($)</button>
+          <button
+            @click="otherCurrency = 'VES'"
+            class="flex-1 rounded-md py-1.5 text-xs font-medium transition-theme"
+            :class="otherCurrency === 'VES' ? 'bg-surface text-primary shadow-sm' : 'text-text-muted hover:text-text'"
+          >VES (Bs)</button>
+        </div>
+      </div>
+
       <div v-if="paymentMethod === 'mixed'" class="space-y-2 border-t border-border-subtle pt-3">
         <label class="block text-sm font-medium text-text">Distribución del pago</label>
         <div v-for="(split, idx) in paymentsBreakdown" :key="idx" class="flex items-center gap-2">
@@ -210,16 +226,18 @@ const quantity = ref(1)
 const unitPrice = ref(0)
 const notes = ref('')
 const paymentMethod = ref<PaymentMethod>('cash')
+const otherCurrency = ref<'USD' | 'VES'>('USD')
 const paymentsBreakdown = ref<PaymentBreakdownItem[]>([])
 
 const paymentMethods = [
-  { label: 'Efectivo', value: 'cash' as PaymentMethod },
-  { label: 'Tarjeta', value: 'card' as PaymentMethod },
-  { label: 'Transferencia', value: 'transfer' as PaymentMethod },
-  { label: 'Zelle', value: 'zelle' as PaymentMethod },
-  { label: 'Pago Móvil', value: 'pago_movil' as PaymentMethod },
-  { label: 'Mixto', value: 'mixed' as PaymentMethod },
-  { label: 'Otro', value: 'other' as PaymentMethod },
+  { label: 'Efectivo ($)', value: 'cash' as PaymentMethod, currency: 'USD' as const },
+  { label: 'Efectivo (Bs)', value: 'cash_ves' as PaymentMethod, currency: 'VES' as const },
+  { label: 'Tarjeta', value: 'card' as PaymentMethod, currency: 'USD' as const },
+  { label: 'Transferencia', value: 'transfer' as PaymentMethod, currency: 'VES' as const },
+  { label: 'Zelle', value: 'zelle' as PaymentMethod, currency: 'USD' as const },
+  { label: 'Pago Móvil', value: 'pago_movil' as PaymentMethod, currency: 'VES' as const },
+  { label: 'Mixto', value: 'mixed' as PaymentMethod, currency: null as null },
+  { label: 'Otro', value: 'other' as PaymentMethod, currency: null as null },
 ]
 
 const mixedMethods = paymentMethods.filter(m => m.value !== 'mixed')
@@ -319,6 +337,7 @@ const cancelSelection = () => {
   unitPrice.value = 0
   notes.value = ''
   paymentMethod.value = 'cash'
+  otherCurrency.value = 'USD'
   paymentsBreakdown.value = []
 }
 

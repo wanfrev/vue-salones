@@ -6,7 +6,7 @@
 export type AppRole = 'superadmin' | 'admin' | 'empleado'
 export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show'
 export type PaymentStatus = 'unpaid' | 'partial' | 'paid'
-export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'other' | 'zelle' | 'pago_movil' | 'mixed'
+export type PaymentMethod = 'cash' | 'cash_ves' | 'card' | 'transfer' | 'other' | 'zelle' | 'pago_movil' | 'mixed'
 export type AppointmentSource = 'internal' | 'public'
 export type EmployeeAbsenceType = 'break' | 'vacation' | 'sick_leave' | 'personal' | 'blocked'
 export type InventoryMovementType =

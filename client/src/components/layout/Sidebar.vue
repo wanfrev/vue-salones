@@ -48,7 +48,6 @@
           <p class="truncate text-sm font-medium text-text leading-tight">{{ authStore.profile?.full_name || 'Usuario' }}</p>
           <p class="text-[10px] text-text-muted capitalize">{{ authStore.role }}</p>
         </div>
-        <ThemeToggle />
         <button @click="logout" :disabled="loading" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-border hover:text-text disabled:opacity-40 disabled:cursor-not-allowed" title="Cerrar sesión">
           <svg v-if="!loading" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -70,7 +69,6 @@ import { useAuth } from '../../composables/useAuth'
 import { useBusinessStore } from '../../store/business'
 import { isAdminPanelRole } from '../../constants/roles'
 import { getInitials } from '../../lib/formatters'
-import ThemeToggle from '../common/ThemeToggle.vue'
 import { sidebarSections } from './sidebarLinks'
 import type { SidebarLink } from './sidebarLinks'
 

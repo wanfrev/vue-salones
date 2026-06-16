@@ -94,6 +94,22 @@
         </div>
       </div>
 
+      <div v-if="paymentMethod === 'other'" class="space-y-2">
+        <label class="block text-sm font-medium text-text">Moneda</label>
+        <div class="flex rounded-lg border border-border bg-bg-secondary/50 p-0.5">
+          <button
+            @click="$emit('update:otherCurrency', 'USD')"
+            class="flex-1 rounded-md py-1.5 text-xs font-medium transition-theme"
+            :class="otherCurrency === 'USD' ? 'bg-surface text-primary shadow-sm' : 'text-text-muted hover:text-text'"
+          >USD ($)</button>
+          <button
+            @click="$emit('update:otherCurrency', 'VES')"
+            class="flex-1 rounded-md py-1.5 text-xs font-medium transition-theme"
+            :class="otherCurrency === 'VES' ? 'bg-surface text-primary shadow-sm' : 'text-text-muted hover:text-text'"
+          >VES (Bs)</button>
+        </div>
+      </div>
+
       <div v-if="paymentMethod === 'mixed'" class="space-y-2 border-t border-border-subtle pt-3">
         <label class="block text-sm font-medium text-text">Distribución del pago</label>
         <div v-for="(split, idx) in paymentsBreakdown" :key="idx" class="flex items-center gap-2">
@@ -182,6 +198,7 @@ defineProps<{
   cartCount: number
   grandTotal: number
   paymentMethod: PaymentMethod
+  otherCurrency: 'USD' | 'VES'
   paymentMethods: { label: string; value: PaymentMethod }[]
   mixedMethods: { label: string; value: PaymentMethod }[]
   paymentsBreakdown: PaymentBreakdownItem[]
@@ -193,6 +210,7 @@ defineProps<{
 
 defineEmits<{
   'select-method': [method: PaymentMethod]
+  'update:otherCurrency': [currency: 'USD' | 'VES']
   'add-split': []
   'remove-split': [idx: number]
   'update:notes': [value: string]

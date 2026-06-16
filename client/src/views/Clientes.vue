@@ -58,15 +58,6 @@
         </svg>
         Filtros
       </button>
-      <button
-        @click="handleExport"
-        class="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:border-border-strong"
-      >
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-        Exportar
-      </button>
     </div>
   </div>
 
@@ -240,7 +231,6 @@ import { useNotification } from '../composables/useNotification'
 import { useBusinessStore } from '../store/business'
 import { clientesKeys, deleteCliente, listClientes, saveCliente } from '../services/clientesService'
 import { getInitials, sanitizePhone } from '../lib/formatters'
-import { exportToCsv } from '../lib/exportCsv'
 import ClientStats from '../components/clientes/ClientStats.vue'
 import { ClienteFormModal } from '../components/modals'
 import { FilterDrawer } from '../components/filters'
@@ -250,7 +240,7 @@ import type { Cliente, ClienteFormData } from '../types/cliente'
 const router = useRouter()
 const { authStore } = useAuth()
 const businessStore = useBusinessStore()
-const { success, info } = useNotification()
+const { info } = useNotification()
 
 const businessId = computed(() => authStore.businessId)
 const clienteModalRef = ref<InstanceType<typeof ClienteFormModal> | null>(null)
@@ -307,19 +297,6 @@ const handleViewAgenda = (cliente: Cliente) => {
 const openFilterDrawer = () => {
   filterDrawerRef.value?.setFilters(getFilterDrawerDefaults())
   filterDrawerRef.value?.open()
-}
-
-const handleExport = () => {
-  exportToCsv(
-    filteredClients.value.map(c => ({
-      Nombre: c.name,
-      Teléfono: c.phone,
-      Email: c.email,
-      'Última Visita': c.lastVisit,
-    })),
-    `clientes-${new Date().toISOString().split('T')[0]}.csv`
-  )
-  success('Clientes exportados correctamente')
 }
 
 const handleWhatsApp = (cliente: Cliente) => {

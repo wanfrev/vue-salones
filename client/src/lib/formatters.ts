@@ -4,7 +4,8 @@ export function getInitials(name?: string): string {
 }
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  cash: 'Efectivo',
+  cash: 'Efectivo ($)',
+  cash_ves: 'Efectivo (Bs)',
   card: 'Tarjeta',
   transfer: 'Transferencia',
   zelle: 'Zelle',

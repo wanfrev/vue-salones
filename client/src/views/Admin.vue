@@ -18,15 +18,6 @@
 
           <div class="flex items-center gap-2">
             <button
-              @click="handleExport"
-              class="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:border-border-strong"
-            >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              <span class="hidden sm:inline">Exportar</span>
-            </button>
-            <button
               @click="handleNewCita"
               class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
             >
@@ -146,9 +137,7 @@
 import { ref, computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
-import { useNotification } from '../composables/useNotification'
-import { downloadCsv } from '../lib/csv'
-import { exportCitasToCsv, listCitas, agendaKeys } from '../services/agendaService'
+import { listCitas, agendaKeys } from '../services/agendaService'
 import { equipoKeys, listEquipo } from '../services/equipoService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { useBusinessStore } from '../store/business'
@@ -159,7 +148,6 @@ import AgendaListView from '../components/agenda/AgendaListView.vue'
 import type { Cita } from '../types/cita'
 
 const { authStore } = useAuth()
-const { success } = useNotification()
 const businessStore = useBusinessStore()
 
 // --- Agenda del Día ---
@@ -257,13 +245,5 @@ const handleEditCita = (cita: Cita) => {
   citaModalRef.value?.open(cita)
 }
 
-const handleExport = () => {
-  const dateStr = toISODate(selectedDate.value)
-  const citasFiltered = citas.value.filter(c => c.date === dateStr)
-
-  const csvContent = exportCitasToCsv(citasFiltered)
-  downloadCsv(`citas-${dateStr}.csv`, csvContent)
-  success('Citas exportadas correctamente')
-}
 
 </script>

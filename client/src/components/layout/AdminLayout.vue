@@ -14,6 +14,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <ThemeToggle />
         <NotificationBell />
         <button @click="logout" :disabled="loading" class="rounded-lg p-2 text-text-muted transition-theme hover:bg-bg-secondary hover:text-text-secondary disabled:opacity-50 disabled:cursor-not-allowed">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -43,6 +44,7 @@ import lumaLogoLight from '../../assets/Luma.svg'
 import lumaLogoDark from '../../assets/Luma blanco.svg'
 import Sidebar from './Sidebar.vue'
 import NotificationBell from '../common/NotificationBell.vue'
+import ThemeToggle from '../common/ThemeToggle.vue'
 
 const { logout, loading } = useAuth()
 const themeStore = useThemeStore()

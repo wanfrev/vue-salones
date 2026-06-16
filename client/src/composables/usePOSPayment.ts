@@ -13,19 +13,25 @@ export function usePOSPayment() {
   const businessId = computed(() => authStore.businessId)
 
   const paymentMethod = ref<PaymentMethod>('cash')
+  const otherCurrency = ref<'USD' | 'VES'>('USD')
   const paymentNotes = ref('')
   const isProcessing = ref(false)
   const paymentsBreakdown = ref<PaymentBreakdownItem[]>([])
 
   const paymentMethods = [
-    { label: 'Efectivo', value: 'cash' as PaymentMethod },
-    { label: 'Tarjeta', value: 'card' as PaymentMethod },
-    { label: 'Transferencia', value: 'transfer' as PaymentMethod },
-    { label: 'Zelle', value: 'zelle' as PaymentMethod },
-    { label: 'Pago Móvil', value: 'pago_movil' as PaymentMethod },
-    { label: 'Mixto', value: 'mixed' as PaymentMethod },
-    { label: 'Otro', value: 'other' as PaymentMethod },
+    { label: 'Efectivo ($)', value: 'cash' as PaymentMethod, currency: 'USD' as const },
+    { label: 'Efectivo (Bs)', value: 'cash_ves' as PaymentMethod, currency: 'VES' as const },
+    { label: 'Tarjeta', value: 'card' as PaymentMethod, currency: 'USD' as const },
+    { label: 'Transferencia', value: 'transfer' as PaymentMethod, currency: 'VES' as const },
+    { label: 'Zelle', value: 'zelle' as PaymentMethod, currency: 'USD' as const },
+    { label: 'Pago Móvil', value: 'pago_movil' as PaymentMethod, currency: 'VES' as const },
+    { label: 'Mixto', value: 'mixed' as PaymentMethod, currency: null as null },
+    { label: 'Otro', value: 'other' as PaymentMethod, currency: null as null },
   ]
+
+  const methodCurrency = (method: PaymentMethod): 'USD' | 'VES' | null => {
+    return paymentMethods.find(m => m.value === method)?.currency ?? null
+  }
 
   const mixedMethods = paymentMethods.filter(m => m.value !== 'mixed')
 
@@ -83,7 +89,8 @@ export function usePOSPayment() {
     try {
       let breakdown = paymentsBreakdown.value
       if (paymentMethod.value !== 'mixed') {
-        breakdown = [{ method: paymentMethod.value, inputAmount: grandTotal, currency: 'USD', amount: grandTotal }]
+        const currency = methodCurrency(paymentMethod.value) ?? otherCurrency.value
+        breakdown = [{ method: paymentMethod.value, inputAmount: grandTotal, currency, amount: grandTotal }]
       }
 
       await recordMutation.mutateAsync({
@@ -110,12 +117,14 @@ export function usePOSPayment() {
 
   const reset = () => {
     paymentMethod.value = 'cash'
+    otherCurrency.value = 'USD'
     paymentNotes.value = ''
     paymentsBreakdown.value = []
   }
 
   return {
     paymentMethod,
+    otherCurrency,
     paymentNotes,
     isProcessing,
     paymentsBreakdown,
