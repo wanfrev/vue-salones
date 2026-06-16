@@ -1,5 +1,5 @@
 <template>
-  <section class="h-[calc(100vh-120px)] min-h-[500px]">
+  <section class="h-[calc(100dvh-120px)] max-md:h-[calc(100dvh-160px)] min-h-[500px]">
     <AgendaCalendar
       @event-click="handleEventClick"
       @status-change="handleStatusChange"

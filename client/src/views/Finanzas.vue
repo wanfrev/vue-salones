@@ -24,7 +24,7 @@
             id="month-picker"
             v-model="selectedMonth"
             type="month"
-            class="rounded-md border border-border bg-surface px-2 py-1 text-xs text-text outline-none transition-theme focus:border-primary w-28 sm:w-auto"
+            class="rounded-md border border-border bg-surface px-2 py-1 text-xs text-text outline-none transition-theme focus:border-primary w-full sm:w-auto"
             @change="selectedPeriod = 'month'"
           />
           <button
@@ -39,7 +39,7 @@
     </div>
   </header>
 
-  <div class="mb-5 lg:mb-8">
+  <div class="mb-4">
     <KpiCards
       :income-total="incomeTotal"
       :ves-income-total="vesIncomeTotal"
@@ -61,12 +61,12 @@
   </div>
 
   <!-- Transacciones Recientes -->
-  <div class="mb-5 rounded-xl border border-border bg-surface shadow-sm">
-    <div class="border-b border-border-subtle px-4 sm:px-5 py-3.5 sm:py-4">
+  <div class="mb-4 rounded-xl border border-border bg-surface shadow-sm">
+    <div class="border-b border-border-subtle px-3 sm:px-5 py-3 sm:py-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <div class="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <svg class="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
             </svg>
           </div>
@@ -89,7 +89,7 @@
       </div>
     </div>
 
-    <div class="lg:hidden space-y-2 p-4 sm:p-5">
+    <div class="space-y-2 p-3 sm:p-5 lg:hidden">
       <div v-for="tx in visibleTransactions" :key="tx.id" class="rounded-lg border border-border-subtle bg-bg-secondary p-3.5 transition-theme hover:bg-bg-secondary/80">
         <div class="flex items-start justify-between gap-2 mb-2">
           <div class="min-w-0 flex-1">
@@ -182,12 +182,12 @@
   </div>
 
   <!-- Detalle de Movimientos del Período -->
-  <div class="mb-5 rounded-xl border border-border bg-surface shadow-sm">
+  <div class="mb-4 rounded-xl border border-border bg-surface shadow-sm">
     <!-- Header -->
-    <div class="flex flex-col gap-4 border-b border-border-subtle px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
+    <div class="flex flex-col gap-3 border-b border-border-subtle px-3 sm:px-5 py-3 sm:py-4">
       <div>
-        <h3 class="text-base font-semibold text-text flex items-center gap-2">
-          <svg class="h-4.5 w-4.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <h3 class="text-sm sm:text-base font-semibold text-text flex items-center gap-2">
+          <svg class="h-4 w-4 sm:h-4.5 sm:w-4.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           Detalle de Movimientos
@@ -225,7 +225,7 @@
     </div>
 
     <!-- KPI Summary Banner -->
-    <div class="mx-5 mt-4 mb-0 rounded-xl border border-border-subtle p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" :class="[
+    <div class="mx-3 sm:mx-5 mt-3 sm:mt-4 mb-0 rounded-xl border border-border-subtle p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" :class="[
       activeDetailTab === 'cobros' ? 'bg-gradient-to-r from-success/[0.04] to-transparent' :
       activeDetailTab === 'ventas' ? 'bg-gradient-to-r from-info/[0.04] to-transparent' :
       'bg-gradient-to-r from-danger/[0.04] to-transparent'
@@ -247,9 +247,9 @@
           </svg>
         </div>
         <div>
-          <span class="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Total {{ activeDetailTab === 'cobros' ? 'Cobrado' : activeDetailTab === 'ventas' ? 'Vendido' : 'Gastado' }}</span>
-            <div class="flex items-baseline gap-2 mt-0.5">
-              <span class="text-2xl font-bold text-text tracking-tight tabular-nums">{{ formatUSD(detailTabTotal) }}</span>
+          <span class="text-[10px] sm:text-[11px] text-text-muted uppercase tracking-wider font-semibold">Total {{ activeDetailTab === 'cobros' ? 'Cobrado' : activeDetailTab === 'ventas' ? 'Vendido' : 'Gastado' }}</span>
+            <div class="flex items-baseline gap-2 mt-0.5 flex-wrap">
+              <span class="text-xl sm:text-2xl font-bold text-text tracking-tight tabular-nums">{{ formatUSD(detailTabTotal) }}</span>
               <span v-if="activeDetailTab === 'cobros'" class="text-sm text-text-muted font-medium">{{ detailTabVesTotal }}</span>
               <span class="text-xs text-text-muted font-mono">{{ detailTabCount }} {{ activeDetailTab === 'cobros' ? 'cobros' : activeDetailTab === 'ventas' ? 'ventas' : 'gastos' }}</span>
             </div>
@@ -283,7 +283,7 @@
     </div>
 
     <!-- Table Content -->
-    <div class="p-5">
+    <div class="p-3 sm:p-5">
       <!-- Tab: Cobros de Citas -->
       <div v-if="activeDetailTab === 'cobros'">
         <div v-if="allCobrosRows.length" class="overflow-x-auto">

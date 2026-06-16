@@ -1,20 +1,20 @@
 <template>
   <div class="flex-1 overflow-hidden rounded-lg border border-border bg-surface sm:rounded-xl">
-    <div class="h-full flex flex-col">
-      <div class="grid grid-cols-7 border-b border-border bg-bg-secondary/40">
+    <div class="h-full flex flex-col overflow-hidden">
+      <div class="grid grid-cols-7 border-b border-border bg-bg-secondary/40 shrink-0">
         <div
           v-for="dayName in dayNames"
           :key="dayName"
-          class="py-2 text-center text-[11px] font-semibold text-text-muted uppercase tracking-wide sm:text-xs sm:py-2.5"
+          class="py-1.5 text-center text-[9px] font-semibold text-text-muted uppercase tracking-wide sm:text-xs sm:py-2.5"
         >
           {{ dayName }}
         </div>
       </div>
-      <div class="grid grid-cols-7 flex-1" style="grid-template-rows: repeat(6, 1fr);">
+      <div class="grid grid-cols-7 flex-1 min-h-0" style="grid-auto-rows: 1fr;">
         <div
           v-for="(cell, idx) in cells"
           :key="idx"
-          class="border-r border-b border-border-subtle/60 p-1 sm:p-1.5 cursor-pointer transition-colors hover:bg-bg-secondary/40 min-h-[64px] sm:min-h-[80px]"
+          class="border-r border-b border-border-subtle/60 p-0.5 sm:p-1.5 cursor-pointer transition-colors hover:bg-bg-secondary/40 overflow-hidden min-h-0"
           :class="[
             cell.iso === todayIso ? 'bg-primary-light/40' : '',
             cell.isCurrentMonth ? '' : 'opacity-30',
@@ -24,26 +24,26 @@
           @click="cell.iso && $emit('goToDate', cell.iso)"
         >
           <span
-            class="inline-flex items-center justify-center h-5 w-5 rounded-full text-xs font-semibold sm:h-6 sm:w-6 sm:text-sm"
+            class="inline-flex items-center justify-center h-4 w-4 rounded-full text-[10px] font-semibold sm:h-6 sm:w-6 sm:text-sm"
             :class="cell.iso === todayIso ? 'bg-primary text-white' : cell.iso === selectedDate ? 'bg-primary/15 text-primary' : 'text-text'"
           >
             {{ cell.number }}
           </span>
-          <div class="mt-0.5 space-y-0.5 overflow-hidden">
+          <div class="mt-px space-y-px overflow-hidden">
             <div
               v-for="appt in cell.appointments.slice(0, 2)"
               :key="appt.id"
-              class="flex items-center gap-1 rounded px-1 py-px cursor-pointer transition-colors hover:brightness-95"
+              class="flex items-center gap-0.5 rounded-sm px-0.5 py-px cursor-pointer transition-colors hover:brightness-95 sm:gap-1 sm:rounded sm:px-1"
               :class="monthCardBg(appt.status)"
               @click.stop="$emit('eventClick', appt.raw)"
             >
-              <span class="h-1.5 w-1.5 rounded-full flex-shrink-0" :class="statusDotClass(appt.status)" />
-              <span class="text-[9px] font-medium leading-tight truncate sm:text-[10px]">{{ appt.clientName }}</span>
-              <span class="text-[8px] text-text-muted ml-auto flex-shrink-0 hidden sm:inline">{{ appt.time }}</span>
+              <span class="h-1 w-1 rounded-full flex-shrink-0 sm:h-1.5 sm:w-1.5" :class="statusDotClass(appt.status)" />
+              <span class="text-[8px] font-medium leading-tight truncate sm:text-[10px]">{{ appt.clientName }}</span>
+              <span class="text-[7px] text-text-muted ml-auto flex-shrink-0 hidden sm:inline">{{ appt.time }}</span>
             </div>
             <div
               v-if="cell.appointments.length > 2"
-              class="text-[9px] font-medium text-text-muted pl-1"
+              class="text-[8px] font-medium text-text-muted pl-0.5 sm:text-[9px] sm:pl-1"
             >
               +{{ cell.appointments.length - 2 }} más
             </div>

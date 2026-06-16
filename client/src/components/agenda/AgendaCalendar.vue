@@ -2,7 +2,7 @@
   <div class="flex h-full flex-col gap-2 sm:gap-3">
     <!-- Panel de Filtros -->
     <div class="flex flex-col gap-2 rounded-lg border border-border bg-surface p-2 sm:rounded-xl sm:p-2.5 lg:flex-row lg:items-center lg:justify-between">
-      <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-1.5">
         <div v-if="isAdmin" class="flex items-center gap-2">
           <div class="relative">
             <select
@@ -42,43 +42,26 @@
     </div>
 
     <!-- Date Navigator -->
-    <div class="flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-2 sm:rounded-xl sm:px-4 sm:py-2.5">
-      <div class="flex items-center gap-2">
-        <button @click="goToday" class="rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary transition-theme hover:bg-primary-light hover:border-primary/20 sm:px-3 sm:py-1.5">Hoy</button>
+    <div class="flex flex-col gap-2 rounded-lg border border-border bg-surface p-2 sm:rounded-xl sm:p-2.5 lg:flex-row lg:items-center lg:justify-between lg:gap-0">
+      <!-- Nav: arrows + title -->
+      <div class="flex items-center justify-between">
         <button @click="navigate(-1)" class="flex h-8 w-8 items-center justify-center rounded-full border border-border text-text-secondary transition-theme hover:bg-bg-secondary hover:border-border-strong hover:text-text sm:h-9 sm:w-9">
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
         </button>
-        <h2 class="min-w-[200px] text-center text-sm font-semibold text-text truncate sm:text-base sm:min-w-[280px]">{{ titleText }}</h2>
+        <h2 class="text-center text-sm font-semibold text-text truncate px-2 sm:text-base lg:text-lg">{{ titleText }}</h2>
         <button @click="navigate(1)" class="flex h-8 w-8 items-center justify-center rounded-full border border-border text-text-secondary transition-theme hover:bg-bg-secondary hover:border-border-strong hover:text-text sm:h-9 sm:w-9">
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </button>
       </div>
 
-      <div class="flex items-center gap-2">
-        <!-- View Switcher Desktop -->
-        <div class="hidden sm:inline-flex rounded-lg border border-border bg-bg-secondary/50 p-0.5">
+      <!-- Actions: Hoy + View Switcher -->
+      <div class="flex items-center justify-center gap-2">
+        <button @click="goToday" class="rounded-lg border border-border px-3 py-1 text-xs font-semibold text-primary transition-theme hover:bg-primary-light hover:border-primary/20">Hoy</button>
+        <div class="inline-flex rounded-lg border border-border bg-bg-secondary/50 p-0.5">
           <button v-for="v in viewOptions" :key="v.value" @click="viewMode = v.value"
-            class="px-3 py-1 text-xs font-medium rounded-md transition-theme"
+            class="px-2 py-1 text-xs font-medium rounded-md transition-theme sm:px-3"
             :class="viewMode === v.value ? 'bg-surface text-primary shadow-sm' : 'text-text-muted hover:text-text'">{{ v.label }}</button>
         </div>
-        <!-- Day pills (day view only) -->
-        <div v-if="viewMode === 'day'" class="flex gap-1 overflow-x-auto scrollbar-hide">
-          <button v-for="day in visibleDays" :key="day.iso" @click="selectedDate = day.iso"
-            class="flex flex-col items-center rounded-lg px-2.5 py-1.5 min-w-[44px] transition-all duration-150 sm:px-3 sm:min-w-[52px]"
-            :class="day.iso === selectedDate ? 'bg-primary text-white shadow-sm shadow-primary/25 scale-105' : day.isToday ? 'bg-primary-light text-primary border border-primary/20' : 'text-text-secondary hover:bg-bg-secondary hover:text-text'">
-            <span class="text-[9px] font-semibold uppercase tracking-wide opacity-75">{{ day.label }}</span>
-            <span class="text-sm font-bold leading-tight mt-0.5">{{ day.number }}</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mobile View Switcher -->
-    <div class="flex justify-center sm:hidden">
-      <div class="inline-flex rounded-lg border border-border bg-bg-secondary/50 p-0.5">
-        <button v-for="v in viewOptions" :key="v.value" @click="viewMode = v.value"
-          class="px-3 py-1.5 text-xs font-medium rounded-md transition-theme"
-          :class="viewMode === v.value ? 'bg-surface text-primary shadow-sm' : 'text-text-muted hover:text-text'">{{ v.label }}</button>
       </div>
     </div>
 
@@ -117,16 +100,16 @@
           <!-- Sticky header -->
           <div class="sticky top-0 z-20 flex border-b border-border bg-surface" :style="{ paddingLeft: `${TIME_COL_WIDTH}px` }">
             <div v-for="col in gridColumns" :key="col.key"
-              class="flex flex-col items-center justify-center gap-0.5 border-r border-border-subtle px-2 py-2 last:border-r-0"
+              class="flex flex-col items-center justify-center gap-0.5 border-r border-border-subtle px-1 py-2 last:border-r-0 sm:px-2"
               :class="col.isToday ? 'bg-primary-light/40' : ''"
               :style="{ width: `${col.widthPercent}%` }">
               <template v-if="col.number !== undefined">
-                <span class="text-[10px] font-medium text-text-muted uppercase tracking-wide leading-none sm:text-[11px]">{{ col.label }}</span>
-                <span class="text-sm font-bold leading-none" :class="col.isToday ? 'text-primary' : 'text-text'">{{ col.number }}</span>
+                <span class="text-[8px] font-medium text-text-muted uppercase tracking-wide leading-none sm:text-[11px]">{{ col.label }}</span>
+                <span class="text-xs font-bold leading-none sm:text-sm" :class="col.isToday ? 'text-primary' : 'text-text'">{{ col.number }}</span>
               </template>
               <template v-else>
-                <div v-if="col.avatar" class="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white sm:h-7 sm:w-7 sm:text-xs" style="background: var(--color-primary)">{{ col.avatar }}</div>
-                <span class="text-[11px] font-semibold text-text truncate sm:text-xs">{{ col.label }}</span>
+                <div v-if="col.avatar" class="flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-bold text-white shrink-0 sm:h-7 sm:w-7 sm:text-xs" style="background: var(--color-primary)">{{ col.avatar }}</div>
+                <span class="text-[9px] font-semibold text-text truncate sm:text-xs">{{ col.label }}</span>
               </template>
             </div>
           </div>
@@ -136,7 +119,7 @@
             <!-- Time labels -->
             <div class="flex-shrink-0 z-10 bg-surface" :style="{ width: `${TIME_COL_WIDTH}px` }">
               <div v-for="hourIdx in totalHours" :key="'t'+hourIdx" class="flex items-start justify-end pr-2" :style="{ height: `${HOUR_HEIGHT}px` }">
-                <span class="text-[10px] font-medium text-text-muted -mt-2 leading-none tabular-nums sm:text-[11px]">{{ hourSlots[hourIdx - 1] }}</span>
+                <span class="text-[9px] font-medium text-text-muted -mt-2 leading-none tabular-nums sm:text-[11px]">{{ hourSlots[hourIdx - 1] }}</span>
               </div>
             </div>
 
@@ -152,30 +135,30 @@
                 <div v-for="h in totalHours" :key="'m'+h" class="absolute left-0 right-0 border-b border-dashed border-border-subtle/30" :style="{ top: `${(h - 1) * HOUR_HEIGHT + HOUR_HEIGHT / 2}px` }" />
                 <!-- Now line -->
                 <div v-if="isToday && nowLineTop >= 0" class="absolute left-0 right-0 z-20 pointer-events-none" :style="{ top: `${nowLineTop}px` }">
-                  <div class="absolute -left-1.5 -top-[5px] h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-zinc-900" />
-                  <div class="absolute left-0 right-0 top-0 h-[2px] bg-red-500" />
+                  <div class="absolute -left-1.5 -top-[3px] h-2 w-2 rounded-full bg-primary ring-2 ring-surface dark:ring-zinc-900 shadow-sm shadow-primary/40" />
+                  <div class="absolute left-0 right-0 top-[5px] h-px bg-gradient-to-r from-transparent via-primary/60 to-primary/60" />
                 </div>
                 <!-- Cards -->
                 <div v-for="appt in col.appointments" :key="appt.id"
-                  class="absolute left-1 right-1 rounded-lg cursor-pointer overflow-hidden transition-all duration-150 hover:scale-[1.02] hover:z-10 group"
+                  class="absolute left-0.5 right-0.5 sm:left-1 sm:right-1 rounded-lg cursor-pointer overflow-hidden transition-all duration-150 hover:scale-[1.02] hover:z-10 group"
                   :class="cardBgClass(appt.status)"
                   :style="{ top: `${appt.top}px`, height: `${Math.max(appt.height, 24)}px` }"
                   @click.stop="emitEventClick(appt.raw)">
-                  <div class="absolute left-0 top-0 bottom-0 w-[3px]" :class="statusStripeClass(appt.status)" />
-                  <div class="flex flex-col h-full p-1.5 sm:p-2" :class="appt.height < 48 ? 'justify-center' : ''">
-                    <div class="flex items-center gap-1.5 min-w-0">
-                      <button class="h-2 w-2 rounded-full flex-shrink-0 transition-transform hover:scale-125" :class="statusDotClass(appt.status)" title="Cambiar estado" @click.stop="toggleStatusMenu(appt, $event)" />
-                      <span class="text-[10px] font-semibold text-text-muted tabular-nums whitespace-nowrap sm:text-[11px]">{{ appt.time }}</span>
+                  <div class="absolute left-0 top-0 bottom-0 w-[2px] sm:w-[3px]" :class="statusStripeClass(appt.status)" />
+                  <div class="flex flex-col h-full p-1 sm:p-2" :class="appt.height < 48 ? 'justify-center' : ''">
+                    <div class="flex items-center gap-0.5 min-w-0 sm:gap-1.5">
+                      <button class="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full flex-shrink-0 transition-transform hover:scale-125" :class="statusDotClass(appt.status)" title="Cambiar estado" @click.stop="toggleStatusMenu(appt, $event)" />
+                      <span class="text-[8px] font-semibold text-text-muted tabular-nums whitespace-nowrap sm:text-[11px]">{{ appt.time }}</span>
                       <button v-if="appt.status !== 'paid' && appt.status !== 'cancelled' && appt.height >= 40"
                         class="ml-auto flex h-4 w-4 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-all hover:scale-110 flex-shrink-0"
                         :class="checkoutBtnClass(appt.status)" title="Cobrar" @click.stop="emitCheckout(appt.raw.id)">
                         <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
                       </button>
                     </div>
-                    <div class="text-[11px] font-bold text-text leading-tight mt-0.5 truncate sm:text-xs">{{ appt.clientName }}</div>
-                    <div v-if="appt.height >= 48" class="flex items-center gap-1.5 mt-0.5 min-w-0">
-                      <span class="text-[10px] text-text-secondary bg-bg-secondary rounded px-1 py-px truncate">{{ appt.service }}</span>
-                      <span v-if="appt.employeeInitials && isAdmin" class="flex-shrink-0 h-4 w-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white" style="background: var(--color-primary)">{{ appt.employeeInitials }}</span>
+                    <div class="text-[9px] font-bold text-text leading-tight mt-0.5 truncate sm:text-xs">{{ appt.clientName }}</div>
+                    <div v-if="appt.height >= 48" class="flex items-center gap-0.5 mt-0.5 min-w-0 sm:gap-1.5">
+                      <span class="text-[8px] text-text-secondary bg-bg-secondary rounded px-0.5 py-px truncate sm:text-[10px] sm:px-1">{{ appt.service }}</span>
+                      <span v-if="appt.employeeInitials && isAdmin" class="flex-shrink-0 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full flex items-center justify-center text-[6px] sm:text-[8px] font-bold text-white" style="background: var(--color-primary)">{{ appt.employeeInitials }}</span>
                     </div>
                   </div>
                 </div>
@@ -231,7 +214,7 @@ const { selectedEmployeeId, setDateRange, employees, loadingEmployees, services,
 const START_HOUR = 7
 const END_HOUR = 21
 const HOUR_HEIGHT = 64
-const TIME_COL_WIDTH = 52
+const TIME_COL_WIDTH = 40
 const totalGridHeight = (END_HOUR - START_HOUR) * HOUR_HEIGHT
 const totalHours = END_HOUR - START_HOUR
 
@@ -282,15 +265,6 @@ const titleText = computed(() => {
     return `${sow.getDate()} ${monthNames[sow.getMonth()]} - ${eow.getDate()} ${monthNames[eow.getMonth()]}, ${eow.getFullYear()}`
   }
   return `${monthNames[d.getMonth()]} ${d.getFullYear()}`
-})
-
-const visibleDays = computed(() => {
-  const sel = new Date(selectedDate.value + 'T12:00:00')
-  const sow = new Date(sel); sow.setDate(sel.getDate() - sel.getDay())
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(sow); d.setDate(sow.getDate() + i)
-    return { iso: toISODate(d), label: dayNames[d.getDay()], number: d.getDate(), isToday: toISODate(d) === todayIso.value }
-  })
 })
 
 const nowLineTop = computed(() => {

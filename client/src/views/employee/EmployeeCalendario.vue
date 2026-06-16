@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="h-[calc(100vh-120px)] min-h-[500px] max-lg:h-[calc(100vh-200px)]">
+    <div class="h-[calc(100dvh-120px)] max-md:h-[calc(100dvh-180px)] min-h-[500px]">
         <AgendaCalendar
           @event-click="handleEventClick"
           @status-change="handleStatusChange"

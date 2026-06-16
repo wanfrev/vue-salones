@@ -1,24 +1,24 @@
 <template>
   <div
-    class="group rounded-xl border border-border bg-surface p-3 shadow-sm transition-theme hover:shadow-md hover:border-warning/30 sm:p-4"
+    class="group rounded-xl border border-border bg-surface p-2.5 shadow-sm transition-theme hover:shadow-md hover:border-warning/30 sm:p-4"
     :class="{ 'cursor-pointer': !editing && isEditable }"
     @click="onCardClick"
   >
     <!-- Display mode -->
     <template v-if="!editing">
-      <div class="flex items-center gap-2.5 sm:gap-3">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-warning/10 to-warning/5 text-warning shrink-0 sm:h-10 sm:w-10 transition-theme group-hover:bg-warning/15 group-hover:scale-105">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-warning/10 to-warning/5 text-warning shrink-0 sm:h-10 sm:w-10 transition-theme group-hover:bg-warning/15 group-hover:scale-105">
           <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         <div class="min-w-0 flex-1">
-          <p class="text-[11px] font-medium uppercase tracking-wider text-text-secondary sm:text-xs">Tasa del Día</p>
+          <p class="text-[10px] font-medium uppercase tracking-wider text-text-secondary sm:text-xs">Tasa del Día</p>
           <div class="flex items-baseline gap-0.5">
-            <p class="text-xl font-bold text-warning tabular-nums whitespace-nowrap sm:text-2xl lg:text-[1.75rem]">{{ displayRate }}</p>
-            <span class="text-[11px] text-text-muted font-medium">Bs</span>
+            <p class="text-lg font-bold text-warning tabular-nums whitespace-nowrap sm:text-2xl">{{ displayRate }}</p>
+            <span class="text-[10px] text-text-muted font-medium">Bs</span>
           </div>
-          <p class="text-[11px] text-text-muted font-medium">1 USD</p>
+          <p class="text-[10px] text-text-muted font-medium">1 USD</p>
         </div>
         <svg v-if="isEditable" class="h-3.5 w-3.5 text-text-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -28,8 +28,8 @@
 
     <!-- Edit mode -->
     <template v-else>
-      <div class="flex flex-col gap-2.5">
-        <p class="text-[11px] font-medium uppercase tracking-wider text-text-secondary sm:text-xs">Actualizar Tasa</p>
+      <div class="flex flex-col gap-2">
+        <p class="text-[10px] font-medium uppercase tracking-wider text-text-secondary sm:text-xs">Actualizar Tasa</p>
         <div class="flex items-center gap-2">
           <input
             :value="editRateValue"
@@ -54,7 +54,7 @@
             <svg v-else class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            Guardar
+            <span class="hidden sm:inline">Guardar</span>
           </button>
           <button
             @click.stop="cancelEdit"
