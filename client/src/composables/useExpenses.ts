@@ -99,6 +99,8 @@ export function useExpenses(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value) })
       queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value] })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value] })
       success('Gasto eliminado correctamente')
     },
     onError: (err: unknown) => {
