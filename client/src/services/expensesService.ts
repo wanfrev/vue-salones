@@ -17,6 +17,7 @@ export type ExpenseRow = {
   amount: number
   currency: 'USD' | 'VES'
   originalAmount: number
+  exchangeRateUsed: number
   notes: string
 }
 
@@ -43,13 +44,22 @@ export const listExpenses = async (businessId: string, startDate: string, endDat
   return raw.map(row => {
     let currency: 'USD' | 'VES' = 'USD'
     let originalAmount = row.amount
+    let exchangeRateUsed = 1
     let cleanNotes = (row.notes ?? '')
 
-    const match = cleanNotes.match(/^\[(VES):(\d+(?:\.\d+)?)\]\s?(.*)/s)
-    if (match) {
+    const newMatch = cleanNotes.match(/^\[(VES):(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)\]\s?(.*)/s)
+    if (newMatch) {
       currency = 'VES'
-      originalAmount = Number(match[2])
-      cleanNotes = match[3] || ''
+      originalAmount = Number(newMatch[2])
+      exchangeRateUsed = Number(newMatch[3])
+      cleanNotes = newMatch[4] || ''
+    } else {
+      const oldMatch = cleanNotes.match(/^\[(VES):(\d+(?:\.\d+)?)\]\s?(.*)/s)
+      if (oldMatch) {
+        currency = 'VES'
+        originalAmount = Number(oldMatch[2])
+        cleanNotes = oldMatch[3] || ''
+      }
     }
 
     return {
@@ -60,6 +70,7 @@ export const listExpenses = async (businessId: string, startDate: string, endDat
       amount: row.amount,
       currency,
       originalAmount,
+      exchangeRateUsed,
       notes: cleanNotes,
     }
   })
@@ -81,7 +92,7 @@ export const saveExpense = async (
 
   let notesContent = parsed.data.notes || ''
   if (isVES) {
-    notesContent = `[VES:${parsed.data.amount}]` + (notesContent ? ' ' + notesContent : '')
+    notesContent = `[VES:${parsed.data.amount}:${rate}]` + (notesContent ? ' ' + notesContent : '')
   }
 
   if (data.id) {

@@ -38,7 +38,7 @@
               <td class="py-3 text-text-secondary">{{ expense.category }}</td>
               <td class="py-3 text-right">
                 <div class="font-medium text-text">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</div>
-                <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount) + ' Bs' }}</div>
+                <div class="text-xs text-text-muted">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount, expense.exchangeRateUsed) + ' Bs' }}</div>
               </td>
               <td class="py-3 text-center">
                 <button @click="expensesCtx.handleDelete(expense.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar gasto">
@@ -106,7 +106,7 @@
                 <td class="py-3 text-text-secondary">{{ formatMethod(ep.paymentMethod) }}</td>
                 <td class="py-3 text-right">
                   <div class="font-medium text-danger">{{ ep.currency === 'VES' ? formatVESEs(ep.originalAmount) : formatUSD(ep.amount) }}</div>
-                  <div class="text-xs text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount) + ' Bs' }}</div>
+                  <div class="text-xs text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount, ep.exchangeRateUsed) + ' Bs' }}</div>
                 </td>
                 <td class="py-3 text-center">
                   <div class="flex items-center justify-center gap-1">

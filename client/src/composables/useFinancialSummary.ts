@@ -398,7 +398,7 @@ function useFinancialSummary(
       const cfg = periodConfig.value
       const { data, error } = await supabase
         .from('expenses')
-        .select('id, name, amount, expense_date')
+        .select('id, name, amount, expense_date, notes')
         .eq('business_id', businessId.value!)
         .gte('expense_date', toYmd(cfg.start))
         .lte('expense_date', toYmd(cfg.end))
@@ -568,6 +568,22 @@ function useFinancialSummary(
     // Expenses (gastos)
     const expenses = rawExpenses.value ?? []
     for (const ex of expenses) {
+      let exCurrency: 'USD' | 'VES' | undefined = undefined
+      let exOriginalAmount: number | undefined = undefined
+      let exExchangeRate: number | undefined = undefined
+      const exNotes = ((ex as any).notes ?? '') as string
+      const vesNewMatch = exNotes.match(/^\[VES:(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)\]/)
+      if (vesNewMatch) {
+        exCurrency = 'VES'
+        exOriginalAmount = Number(vesNewMatch[1])
+        exExchangeRate = Number(vesNewMatch[2])
+      } else {
+        const vesMatch = exNotes.match(/^\[VES:(\d+(?:\.\d+)?)\]/)
+        if (vesMatch) {
+          exCurrency = 'VES'
+          exOriginalAmount = Number(vesMatch[1])
+        }
+      }
       result.push({
         id: 'ex-' + ex.id,
         date: formatDate(ex.expense_date),
@@ -575,6 +591,9 @@ function useFinancialSummary(
         method: '—',
         amount: ex.amount,
         type: 'gasto',
+        exchangeRateUsed: exExchangeRate,
+        _currency: exCurrency,
+        _originalAmount: exOriginalAmount,
         sortDate: ex.expense_date,
       })
     }

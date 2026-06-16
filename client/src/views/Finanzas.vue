@@ -426,7 +426,7 @@
                 </td>
                 <td class="px-3 py-3 text-right">
                   <div class="font-medium text-text whitespace-nowrap">{{ expense.currency === 'VES' ? formatVESEs(expense.originalAmount) : formatUSD(expense.amount) }}</div>
-                  <div class="text-[11px] text-text-muted whitespace-nowrap">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount) + ' Bs' }}</div>
+                  <div class="text-[11px] text-text-muted whitespace-nowrap">{{ expense.currency === 'VES' ? formatUSD(expense.amount) : formatVESInline(expense.amount, expense.exchangeRateUsed) + ' Bs' }}</div>
                 </td>
                 <td class="px-3 py-3 text-center">
                   <div class="flex items-center justify-center gap-1">

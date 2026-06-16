@@ -333,7 +333,7 @@
                 <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ formatMethod(ep.paymentMethod) }}</td>
                 <td class="px-3 py-3 text-right">
                   <div class="font-medium text-danger">{{ ep.currency === 'VES' ? formatVESEs(ep.originalAmount) : formatUSD(ep.amount) }}</div>
-                  <div class="text-[10px] text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount) + ' Bs' }}</div>
+                  <div class="text-[10px] text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount, ep.exchangeRateUsed) + ' Bs' }}</div>
                 </td>
                 <td class="px-3 py-3 text-center">
                   <div class="flex items-center justify-center gap-1">

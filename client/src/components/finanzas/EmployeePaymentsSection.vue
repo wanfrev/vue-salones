@@ -96,7 +96,7 @@
             <span class="text-xs text-text-muted">Monto</span>
             <div class="text-right">
               <div class="font-medium text-danger text-sm">{{ ep.currency === 'VES' ? formatVESEs(ep.originalAmount) : formatUSD(ep.amount) }}</div>
-              <div class="text-xs text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount) + ' Bs' }}</div>
+              <div class="text-xs text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount, ep.exchangeRateUsed) + ' Bs' }}</div>
             </div>
           </div>
         </div>
@@ -119,7 +119,7 @@
               <td class="py-2 text-text-secondary">{{ formatMethod(ep.paymentMethod) }}</td>
               <td class="py-2 text-right">
                 <div class="font-medium text-danger">{{ ep.currency === 'VES' ? formatVESEs(ep.originalAmount) : formatUSD(ep.amount) }}</div>
-                <div class="text-xs text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount) + ' Bs' }}</div>
+                <div class="text-xs text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount, ep.exchangeRateUsed) + ' Bs' }}</div>
               </td>
               <td class="py-2 text-center">
                 <div class="flex items-center justify-center gap-1">
