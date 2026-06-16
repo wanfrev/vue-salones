@@ -154,7 +154,10 @@
               <td class="py-3 text-text">{{ row.employee }}</td>
               <td class="py-3 text-text-secondary">{{ row.service }}</td>
               <td class="py-3 text-text-secondary">{{ row.method }}</td>
-              <td class="py-3 text-right font-medium text-success">{{ formatUSD(row.amount) }}</td>
+              <td class="py-3 text-right">
+                <div class="font-medium text-success">{{ row.primaryCurrency === 'VES' ? formatVESEs(row.primaryAmount) : formatUSD(row.amount) }}</div>
+                <div class="text-[10px] text-text-muted mt-0.5">{{ row.primaryCurrency === 'VES' ? formatUSD(row.amount) : formatVESInline(row.amount, row.exchangeRateUsed) + ' Bs' }}</div>
+              </td>
               <td class="py-3 text-right">
                 <div class="flex items-center gap-1 justify-end">
                   <button
@@ -244,8 +247,11 @@
                 </span>
               </td>
               <td class="py-3 text-text-secondary">{{ tx.method }}</td>
-              <td class="py-3 text-right font-medium" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
-                {{ tx.type === 'ingreso' ? '' : '-' }}{{ formatUSD(tx.amount) }}
+              <td class="py-3 text-right" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
+                <div class="font-medium">{{ tx.type === 'ingreso' ? '' : '-' }}{{ tx._currency === 'VES' ? formatVESEs(tx._originalAmount ?? tx.amount) : formatUSD(tx.amount) }}</div>
+                <div class="text-[10px] text-text-muted mt-0.5">
+                  {{ tx._currency === 'VES' ? formatUSD(tx.amount) : formatVESInline(tx.amount, tx.exchangeRateUsed) + ' Bs' }}
+                </div>
               </td>
               <td class="py-3 text-right">
                 <div v-if="tx.type === 'ingreso'" class="flex items-center gap-1 justify-end">

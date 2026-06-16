@@ -124,10 +124,11 @@
           <span class="text-xs text-text-muted">{{ tx.method }}</span>
           <div class="text-right">
             <div class="font-semibold text-sm tabular-nums whitespace-nowrap" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
-              {{ tx.type === 'ingreso' ? '+' : '-' }}{{ tx.type === 'nomina' && tx._currency === 'VES' ? formatVESEs(tx._originalAmount ?? tx.amount) : formatUSD(tx.amount) }}
+              {{ tx.type === 'ingreso' ? '+' : '-' }}{{ tx._currency === 'VES' ? formatVESEs(tx._originalAmount ?? tx.amount) : formatUSD(tx.amount) }}
             </div>
-            <div v-if="tx.type === 'nomina' && tx._currency === 'VES'" class="text-xs text-text-muted tabular-nums whitespace-nowrap">{{ formatUSD(tx.amount) }}</div>
-            <div v-else class="text-xs text-text-muted tabular-nums whitespace-nowrap">{{ formatVESInline(tx.amount, tx.exchangeRateUsed) }} Bs</div>
+            <div class="text-xs text-text-muted tabular-nums whitespace-nowrap">
+              {{ tx._currency === 'VES' ? formatUSD(tx.amount) : formatVESInline(tx.amount, tx.exchangeRateUsed) + ' Bs' }}
+            </div>
           </div>
         </div>
       </div>
@@ -174,9 +175,11 @@
             </td>
             <td class="px-4 py-3.5 text-right">
               <div class="font-semibold tabular-nums whitespace-nowrap" :class="tx.type === 'ingreso' ? 'text-success' : 'text-danger'">
-                {{ tx.type === 'ingreso' ? '+' : '-' }}{{ tx.type === 'nomina' && tx._currency === 'VES' ? formatVESEs(tx._originalAmount ?? tx.amount) : formatUSD(tx.amount) }}
+                {{ tx.type === 'ingreso' ? '+' : '-' }}{{ tx._currency === 'VES' ? formatVESEs(tx._originalAmount ?? tx.amount) : formatUSD(tx.amount) }}
               </div>
-              <div class="text-xs text-text-muted tabular-nums whitespace-nowrap">{{ formatVESInline(tx.amount, tx.exchangeRateUsed) }} Bs</div>
+              <div class="text-xs text-text-muted tabular-nums whitespace-nowrap">
+                {{ tx._currency === 'VES' ? formatUSD(tx.amount) : formatVESInline(tx.amount, tx.exchangeRateUsed) + ' Bs' }}
+              </div>
             </td>
           </tr>
         </tbody>
@@ -251,10 +254,11 @@
         </div>
         <div>
           <span class="text-[11px] text-text-muted uppercase tracking-wider font-semibold">Total {{ activeDetailTab === 'cobros' ? 'Cobrado' : activeDetailTab === 'ventas' ? 'Vendido' : 'Gastado' }}</span>
-          <div class="flex items-baseline gap-2 mt-0.5">
-            <span class="text-2xl font-bold text-text tracking-tight tabular-nums">{{ formatUSD(detailTabTotal) }}</span>
-            <span class="text-xs text-text-muted font-mono">{{ detailTabCount }} {{ activeDetailTab === 'cobros' ? 'cobros' : activeDetailTab === 'ventas' ? 'ventas' : 'gastos' }}</span>
-          </div>
+            <div class="flex items-baseline gap-2 mt-0.5">
+              <span class="text-2xl font-bold text-text tracking-tight tabular-nums">{{ formatUSD(detailTabTotal) }}</span>
+              <span v-if="activeDetailTab === 'cobros'" class="text-sm text-text-muted font-medium">{{ detailTabVesTotal }}</span>
+              <span class="text-xs text-text-muted font-mono">{{ detailTabCount }} {{ activeDetailTab === 'cobros' ? 'cobros' : activeDetailTab === 'ventas' ? 'ventas' : 'gastos' }}</span>
+            </div>
         </div>
       </div>
 
@@ -309,7 +313,10 @@
                 <td class="px-3 py-3">
                   <span class="inline-flex items-center rounded-md bg-bg-secondary px-2 py-0.5 text-[11px] font-medium text-text-secondary">{{ item.breakdownLabel || item.method }}</span>
                 </td>
-                <td class="px-3 py-3 text-right font-semibold text-success tabular-nums whitespace-nowrap">{{ formatUSD(item.amount) }}</td>
+                <td class="px-3 py-3 text-right tabular-nums whitespace-nowrap">
+                  <div class="font-semibold text-success">{{ item.primaryCurrency === 'VES' ? formatVESEs(item.primaryAmount) : formatUSD(item.amount) }}</div>
+                  <div class="text-[10px] text-text-muted mt-0.5">{{ item.primaryCurrency === 'VES' ? formatUSD(item.amount) : formatVESInline(item.amount, item.exchangeRateUsed) + ' Bs' }}</div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -623,6 +630,12 @@ const detailTabTotal = computed(() => {
     return allVentasRows.value.reduce((acc, row) => acc + Number(row.total ?? 0), 0)
   }
   return allGastosRows.value.reduce((acc, row) => acc + row.amount, 0)
+})
+
+const detailTabVesTotal = computed(() => {
+  if (activeDetailTab.value !== 'cobros') return ''
+  const ves = allCobrosRows.value.reduce((acc, row) => acc + Number(row.amount ?? 0) * Number(row.exchangeRateUsed ?? 1), 0)
+  return formatVESEs(ves)
 })
 
 const detailTabCount = computed(() => {

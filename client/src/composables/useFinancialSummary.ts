@@ -57,6 +57,8 @@ type TransactionRow = {
   exchangeRateUsed: number
   breakdownLabel: string
   breakdown: PaymentBreakdownItem[] | null
+  primaryCurrency: 'USD' | 'VES'
+  primaryAmount: number
 }
 
 export type ProductSaleDetail = {
@@ -391,6 +393,8 @@ function useFinancialSummary(
     rawTransactions.value.map(row => {
       const breakdown = (row as any).payments_breakdown as PaymentBreakdownItem[] | null
       const breakdownLabel = formatBreakdownLabel(breakdown)
+      const firstBreakdown = breakdown?.[0]
+      const isVES = firstBreakdown?.currency === 'VES'
       return {
         id: row.id,
         date: formatDate(row.paid_at ?? row.created_at),
@@ -403,6 +407,8 @@ function useFinancialSummary(
         exchangeRateUsed: row.exchange_rate_used ?? 1,
         breakdownLabel,
         breakdown,
+        primaryCurrency: isVES ? 'VES' : 'USD',
+        primaryAmount: isVES && firstBreakdown?.inputAmount ? firstBreakdown.inputAmount : row.total_amount,
       }
     })
   )
@@ -463,6 +469,8 @@ function useFinancialSummary(
     for (const tx of rawTransactions.value) {
       const breakdown = (tx as any).payments_breakdown as PaymentBreakdownItem[] | null
       const breakdownLabel = formatBreakdownLabel(breakdown)
+      const firstBreakdown = breakdown?.[0]
+      const isVES = firstBreakdown?.currency === 'VES'
       result.push({
         id: tx.id,
         date: formatDate(tx.paid_at ?? tx.created_at),
@@ -472,6 +480,8 @@ function useFinancialSummary(
         type: 'ingreso',
         exchangeRateUsed: tx.exchange_rate_used ?? 1,
         breakdownLabel,
+        _currency: isVES ? 'VES' : 'USD',
+        _originalAmount: isVES && firstBreakdown?.inputAmount ? firstBreakdown.inputAmount : tx.total_amount,
         sortDate: tx.paid_at ?? tx.created_at,
       })
     }
