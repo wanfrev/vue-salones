@@ -63,7 +63,7 @@ const empleadosList = computed(() => (empleadosData.value ?? []).map(e => ({
   id: e.id, name: e.name,
 })))
 
-const handleSlotSelect = ({ start }: { start: Date }) => {
+const handleSlotSelect = ({ start }: { start: Date; employeeId?: string }) => {
   const date = toISODate(start)
   const time = dateToHHmm(start)
   citaModalRef.value?.open({ id: '', clientName: '', service: '', employee: '', date, time, duration: 30, price: 0, status: 'confirmed' })

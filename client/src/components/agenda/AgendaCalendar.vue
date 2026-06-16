@@ -6,329 +6,242 @@
         <div v-if="isAdmin" class="flex items-center gap-2">
           <div class="relative">
             <select
-              id="employee-filter"
               v-model="selectedEmployeeId"
               class="w-full appearance-none rounded-lg border border-border bg-surface pl-3 pr-8 py-1.5 text-sm font-medium text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/15 sm:w-auto sm:pl-3.5 sm:pr-9"
               :disabled="loadingEmployees"
             >
               <option value="all">Todos los empleados</option>
-              <option v-for="emp in employees" :key="emp.id" :value="emp.id">
-                {{ emp.full_name }}
-              </option>
+              <option v-for="emp in employees" :key="emp.id" :value="emp.id">{{ emp.full_name }}</option>
             </select>
             <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted">
-              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
             </div>
           </div>
         </div>
         <div v-else class="flex items-center gap-2 px-1">
           <div class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
-            <svg class="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+            <svg class="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
           </div>
           <span class="text-sm font-medium text-text">{{ authStore.profile?.full_name }}</span>
         </div>
-
         <div class="hidden h-5 w-px bg-border sm:block"></div>
-
         <div class="relative w-full sm:w-48 lg:w-56">
-          <input
-            type="text"
-            placeholder="Buscar cliente..."
-            class="w-full rounded-lg border border-border bg-surface pl-8 pr-3 py-1.5 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15"
-          />
+          <input v-model="searchQuery" type="text" placeholder="Buscar cliente..."
+            class="w-full rounded-lg border border-border bg-surface pl-8 pr-3 py-1.5 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15" />
           <div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
         </div>
       </div>
-
-      <!-- Leyenda de Estados -->
       <div class="flex flex-wrap items-center gap-1 sm:gap-1.5">
-        <div class="flex items-center gap-1 rounded-md px-1.5 py-0.5">
-          <span class="h-2 w-2 rounded-full" style="background: var(--color-primary)"></span>
-          <span class="text-[10px] font-medium text-text-muted sm:text-[11px]">En Silla</span>
+        <span v-for="l in legend" :key="l.label" class="flex items-center gap-1 rounded-md px-1.5 py-0.5">
+          <span class="h-2 w-2 rounded-full" :style="{ background: l.color }"></span>
+          <span class="text-[10px] font-medium text-text-muted sm:text-[11px]">{{ l.label }}</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Date Navigator -->
+    <div class="flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-2 sm:rounded-xl sm:px-4 sm:py-2.5">
+      <div class="flex items-center gap-2">
+        <button @click="goToday" class="rounded-lg border border-border px-2.5 py-1 text-xs font-semibold text-primary transition-theme hover:bg-primary-light hover:border-primary/20 sm:px-3 sm:py-1.5">Hoy</button>
+        <button @click="navigate(-1)" class="flex h-8 w-8 items-center justify-center rounded-full border border-border text-text-secondary transition-theme hover:bg-bg-secondary hover:border-border-strong hover:text-text sm:h-9 sm:w-9">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <h2 class="min-w-[200px] text-center text-sm font-semibold text-text truncate sm:text-base sm:min-w-[280px]">{{ titleText }}</h2>
+        <button @click="navigate(1)" class="flex h-8 w-8 items-center justify-center rounded-full border border-border text-text-secondary transition-theme hover:bg-bg-secondary hover:border-border-strong hover:text-text sm:h-9 sm:w-9">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- View Switcher Desktop -->
+        <div class="hidden sm:inline-flex rounded-lg border border-border bg-bg-secondary/50 p-0.5">
+          <button v-for="v in viewOptions" :key="v.value" @click="viewMode = v.value"
+            class="px-3 py-1 text-xs font-medium rounded-md transition-theme"
+            :class="viewMode === v.value ? 'bg-surface text-primary shadow-sm' : 'text-text-muted hover:text-text'">{{ v.label }}</button>
         </div>
-        <div class="flex items-center gap-1 rounded-md px-1.5 py-0.5">
-          <span class="h-2 w-2 rounded-full" style="background: var(--color-success)"></span>
-          <span class="text-[10px] font-medium text-text-muted sm:text-[11px]">Cobrada</span>
-        </div>
-        <div class="flex items-center gap-1 rounded-md px-1.5 py-0.5">
-          <span class="h-2 w-2 rounded-full" style="background: var(--color-warning)"></span>
-          <span class="text-[10px] font-medium text-text-muted sm:text-[11px]">Pendiente</span>
-        </div>
-        <div class="flex items-center gap-1 rounded-md px-1.5 py-0.5">
-          <span class="h-2 w-2 rounded-full" style="background: var(--color-danger)"></span>
-          <span class="text-[10px] font-medium text-text-muted sm:text-[11px]">Cancelada</span>
+        <!-- Day pills (day view only) -->
+        <div v-if="viewMode === 'day'" class="flex gap-1 overflow-x-auto scrollbar-hide">
+          <button v-for="day in visibleDays" :key="day.iso" @click="selectedDate = day.iso"
+            class="flex flex-col items-center rounded-lg px-2.5 py-1.5 min-w-[44px] transition-all duration-150 sm:px-3 sm:min-w-[52px]"
+            :class="day.iso === selectedDate ? 'bg-primary text-white shadow-sm shadow-primary/25 scale-105' : day.isToday ? 'bg-primary-light text-primary border border-primary/20' : 'text-text-secondary hover:bg-bg-secondary hover:text-text'">
+            <span class="text-[9px] font-semibold uppercase tracking-wide opacity-75">{{ day.label }}</span>
+            <span class="text-sm font-bold leading-tight mt-0.5">{{ day.number }}</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Mobile: View Switcher -->
-    <div v-if="isMobile" class="flex justify-center">
-      <div class="inline-flex rounded-lg border border-border bg-surface p-0.5">
-        <button
-          v-for="view in mobileViewOptions"
-          :key="view.value"
-          @click="currentView = view.value"
+    <!-- Mobile View Switcher -->
+    <div class="flex justify-center sm:hidden">
+      <div class="inline-flex rounded-lg border border-border bg-bg-secondary/50 p-0.5">
+        <button v-for="v in viewOptions" :key="v.value" @click="viewMode = v.value"
           class="px-3 py-1.5 text-xs font-medium rounded-md transition-theme"
-          :class="currentView === view.value
-            ? 'bg-primary text-text-inverse shadow-sm'
-            : 'text-text-secondary hover:text-text'"
-        >
-          {{ view.label }}
-        </button>
+          :class="viewMode === v.value ? 'bg-surface text-primary shadow-sm' : 'text-text-muted hover:text-text'">{{ v.label }}</button>
       </div>
     </div>
 
-    <!-- Mobile: Date Selector Carousel -->
-    <div v-if="isMobile && currentView === 'day'" class="-mx-4 px-4 overflow-x-auto scrollbar-hide">
-      <div class="flex gap-1.5 min-w-max pb-2">
-        <button
-          v-for="day in weekDays"
-          :key="day.date"
-          @click="viewDate = day.jsDate"
-          class="flex flex-col items-center rounded-lg px-3 py-1.5 min-w-[48px] transition-theme"
-          :class="day.date === selectedDateIso
-            ? 'bg-primary text-text-inverse shadow-sm shadow-primary/25'
-            : day.isToday
-              ? 'bg-primary-light text-primary border border-primary/20'
-              : 'bg-surface border border-border text-text-secondary'"
-        >
-          <span class="text-[9px] font-semibold uppercase tracking-wide opacity-70">{{ day.label }}</span>
-          <span class="text-sm font-bold mt-0.5 leading-tight">{{ day.number }}</span>
-        </button>
-      </div>
-    </div>
+    <!-- ============================================================
+         MONTH VIEW
+         ============================================================ -->
+    <AgendaMonthView
+      v-if="viewMode === 'month'"
+      :appointments="appointments ?? []"
+      :services="services ?? []"
+      :employeeId="selectedEmployeeId"
+      :selectedDate="selectedDate"
+      :todayIso="todayIso"
+      @event-click="emitEventClick"
+      @go-to-date="goToDate"
+    />
 
-    <!-- Calendario Vue-Cal -->
-    <div class="flex-1 overflow-hidden rounded-lg border border-border bg-surface shadow-sm sm:rounded-xl vue-cal-wrapper" :class="{ 'vuecal-mobile-scroll': isMobile && hasSchedules }">
-      <VueCal
-        v-model:events="displayEvents"
-        v-model:view="currentView"
-        v-model:view-date="viewDate"
-        :schedules="employeeSchedules"
-        :editable-events="editableConfig"
-        :views="['day', 'week', 'month']"
-        :time-from="420"
-        :time-to="1260"
-        :snap-to-interval="15"
-        :dark="isDark"
-        :locale="'es'"
-        :sticky-schedule-headers="true"
-        :hide-weekend="false"
-        @ready="onReady"
-        @event-drag-end="onEventDragEnd"
-        @event-resize-end="onEventResizeEnd"
-        @event-drop="onEventDrop"
-        @cell-click="onCellClick"
-        @event-click="onEventClick"
-      >
-        <template #event="{ event, view }">
-          <div
-            class="agenda-event-card"
-            :class="[`agenda-status-${event._customStatus}`, view.isMonth ? 'agenda-event-month' : '']"
-            @click.stop
-          >
-            <!-- Header row: time + status dot + group badge -->
-            <div class="agenda-event-header">
-              <button
-                class="agenda-event-dot"
-                :class="`dot-status-${event._customStatus}`"
-                :title="event._statusLabel"
-                @click.stop="toggleStatusDropdown(event)"
-              />
-              <span v-if="!view.isMonth" class="agenda-event-time">{{ event._.startTimeFormatted24 }}</span>
-              <span v-if="event._hasGroup" class="agenda-event-group" title="Multiples servicios">+</span>
-              <div class="agenda-event-actions">
-                <!-- Checkout Express -->
-                <button
-                  v-if="event._customStatus !== 'paid' && event._customStatus !== 'cancelled' && !view.isMonth"
-                  class="agenda-event-checkout"
-                  title="Cobrar cita"
-                  @click.stop="emitCheckout(event)"
-                >
-                  <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-                  </svg>
-                </button>
-              </div>
+    <!-- ============================================================
+         YEAR VIEW
+         ============================================================ -->
+    <AgendaYearView
+      v-else-if="viewMode === 'year'"
+      :appointments="appointments ?? []"
+      :employeeId="selectedEmployeeId"
+      :selectedDate="selectedDate"
+      :todayIso="todayIso"
+      @go-to-month="goToMonth"
+    />
+
+    <!-- ============================================================
+         DAY / WEEK — Time Grid
+         ============================================================ -->
+    <div v-else class="flex-1 overflow-hidden rounded-lg border border-border bg-surface sm:rounded-xl">
+      <div class="h-full overflow-auto" ref="gridContainer">
+        <div class="relative" :style="{ minHeight: `${totalGridHeight}px` }">
+          <!-- Sticky header -->
+          <div class="sticky top-0 z-20 flex border-b border-border bg-surface" :style="{ paddingLeft: `${TIME_COL_WIDTH}px` }">
+            <div v-for="col in gridColumns" :key="col.key"
+              class="flex flex-col items-center justify-center gap-0.5 border-r border-border-subtle px-2 py-2 last:border-r-0"
+              :class="col.isToday ? 'bg-primary-light/40' : ''"
+              :style="{ width: `${col.widthPercent}%` }">
+              <template v-if="col.number !== undefined">
+                <span class="text-[10px] font-medium text-text-muted uppercase tracking-wide leading-none sm:text-[11px]">{{ col.label }}</span>
+                <span class="text-sm font-bold leading-none" :class="col.isToday ? 'text-primary' : 'text-text'">{{ col.number }}</span>
+              </template>
+              <template v-else>
+                <div v-if="col.avatar" class="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white sm:h-7 sm:w-7 sm:text-xs" style="background: var(--color-primary)">{{ col.avatar }}</div>
+                <span class="text-[11px] font-semibold text-text truncate sm:text-xs">{{ col.label }}</span>
+              </template>
             </div>
-
-            <!-- Body: client name + service badge + employee avatar -->
-            <div class="agenda-event-body">
-              <div class="agenda-event-client">{{ event.title }}</div>
-              <div v-if="!view.isMonth" class="agenda-event-meta">
-                <span class="agenda-event-service">{{ event._serviceName }}</span>
-                <span v-if="event._employeeInitials" class="agenda-event-employee">{{ event._employeeInitials }}</span>
-              </div>
-            </div>
-
-            <!-- Status icon (bottom right) -->
-            <div v-if="!view.isMonth" class="agenda-event-status-icon">
-              <!-- Pending: clock -->
-              <svg v-if="event._customStatus === 'pending'" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <!-- Confirmed: salon/chair -->
-              <svg v-else-if="event._customStatus === 'confirmed'" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-              <!-- Paid: check -->
-              <svg v-else-if="event._customStatus === 'paid'" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              <!-- Cancelled: X -->
-              <svg v-else class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
-
-            <!-- Status Dropdown (teleported to body) -->
-            <Teleport to="body">
-              <div
-                v-if="activeDropdown?.id === event._.id"
-                class="agenda-status-dropdown"
-                :style="dropdownStyle"
-              >
-                <button
-                  v-for="opt in STATUS_OPTIONS"
-                  :key="opt.value"
-                  class="agenda-status-option"
-                  :class="{ 'agenda-status-option-active': event._customStatus === opt.value }"
-                  @click.stop="changeStatus(event, opt.value)"
-                >
-                  <span class="agenda-status-dot" :class="`dot-status-${opt.value}`" />
-                  <span class="agenda-status-label">{{ opt.label }}</span>
-                  <span v-if="event._customStatus === opt.value" class="agenda-status-check">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
-                  </span>
-                </button>
-              </div>
-            </Teleport>
           </div>
-        </template>
-      </VueCal>
+
+          <!-- Grid body -->
+          <div class="flex">
+            <!-- Time labels -->
+            <div class="flex-shrink-0 z-10 bg-surface" :style="{ width: `${TIME_COL_WIDTH}px` }">
+              <div v-for="hourIdx in totalHours" :key="'t'+hourIdx" class="flex items-start justify-end pr-2" :style="{ height: `${HOUR_HEIGHT}px` }">
+                <span class="text-[10px] font-medium text-text-muted -mt-2 leading-none tabular-nums sm:text-[11px]">{{ hourSlots[hourIdx - 1] }}</span>
+              </div>
+            </div>
+
+            <!-- Columns -->
+            <div class="flex flex-1 relative">
+              <div v-for="col in gridColumns" :key="col.key"
+                class="relative border-r border-border-subtle last:border-r-0"
+                :style="{ width: `${col.widthPercent}%` }"
+                @click="onColumnClick(col, $event)">
+                <!-- Hour lines -->
+                <div v-for="h in totalHours" :key="'r'+h" class="border-b border-border-subtle/60" :style="{ height: `${HOUR_HEIGHT}px` }" />
+                <!-- Half-hour lines -->
+                <div v-for="h in totalHours" :key="'m'+h" class="absolute left-0 right-0 border-b border-dashed border-border-subtle/30" :style="{ top: `${(h - 1) * HOUR_HEIGHT + HOUR_HEIGHT / 2}px` }" />
+                <!-- Now line -->
+                <div v-if="isToday && nowLineTop >= 0" class="absolute left-0 right-0 z-20 pointer-events-none" :style="{ top: `${nowLineTop}px` }">
+                  <div class="absolute -left-1.5 -top-[5px] h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-zinc-900" />
+                  <div class="absolute left-0 right-0 top-0 h-[2px] bg-red-500" />
+                </div>
+                <!-- Cards -->
+                <div v-for="appt in col.appointments" :key="appt.id"
+                  class="absolute left-1 right-1 rounded-lg cursor-pointer overflow-hidden transition-all duration-150 hover:scale-[1.02] hover:z-10 group"
+                  :class="cardBgClass(appt.status)"
+                  :style="{ top: `${appt.top}px`, height: `${Math.max(appt.height, 24)}px` }"
+                  @click.stop="emitEventClick(appt.raw)">
+                  <div class="absolute left-0 top-0 bottom-0 w-[3px]" :class="statusStripeClass(appt.status)" />
+                  <div class="flex flex-col h-full p-1.5 sm:p-2" :class="appt.height < 48 ? 'justify-center' : ''">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <button class="h-2 w-2 rounded-full flex-shrink-0 transition-transform hover:scale-125" :class="statusDotClass(appt.status)" title="Cambiar estado" @click.stop="toggleStatusMenu(appt, $event)" />
+                      <span class="text-[10px] font-semibold text-text-muted tabular-nums whitespace-nowrap sm:text-[11px]">{{ appt.time }}</span>
+                      <button v-if="appt.status !== 'paid' && appt.status !== 'cancelled' && appt.height >= 40"
+                        class="ml-auto flex h-4 w-4 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-all hover:scale-110 flex-shrink-0"
+                        :class="checkoutBtnClass(appt.status)" title="Cobrar" @click.stop="emitCheckout(appt.raw.id)">
+                        <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                      </button>
+                    </div>
+                    <div class="text-[11px] font-bold text-text leading-tight mt-0.5 truncate sm:text-xs">{{ appt.clientName }}</div>
+                    <div v-if="appt.height >= 48" class="flex items-center gap-1.5 mt-0.5 min-w-0">
+                      <span class="text-[10px] text-text-secondary bg-bg-secondary rounded px-1 py-px truncate">{{ appt.service }}</span>
+                      <span v-if="appt.employeeInitials && isAdmin" class="flex-shrink-0 h-4 w-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white" style="background: var(--color-primary)">{{ appt.employeeInitials }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Status Dropdown -->
+    <Teleport to="body">
+      <div v-if="statusMenu" class="fixed z-[100] rounded-lg border border-border bg-surface shadow-xl p-1 min-w-[130px] animate-in fade-in zoom-in-95 duration-100"
+        :style="{ top: `${statusMenu.y}px`, left: `${statusMenu.x}px` }" @click.stop>
+        <button v-for="opt in STATUS_OPTIONS" :key="opt.value" @click="changeStatus(statusMenu.appointmentId, opt.value)"
+          class="flex items-center gap-2 w-full rounded-md px-2.5 py-1.5 text-[11px] font-medium text-text transition-colors hover:bg-bg-secondary"
+          :class="{ 'bg-bg-secondary': statusMenu.currentStatus === opt.value }">
+          <span class="h-2 w-2 rounded-full flex-shrink-0" :class="statusDotClass(opt.value)" />
+          <span class="flex-1 text-left">{{ opt.label }}</span>
+          <svg v-if="statusMenu.currentStatus === opt.value" class="h-3 w-3 text-primary flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+        </button>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import VueCal from 'vue-cal'
-import 'vue-cal/dist/vuecal.css'
-import { getStatusLabel, normalizeAppointmentStatus, dateToHHmm, toISODate, getInitials } from '../../lib/formatters'
 import { useAgenda } from '../../composables/useAgenda'
 import { useAuthStore } from '../../store/auth'
 import { isAdminPanelRole } from '../../constants/roles'
+import { normalizeAppointmentStatus, dateToHHmm, toISODate, getInitials } from '../../lib/formatters'
+import AgendaMonthView from './AgendaMonthView.vue'
+import AgendaYearView from './AgendaYearView.vue'
 import type { Cita } from '../../types/cita'
 
 const route = useRoute()
 const authStore = useAuthStore()
 const isAdmin = computed(() => isAdminPanelRole(authStore.role ?? undefined))
-const isDark = computed(() => document.documentElement.classList.contains('dark'))
 
 const emit = defineEmits<{
-  eventClick: [event: {
-    id: string
-    title: string
-    start: Date
-    end: Date
-    status?: string
-    citaData?: Omit<Cita, 'paymentStatus' | 'statusLabel' | 'statusColor'>
-  }]
+  eventClick: [event: { id: string; title: string; start: Date; end: Date; status?: string; citaData?: Omit<Cita, 'paymentStatus' | 'statusLabel' | 'statusColor'> }]
   statusChange: [payload: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }]
   eventChange: [payload: { id: string; start: string; end: string; employeeId?: string }]
-  slotSelect: [payload: { start: Date; end: Date }]
+  slotSelect: [payload: { start: Date; end: Date; employeeId?: string }]
   checkout: [appointmentId: string]
 }>()
 
-const {
-  selectedEmployeeId,
-  setDateRange,
-  employees,
-  loadingEmployees,
-  services,
-  appointments,
-} = useAgenda()
+const { selectedEmployeeId, setDateRange, employees, loadingEmployees, services, appointments } = useAgenda()
 
-// --- Responsive ---
-const isMobile = ref(window.innerWidth < 1024)
-const onResize = () => { isMobile.value = window.innerWidth < 1024 }
-onMounted(() => window.addEventListener('resize', onResize))
-onUnmounted(() => window.removeEventListener('resize', onResize))
+// ---- Constants ----
+const START_HOUR = 7
+const END_HOUR = 21
+const HOUR_HEIGHT = 64
+const TIME_COL_WIDTH = 52
+const totalGridHeight = (END_HOUR - START_HOUR) * HOUR_HEIGHT
+const totalHours = END_HOUR - START_HOUR
 
-// --- View State ---
-type ViewType = 'day' | 'week' | 'month'
-const currentView = ref<ViewType>(isMobile.value ? 'day' : 'week')
-const viewDate = ref(new Date())
-const selectedDateIso = ref(toISODate(new Date()))
-
-const mobileViewOptions = [
-  { value: 'day' as const, label: 'Dia' },
-  { value: 'week' as const, label: 'Semana' },
-  { value: 'month' as const, label: 'Mes' },
+const legend = [
+  { label: 'En Silla', color: 'var(--color-primary)' },
+  { label: 'Cobrada', color: 'var(--color-success)' },
+  { label: 'Pendiente', color: 'var(--color-warning)' },
+  { label: 'Cancelada', color: 'var(--color-danger)' },
 ]
 
-watch(isMobile, (mobile) => {
-  currentView.value = mobile ? 'day' : 'week'
-})
-
-watch(() => viewDate.value, (date) => {
-  selectedDateIso.value = toISODate(date)
-})
-
-// --- Week days carousel ---
-const weekDays = computed(() => {
-  const selected = new Date(selectedDateIso.value + 'T12:00:00')
-  const startOfWeek = new Date(selected)
-  startOfWeek.setDate(selected.getDate() - selected.getDay())
-  const days = []
-  const dayNames = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab']
-  const todayStr = toISODate(new Date())
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(startOfWeek)
-    date.setDate(startOfWeek.getDate() + i)
-    const dateStr = toISODate(date)
-    days.push({
-      date: dateStr,
-      jsDate: new Date(date),
-      label: dayNames[date.getDay()],
-      number: date.getDate(),
-      isToday: dateStr === todayStr,
-    })
-  }
-  return days
-})
-
-// --- Employee schedules as columns ---
-const hasSchedules = computed(() => {
-  const emps = employees.value ?? []
-  return isAdmin.value && (selectedEmployeeId.value === 'all' || emps.length > 1)
-})
-
-const employeeSchedules = computed(() => {
-  const emps = employees.value ?? []
-  if (!hasSchedules.value) return undefined
-  if (selectedEmployeeId.value !== 'all') {
-    const emp = emps.find(e => e.id === selectedEmployeeId.value)
-    if (emp) return [{ id: emp.id, label: emp.full_name, class: 'vc-schedule-employee' }]
-    return undefined
-  }
-  return emps.map(emp => ({
-    id: emp.id,
-    label: emp.full_name,
-    class: 'vc-schedule-employee',
-  }))
-})
-
-// --- Status helpers ---
 const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pendiente' },
   { value: 'confirmed', label: 'Confirmada' },
@@ -336,688 +249,216 @@ const STATUS_OPTIONS = [
   { value: 'cancelled', label: 'Cancelada' },
 ] as const
 
-// --- Editable config ---
-const editableConfig = computed(() => isAdmin.value
-  ? { drag: true, resize: true, create: true, delete: false }
-  : { drag: false, resize: false, create: false, delete: false }
-)
+// ---- State ----
+const searchQuery = ref('')
+const viewMode = ref<'day' | 'week' | 'month' | 'year'>('day')
+const selectedDate = ref(toISODate(new Date()))
+const gridContainer = ref<HTMLElement | null>(null)
+const statusMenu = ref<{ appointmentId: string; currentStatus: string; x: number; y: number } | null>(null)
 
-// --- Event mapping ---
-interface AgendaEvent {
-  _eid?: undefined
-  start: string | Date
-  end: string | Date
-  id?: string
-  title?: string
-  content?: string
-  class?: string
-  schedule?: string | number
-  _customStatus?: string
-  _statusLabel?: string
-  _hasGroup?: boolean
-  _serviceName?: string
-  _employeeName?: string
-  _employeeInitials?: string
-  _rawAppt?: any
+const viewOptions = [
+  { value: 'day' as const, label: 'Día' },
+  { value: 'week' as const, label: 'Semana' },
+  { value: 'month' as const, label: 'Mes' },
+  { value: 'year' as const, label: 'Año' },
+]
+
+// ---- Date helpers ----
+const todayIso = computed(() => toISODate(new Date()))
+const isToday = computed(() => selectedDate.value === todayIso.value)
+
+const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+
+const titleText = computed(() => {
+  const d = new Date(selectedDate.value + 'T12:00:00')
+  const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  const dayNamesFull = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+  if (viewMode.value === 'year') return `${d.getFullYear()}`
+  if (viewMode.value === 'day') return `${dayNamesFull[d.getDay()]} ${d.getDate()} de ${monthNames[d.getMonth()]}, ${d.getFullYear()}`
+  if (viewMode.value === 'week') {
+    const sow = new Date(d); sow.setDate(d.getDate() - d.getDay())
+    const eow = new Date(sow); eow.setDate(sow.getDate() + 6)
+    if (sow.getMonth() === eow.getMonth()) return `${sow.getDate()} - ${eow.getDate()} de ${monthNames[sow.getMonth()]}, ${sow.getFullYear()}`
+    return `${sow.getDate()} ${monthNames[sow.getMonth()]} - ${eow.getDate()} ${monthNames[eow.getMonth()]}, ${eow.getFullYear()}`
+  }
+  return `${monthNames[d.getMonth()]} ${d.getFullYear()}`
+})
+
+const visibleDays = computed(() => {
+  const sel = new Date(selectedDate.value + 'T12:00:00')
+  const sow = new Date(sel); sow.setDate(sel.getDate() - sel.getDay())
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(sow); d.setDate(sow.getDate() + i)
+    return { iso: toISODate(d), label: dayNames[d.getDay()], number: d.getDate(), isToday: toISODate(d) === todayIso.value }
+  })
+})
+
+const nowLineTop = computed(() => {
+  if (!isToday.value) return -1
+  const m = new Date().getHours() * 60 + new Date().getMinutes()
+  if (m < START_HOUR * 60 || m > END_HOUR * 60) return -1
+  return ((m - START_HOUR * 60) / 60) * HOUR_HEIGHT
+})
+
+const hourSlots = computed(() => Array.from({ length: totalHours }, (_, h) => `${String(START_HOUR + h).padStart(2, '0')}:00`))
+
+// ---- Navigation ----
+function navigate(dir: number) {
+  const d = new Date(selectedDate.value + 'T12:00:00')
+  if (viewMode.value === 'year') d.setFullYear(d.getFullYear() + dir)
+  else if (viewMode.value === 'month') d.setMonth(d.getMonth() + dir)
+  else if (viewMode.value === 'week') d.setDate(d.getDate() + dir * 7)
+  else d.setDate(d.getDate() + dir)
+  selectedDate.value = toISODate(d)
 }
 
-const displayEvents = computed<AgendaEvent[]>(() => {
-  const events: AgendaEvent[] = []
+function goToday() { selectedDate.value = todayIso.value }
+function goToDate(iso: string) { selectedDate.value = iso; viewMode.value = 'day' }
+function goToMonth(m: number, y: number) { selectedDate.value = toISODate(new Date(y, m, 1)); viewMode.value = 'month' }
 
-  if (appointments.value) {
-    const renderedGroups = new Set<string>()
+// ---- Date range sync ----
+watch([selectedDate, viewMode], ([d, mode]) => {
+  const base = new Date(d + 'T12:00:00')
+  let start: Date, end: Date
+  if (mode === 'year') { start = new Date(base.getFullYear(), 0, 1); end = new Date(base.getFullYear() + 1, 0, 1) }
+  else if (mode === 'month') { start = new Date(base.getFullYear(), base.getMonth(), 1); end = new Date(base.getFullYear(), base.getMonth() + 1, 1) }
+  else if (mode === 'week') { start = new Date(base); start.setDate(base.getDate() - base.getDay()); start.setHours(0, 0, 0, 0); end = new Date(start); end.setDate(start.getDate() + 7) }
+  else { start = new Date(d + 'T00:00:00'); end = new Date(start); end.setDate(end.getDate() + 1) }
+  setDateRange(start, end)
+}, { immediate: true })
 
-    appointments.value.forEach(appt => {
-      const groupId = appt.group_id
-      if (groupId && renderedGroups.has(groupId)) return
-      if (groupId) renderedGroups.add(groupId)
+// ---- Grid Columns (day & week) ----
+interface GridColumn { key: string; label: string; avatar?: string; number?: number; isToday?: boolean; widthPercent: number; appointments: DisplayAppointment[] }
+interface DisplayAppointment { id: string; clientName: string; service: string; time: string; top: number; height: number; status: string; employeeInitials: string; raw: any }
 
-      const visualStatus = normalizeAppointmentStatus(appt)
-      const service = services.value?.find(s => s.id === appt.service_id)
-      const employee = employees.value?.find(e => e.id === appt.employee_id)
-      const clientName = appt.clients?.full_name || ''
-      const title = clientName || 'Cliente'
-      const serviceName = service?.name || 'Servicio'
-      const employeeName = employee?.full_name || 'Empleado'
-      const employeeInitials = employeeName !== 'Empleado' ? getInitials(employeeName) : ''
+function mapAppt(a: any, svcList: any[], empName: string) {
+  const start = new Date(a.start_time); const end = new Date(a.end_time)
+  const svc = svcList.find(s => s.id === a.service_id)
+  const topMin = (start.getHours() * 60 + start.getMinutes()) - (START_HOUR * 60)
+  return {
+    id: a.id,
+    clientName: a.clients?.full_name || 'Cliente',
+    service: svc?.name || 'Servicio',
+    time: dateToHHmm(start),
+    top: Math.max(0, (topMin / 60) * HOUR_HEIGHT),
+    height: ((end.getTime() - start.getTime()) / 60000 / 60) * HOUR_HEIGHT,
+    status: normalizeAppointmentStatus(a),
+    employeeInitials: getInitials(empName),
+    raw: a,
+  }
+}
 
-      events.push({
-        start: appt.start_time,
-        end: appt.end_time,
-        id: appt.id,
-        title,
-        schedule: hasSchedules.value ? appt.employee_id : undefined,
-        class: `vc-event-agenda vc-status-${visualStatus}`,
-        _customStatus: visualStatus,
-        _statusLabel: getStatusLabel(visualStatus),
-        _hasGroup: !!groupId,
-        _serviceName: serviceName,
-        _employeeName: employeeName,
-        _employeeInitials: employeeInitials,
-        _rawAppt: appt,
-      } as any)
+const gridColumns = computed<GridColumn[]>(() => {
+  const emps = employees.value ?? []
+  const empId = selectedEmployeeId.value
+  const appts = appointments.value ?? []
+  const svcs = services.value ?? []
+
+  if (viewMode.value === 'week') {
+    const sel = new Date(selectedDate.value + 'T12:00:00')
+    const sow = new Date(sel); sow.setDate(sel.getDate() - sel.getDay())
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(sow); d.setDate(sow.getDate() + i)
+      const iso = toISODate(d)
+      const dayAppts = appts
+        .filter(a => toISODate(new Date(a.start_time)) === iso && (empId === 'all' || a.employee_id === empId) && (!searchQuery.value || (a.clients?.full_name || '').toLowerCase().includes(searchQuery.value.toLowerCase())))
+        .map(a => mapAppt(a, svcs, emps.find(e => e.id === a.employee_id)?.full_name || ''))
+        .sort((a, b) => a.top - b.top)
+      const isT = iso === todayIso.value
+      return { key: iso, label: dayNames[d.getDay()], number: d.getDate(), isToday: isT, widthPercent: 100 / 7, appointments: dayAppts }
     })
   }
 
-  return events
+  let cols = empId !== 'all' ? emps.filter(e => e.id === empId).map(e => ({ id: e.id, name: e.full_name })) : emps.map(e => ({ id: e.id, name: e.full_name }))
+  if (!cols.length) cols = [{ id: '__default__', name: 'Citas' }]
+
+  return cols.map(c => {
+    const cAppts = appts
+      .filter(a => (c.id === '__default__' || (toISODate(new Date(a.start_time)) === selectedDate.value && a.employee_id === c.id)) && (!searchQuery.value || (a.clients?.full_name || '').toLowerCase().includes(searchQuery.value.toLowerCase())))
+      .map(a => mapAppt(a, svcs, c.name))
+      .sort((a, b) => a.top - b.top)
+    return { key: c.id, label: c.id === '__default__' ? 'Citas' : c.name.split(' ')[0], avatar: c.id === '__default__' ? undefined : getInitials(c.name), widthPercent: 100 / cols.length, appointments: cAppts }
+  })
 })
 
-// --- Calendar ready ---
-const onReady = (ctx: { view: { start: Date; end: Date } }) => {
-  setDateRange(ctx.view.start, ctx.view.end)
+// ---- Card styling ----
+const statusColors: Record<string, { bg: string; dot: string; stripe: string; checkout: string }> = {
+  confirmed: { bg: 'bg-emerald-50/70 dark:bg-emerald-950/30', dot: 'bg-primary', stripe: 'bg-primary', checkout: 'bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:bg-emerald-900/40 dark:text-emerald-400 dark:hover:bg-emerald-500 dark:hover:text-white' },
+  pending: { bg: 'bg-amber-50/80 dark:bg-amber-950/30', dot: 'bg-warning', stripe: 'bg-warning', checkout: 'bg-amber-100 text-amber-600 hover:bg-amber-600 hover:text-white dark:bg-amber-900/40 dark:text-amber-400 dark:hover:bg-amber-500 dark:hover:text-white' },
+  paid: { bg: 'bg-green-50/70 dark:bg-green-950/25', dot: 'bg-success', stripe: 'bg-success', checkout: 'bg-transparent text-transparent' },
+  cancelled: { bg: 'bg-red-50/50 dark:bg-red-950/15 opacity-60', dot: 'bg-danger', stripe: 'bg-danger', checkout: 'bg-transparent text-transparent' },
+  no_show: { bg: 'bg-red-50/50 dark:bg-red-950/15 opacity-60', dot: 'bg-danger', stripe: 'bg-danger', checkout: 'bg-transparent text-transparent' },
+}
+const cardBgClass = (s: string) => statusColors[s]?.bg || 'bg-zinc-50/70 dark:bg-zinc-900/30'
+const statusDotClass = (s: string) => statusColors[s]?.dot || 'bg-primary'
+const statusStripeClass = (s: string) => statusColors[s]?.stripe || 'bg-primary'
+const checkoutBtnClass = (s: string) => statusColors[s]?.checkout || ''
+
+// ---- Interactions ----
+function onColumnClick(col: GridColumn, e: MouseEvent) {
+  const c = gridContainer.value; if (!c) return
+  const clickY = e.clientY - c.getBoundingClientRect().top + c.scrollTop
+  const mins = (clickY / HOUR_HEIGHT) * 60
+  const hour = START_HOUR + Math.floor(mins / 60)
+  const minute = Math.floor((mins % 60) / 15) * 15
+  if (hour >= END_HOUR || hour < START_HOUR) return
+  const dateStr = viewMode.value === 'week' ? col.key : selectedDate.value
+  const start = new Date(dateStr + 'T12:00:00'); start.setHours(hour, minute, 0, 0)
+  const end = new Date(start); end.setMinutes(end.getMinutes() + 30)
+  emit('slotSelect', { start, end, employeeId: col.key !== '__default__' && viewMode.value !== 'week' ? col.key : undefined })
 }
 
-// --- Event drag/resize ---
-const onEventDragEnd = ({ event }: { event: any }) => {
-  emit('eventChange', {
-    id: event.id,
-    start: new Date(event.start).toISOString(),
-    end: new Date(event.end).toISOString(),
-  })
-}
-
-const onEventResizeEnd = ({ event }: { event: any }) => {
-  emit('eventChange', {
-    id: event.id,
-    start: new Date(event.start).toISOString(),
-    end: new Date(event.end).toISOString(),
-  })
-}
-
-// --- Event dropped onto different schedule (employee change) ---
-const onEventDrop = ({ event }: { event: any; cell: { start: Date; end: Date }; external: boolean }) => {
-  emit('eventChange', {
-    id: event.id,
-    start: new Date(event.start).toISOString(),
-    end: new Date(event.end).toISOString(),
-    employeeId: event.schedule ? String(event.schedule) : undefined,
-  })
-}
-
-// --- Cell click (slot select) ---
-const onCellClick = ({ cell }: { cell: { start: Date; end: Date } }) => {
-  // Ignore clicks on existing events
-  emit('slotSelect', { start: cell.start, end: cell.end })
-}
-
-// --- Event click ---
-const onEventClick = (event: any, nativeEvent: MouseEvent) => {
-  const target = nativeEvent?.target as HTMLElement
-  if (target?.closest('.agenda-event-dot') || target?.closest('.agenda-event-checkout') || target?.closest('.agenda-status-dropdown')) {
-    return
-  }
-
-  const raw = event._rawAppt
-  if (!raw) return
-
-  const start = new Date(raw.start_time)
-  const end = new Date(raw.end_time)
-  const service = services.value?.find(s => s.id === raw.service_id)
-  const duration = service?.duration_minutes || Math.round((end.getTime() - start.getTime()) / 60000)
-  const citaStatus = (event._customStatus || 'confirmed') as Cita['status']
-
+function emitEventClick(raw: any) {
+  const start = new Date(raw.start_time); const end = new Date(raw.end_time)
+  const svc = services.value?.find(s => s.id === raw.service_id)
+  const status = normalizeAppointmentStatus(raw)
   emit('eventClick', {
-    id: raw.id,
-    title: event.title,
-    start,
-    end,
-    status: event._customStatus,
+    id: raw.id, title: raw.clients?.full_name || 'Cliente', start, end, status,
     citaData: {
-      id: raw.id,
-      clientId: raw.client_id,
-      clientName: event.title,
-      serviceId: raw.service_id,
-      service: service?.name || 'Servicio',
-      employeeId: raw.employee_id,
-      employee: event._employeeName || 'Empleado',
-      groupId: raw.group_id || undefined,
-      date: toISODate(start),
-      time: dateToHHmm(start),
-      duration,
-      price: Number(service?.price ?? 0),
-      status: citaStatus,
-      notes: raw.internal_notes || '',
+      id: raw.id, clientId: raw.client_id, clientName: raw.clients?.full_name || 'Cliente',
+      serviceId: raw.service_id, service: svc?.name || 'Servicio', employeeId: raw.employee_id,
+      employee: raw.employee?.full_name || 'Empleado', groupId: raw.group_id || undefined,
+      date: toISODate(start), time: dateToHHmm(start),
+      duration: svc?.duration_minutes || Math.round((end.getTime() - start.getTime()) / 60000),
+      price: Number(svc?.price ?? 0), status: status as Cita['status'], notes: raw.internal_notes || '',
     },
   })
 }
 
-// --- Checkout Express ---
-const emitCheckout = (event: any) => {
-  const raw = event._rawAppt
-  if (raw?.id) {
-    emit('checkout', raw.id)
-  }
+function emitCheckout(id: string) { emit('checkout', id) }
+
+// ---- Status menu ----
+function toggleStatusMenu(appt: DisplayAppointment, e: MouseEvent) {
+  if (statusMenu.value?.appointmentId === appt.id) { statusMenu.value = null; return }
+  const r = (e.target as HTMLElement).getBoundingClientRect()
+  statusMenu.value = { appointmentId: appt.id, currentStatus: appt.status, x: r.left - 8, y: r.bottom + 4 }
 }
 
-// --- Status dropdown ---
-const activeDropdown = ref<{ id: string | number; event: any } | null>(null)
-const dropdownStyle = ref<Record<string, string>>({})
-
-const toggleStatusDropdown = (event: any) => {
-  if (activeDropdown.value?.id === event._.id) {
-    activeDropdown.value = null
-    return
-  }
-
-  const dot = document.activeElement as HTMLElement
-  const rect = dot?.getBoundingClientRect()
-  if (rect) {
-    dropdownStyle.value = {
-      position: 'fixed',
-      top: `${rect.bottom + 4}px`,
-      left: `${rect.left - 8}px`,
-      zIndex: '100',
-    }
-  }
-
-  activeDropdown.value = { id: event._.id, event }
+function changeStatus(id: string, s: string) {
+  emit('statusChange', { id, status: s as 'pending' | 'confirmed' | 'cancelled' | 'paid' })
+  statusMenu.value = null
 }
 
-const changeStatus = (event: any, status: string) => {
-  emit('statusChange', {
-    id: event.id,
-    status: status as 'pending' | 'confirmed' | 'cancelled' | 'paid',
-  })
-  activeDropdown.value = null
-}
+function onDocClick(e: MouseEvent) { if (statusMenu.value && !(e.target as HTMLElement)?.closest('.fixed')) statusMenu.value = null }
+onMounted(() => document.addEventListener('click', onDocClick))
+onUnmounted(() => document.removeEventListener('click', onDocClick))
 
-const onDocumentClick = (e: MouseEvent) => {
-  if (activeDropdown.value && !(e.target as HTMLElement)?.closest('.agenda-event-dot') && !(e.target as HTMLElement)?.closest('.agenda-status-dropdown')) {
-    activeDropdown.value = null
-  }
-}
-
+// ---- Init ----
 onMounted(() => {
-  document.addEventListener('click', onDocumentClick)
-
-  if (!isAdmin.value && authStore.profile?.id) {
-    selectedEmployeeId.value = authStore.profile.id
+  const now = new Date()
+  const m = now.getHours() * 60 + now.getMinutes()
+  if (m >= START_HOUR * 60 && m <= END_HOUR * 60) {
+    nextTick(() => {
+      if (gridContainer.value) gridContainer.value.scrollTop = Math.max(0, ((m - START_HOUR * 60) / 60) * HOUR_HEIGHT - 200)
+    })
   }
-  const employeeParam = route.query.employee as string | undefined
-  if (employeeParam) selectedEmployeeId.value = employeeParam
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', onDocumentClick)
+  if (!isAdmin.value && authStore.profile?.id) selectedEmployeeId.value = authStore.profile.id
+  const ep = route.query.employee as string | undefined
+  if (ep) selectedEmployeeId.value = ep
 })
 </script>
 
-<style>
-/* ============================================================
-   VUE-CAL BASE THEME — mapped to app design tokens
-   ============================================================ */
-
-:root {
-  --vc-bg: var(--color-surface);
-  --vc-text: var(--color-text);
-  --vc-text-light: var(--color-text-secondary);
-  --vc-text-lighter: var(--color-text-muted);
-  --vc-border: var(--color-border);
-  --vc-border-light: var(--color-border-subtle);
-  --vc-header-bg: var(--color-bg-secondary);
-  --vc-header-text: var(--color-text-muted);
-  --vc-weekend-bg: var(--color-bg);
-  --vc-today-bg: var(--color-primary-light);
-  --vc-highlight: var(--color-primary-light);
-  --vc-event-bg: var(--color-surface);
-  --vc-event-text: var(--color-text);
-  --vc-resize-handle: var(--color-primary);
-}
-
-.vue-cal-wrapper {
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.vue-cal-wrapper .vuecal {
-  height: 100%;
-  min-height: 0;
-}
-
-/* ============================================================
-   TOOLBAR & HEADERS
-   ============================================================ */
-
-.vuecal__header {
-  background: var(--vc-header-bg, var(--color-bg-secondary));
-  border-bottom: 1px solid var(--color-border);
-}
-
-.vuecal__title {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-@media (min-width: 640px) { .vuecal__title { font-size: 0.9375rem; } }
-
-.vuecal__title-bar button {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  font-weight: 500;
-  font-size: 0.6875rem;
-  color: var(--color-text-secondary);
-  transition: all 0.15s ease;
-}
-
-.vuecal__title-bar button:hover {
-  background: var(--color-bg-secondary);
-  border-color: var(--color-border-strong);
-  color: var(--color-text);
-}
-
-.vuecal__title-bar button.vuecal--active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-text-inverse);
-}
-
-.vuecal__arrow { color: var(--color-text-secondary); }
-.vuecal__arrow:hover { color: var(--color-text); }
-
-.vuecal__cell-header {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-muted);
-  padding: 0.5rem 0.25rem;
-}
-
-@media (min-width: 640px) {
-  .vuecal__cell-header { font-size: 0.75rem; padding: 0.625rem 0.5rem; }
-}
-
-/* ============================================================
-   TIME GRID
-   ============================================================ */
-
-.vuecal__time-column .vuecal__time-header-label {
-  font-size: 0.625rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  padding: 0.25rem 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .vuecal__time-column .vuecal__time-header-label { font-size: 0.6875rem; }
-}
-
-.vuecal__cells.day-view .vuecal__cell { min-height: 2.5rem; }
-@media (min-width: 640px) {
-  .vuecal__cells.day-view .vuecal__cell { min-height: 3.5rem; }
-}
-
-.vuecal__cell.today { background: var(--color-primary-light); }
-
-/* ============================================================
-   SCHEDULE HEADERS
-   ============================================================ */
-
-.vuecal__schedule-header {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--color-text);
-  background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border);
-  padding: 0.375rem 0.5rem;
-}
-
-/* ============================================================
-   AGENDA EVENT CARDS — Premium Design
-   ============================================================ */
-
-.vuecal__event {
-  border: none !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
-  overflow: visible !important;
-}
-
-.agenda-event-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  border-radius: 0.375rem;
-  border-left: 3px solid transparent;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
-  cursor: pointer;
-}
-
-.agenda-event-card:hover {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
-}
-
-/* Status backgrounds */
-.agenda-status-pending {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.04));
-  border-left-color: var(--color-warning) !important;
-}
-
-.agenda-status-confirmed {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0.04));
-  border-left-color: var(--color-primary) !important;
-}
-
-.agenda-status-paid {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(34, 197, 94, 0.04));
-  border-left-color: var(--color-success) !important;
-}
-
-.agenda-status-cancelled,
-.agenda-status-no_show {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.02));
-  border-left-color: var(--color-danger) !important;
-  opacity: 0.65;
-}
-
-/* Status dots */
-.dot-status-pending { background: var(--color-warning) !important; }
-.dot-status-confirmed { background: var(--color-primary) !important; }
-.dot-status-paid { background: var(--color-success) !important; }
-.dot-status-cancelled { background: var(--color-danger) !important; }
-.dot-status-no_show { background: var(--color-danger) !important; }
-
-/* Event card internals */
-.agenda-event-header {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.375rem 0;
-  min-width: 0;
-}
-
-.agenda-event-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 999px;
-  flex-shrink: 0;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  background: var(--color-primary);
-}
-
-.agenda-event-dot:hover {
-  transform: scale(1.3);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
-}
-
-.agenda-event-time {
-  font-size: 0.5625rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-@media (min-width: 640px) { .agenda-event-time { font-size: 0.625rem; } }
-
-.agenda-event-group {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 0.875rem;
-  height: 0.875rem;
-  font-size: 0.5rem;
-  font-weight: 700;
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  border-radius: 0.25rem;
-  flex-shrink: 0;
-}
-
-.agenda-event-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-/* Checkout button */
-.agenda-event-checkout {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.125rem;
-  height: 1.125rem;
-  border: none;
-  border-radius: 0.25rem;
-  background: rgba(34, 197, 94, 0.15);
-  color: var(--color-success);
-  cursor: pointer;
-  opacity: 0;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
-}
-
-.agenda-event-card:hover .agenda-event-checkout {
-  opacity: 1;
-}
-
-.agenda-event-checkout:hover {
-  background: var(--color-success);
-  color: white;
-  transform: scale(1.1);
-}
-
-.agenda-event-body {
-  flex: 1;
-  min-width: 0;
-  padding: 0.125rem 0.375rem 0.25rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.125rem;
-}
-
-.agenda-event-client {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  color: var(--color-text);
-  line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (min-width: 640px) { .agenda-event-client { font-size: 0.75rem; } }
-
-.agenda-event-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.agenda-event-service {
-  font-size: 0.5625rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-secondary);
-  padding: 0.0625rem 0.375rem;
-  border-radius: 0.25rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-.agenda-event-employee {
-  font-size: 0.5rem;
-  font-weight: 700;
-  color: var(--color-text-inverse);
-  background: var(--color-primary);
-  width: 1rem;
-  height: 1rem;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-@media (min-width: 640px) {
-  .agenda-event-service { font-size: 0.625rem; }
-  .agenda-event-employee { width: 1.125rem; height: 1.125rem; font-size: 0.5625rem; }
-}
-
-/* Status icon (bottom-right corner) */
-.agenda-event-status-icon {
-  position: absolute;
-  bottom: 0.25rem;
-  right: 0.25rem;
-  opacity: 0.25;
-}
-
-.agenda-status-pending .agenda-event-status-icon { color: var(--color-warning); }
-.agenda-status-confirmed .agenda-event-status-icon { color: var(--color-primary); }
-.agenda-status-paid .agenda-event-status-icon { color: var(--color-success); }
-.agenda-status-cancelled .agenda-event-status-icon,
-.agenda-status-no_show .agenda-event-status-icon { color: var(--color-danger); }
-
-/* Month view compact */
-.agenda-event-month .agenda-event-header {
-  padding: 0.125rem 0.25rem 0;
-}
-
-.agenda-event-month .agenda-event-body {
-  padding: 0 0.25rem 0.125rem;
-}
-
-.agenda-event-month .agenda-event-client {
-  font-size: 0.625rem;
-}
-
-.agenda-event-month .agenda-event-meta,
-.agenda-event-month .agenda-event-time,
-.agenda-event-month .agenda-event-status-icon,
-.agenda-event-month .agenda-event-actions {
-  display: none;
-}
-
-/* ============================================================
-   STATUS DROPDOWN (teleported to body)
-   ============================================================ */
-
-.agenda-status-dropdown {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  padding: 0.25rem;
-  min-width: 130px;
-  animation: agenda-dropdown-in 0.12s ease-out;
-}
-
-@keyframes agenda-dropdown-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.agenda-status-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.375rem 0.5rem;
-  border: none;
-  background: transparent;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: background 0.1s ease;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--color-text);
-  text-align: left;
-}
-
-.agenda-status-option:hover { background: var(--color-bg-secondary); }
-.agenda-status-option-active { background: var(--color-bg-secondary); }
-
-.agenda-status-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 999px;
-  flex-shrink: 0;
-  background: var(--color-primary);
-}
-
-.agenda-status-label { flex: 1; }
-
-.agenda-status-check {
-  width: 0.75rem;
-  height: 0.75rem;
-  flex-shrink: 0;
-  color: var(--color-primary);
-}
-
-.agenda-status-check svg { width: 100%; height: 100%; }
-
-/* ============================================================
-   DARK MODE
-   ============================================================ */
-
-.vuecal--dark-theme {
-  --vc-bg: var(--color-surface);
-  --vc-header-bg: var(--color-bg-secondary);
-  --vc-weekend-bg: var(--color-bg);
-  --vc-border: var(--color-border);
-  --vc-border-light: var(--color-border-subtle);
-}
-
-.vuecal--dark-theme .agenda-event-card {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.18);
-}
-.vuecal--dark-theme .agenda-event-card:hover {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
-}
-
-.vuecal--dark-theme .agenda-status-pending {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.03));
-}
-.vuecal--dark-theme .agenda-status-confirmed {
-  background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(129, 140, 248, 0.03));
-}
-.vuecal--dark-theme .agenda-status-paid {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.03));
-}
-.vuecal--dark-theme .agenda-status-cancelled {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.02));
-}
-
-/* ============================================================
-   MOBILE HORIZONTAL SCROLL (schedules on small screens)
-   ============================================================ */
-
-@media (max-width: 1023px) {
-  .vuecal-mobile-scroll .vuecal__cells.day-view {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .vuecal-mobile-scroll .vuecal__cell-split {
-    min-width: 220px;
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-hide::-webkit-scrollbar { display: none; }
-}
+<style scoped>
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
 </style>
