@@ -348,7 +348,7 @@ function useFinancialSummary(
     return map
   })
 
-  const getProductSaleCurrency = (refType: string | null, refId: string | null, movementRate: number): {
+  const getProductSaleCurrency = (refType: string | null, refId: string | null, movementRate: number, movementNotes?: string): {
     currency: 'USD' | 'VES'
     exchangeRateUsed: number
     originalAmount: (total: number) => number
@@ -366,6 +366,16 @@ function useFinancialSummary(
       }
     }
     const rate = movementRate || 1
+    const notes = movementNotes ?? ''
+    const vesMatch = notes.match(/^\[VES:(\d+(?:\.\d+)?)\]/)
+    if (vesMatch) {
+      const parsedRate = Number(vesMatch[1])
+      return {
+        currency: 'VES',
+        exchangeRateUsed: parsedRate > 0 ? parsedRate : rate,
+        originalAmount: (total: number) => total,
+      }
+    }
     return {
       currency: 'USD',
       exchangeRateUsed: rate,
@@ -418,7 +428,7 @@ function useFinancialSummary(
       endExclusive.setDate(endExclusive.getDate() + 1)
       const { data, error } = await supabase
         .from('inventory_movements')
-        .select('id, product_id, variant_id, movement_type, quantity, unit_cost, exchange_rate_used, reference_type, reference_id, created_at, products ( name )')
+        .select('id, product_id, variant_id, movement_type, quantity, unit_cost, exchange_rate_used, reference_type, reference_id, notes, created_at, products ( name )')
         .eq('business_id', businessId.value!)
         .eq('movement_type', 'sale')
         .gte('created_at', cfg.start.toISOString())
@@ -495,7 +505,7 @@ function useFinancialSummary(
       const unitPrice = Number(r.unit_cost ?? 0)
       const total = quantity * unitPrice
       const { currency, exchangeRateUsed, originalAmount } = getProductSaleCurrency(
-        r.reference_type ?? null, r.reference_id ?? null, Number(r.exchange_rate_used ?? 1),
+        r.reference_type ?? null, r.reference_id ?? null, Number(r.exchange_rate_used ?? 1), r.notes,
       )
       const orig = originalAmount(total)
       return {

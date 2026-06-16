@@ -200,6 +200,7 @@ export const sellProduct = async (
   variantId?: string | null,
   unitPrice?: number,
   exchangeRate?: number,
+  currency?: 'USD' | 'VES',
 ): Promise<void> => {
   const locationId = await getDefaultLocation(businessId)
   const existing = await getStockRecord(businessId, productId, locationId, variantId)
@@ -214,14 +215,20 @@ export const sellProduct = async (
   const newQty = currentQty - quantity
   await updateStockQuantity(existing.data.id, newQty)
 
+  const rate = exchangeRate ?? 1
+  let finalNotes = notes || 'Venta directa'
+  if (currency === 'VES') {
+    finalNotes = `[VES:${rate}] ` + finalNotes
+  }
+
   await recordMovement(businessId, {
     locationId,
     productId,
     variantId,
     movementType: 'sale',
     quantity: -quantity,
-    notes: notes || 'Venta directa',
+    notes: finalNotes,
     unitCost: unitPrice,
-    exchangeRate: exchangeRate ?? 1,
+    exchangeRate: rate,
   })
 }

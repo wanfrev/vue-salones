@@ -291,9 +291,18 @@ const canSell = computed(() => {
   return Math.abs(paid - total.value) < 0.01
 })
 
+const saleCurrency = computed<'USD' | 'VES'>(() => {
+  if (paymentMethod.value === 'mixed' && paymentsBreakdown.value.length > 0) {
+    return paymentsBreakdown.value[0].currency
+  }
+  if (paymentMethod.value === 'other') return otherCurrency.value
+  const pmDef = paymentMethods.find(m => m.value === paymentMethod.value)
+  return pmDef?.currency ?? 'USD'
+})
+
 const sellMutation = useMutation({
   mutationFn: () =>
-    sellProduct(props.businessId, selected.value!.id, quantity.value, notes.value, null, unitPrice.value, exchangeRate.value),
+    sellProduct(props.businessId, selected.value!.id, quantity.value, notes.value, null, unitPrice.value, exchangeRate.value, saleCurrency.value),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: inventarioKeys.all(props.businessId) })
     queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(props.businessId) })
