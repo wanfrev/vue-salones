@@ -104,13 +104,18 @@
             :key="pm.value"
             @click="selectMethod(pm.value)"
             :class="[
-              'rounded-lg border p-2 text-sm font-medium transition-theme text-center',
+              'rounded-lg border p-2 text-sm font-medium transition-theme text-center relative',
               paymentMethod === pm.value
                 ? 'border-primary bg-primary/10 text-primary'
                 : 'border-border text-text-secondary hover:bg-bg-secondary'
             ]"
           >
             {{ pm.label }}
+            <span
+              v-if="pm.currency"
+              class="ml-1 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+              :class="pm.currency === 'USD' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'"
+            >{{ pm.currency === 'USD' ? '$' : 'Bs' }}</span>
           </button>
         </div>
       </div>

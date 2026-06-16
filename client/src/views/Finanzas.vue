@@ -344,7 +344,10 @@
                 <td class="px-3 py-3 font-medium text-text">{{ row.product }}</td>
                 <td class="px-3 py-3 text-right tabular-nums text-text-secondary">{{ row.quantity }}</td>
                 <td class="px-3 py-3 text-right tabular-nums text-text-secondary whitespace-nowrap hidden sm:table-cell">{{ formatUSD(row.unitPrice) }}</td>
-                <td class="px-3 py-3 text-right font-semibold text-info tabular-nums whitespace-nowrap">{{ formatUSD(row.total) }}</td>
+                <td class="px-3 py-3 text-right font-semibold text-info tabular-nums whitespace-nowrap">
+                  <div>{{ row.currency === 'VES' ? formatVESEs(row.originalAmount) : formatUSD(row.total) }}</div>
+                  <div class="text-[10px] text-text-muted mt-0.5">{{ row.currency === 'VES' ? formatUSD(row.total) : formatVESInline(row.total, row.exchangeRateUsed) + ' Bs' }}</div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -364,7 +367,10 @@
               <span class="text-text-secondary truncate">
                 <span class="font-medium text-text-muted">{{ idx + 1 }}.</span> {{ p.name }}
               </span>
-              <span class="font-medium text-info tabular-nums shrink-0 ml-2">{{ formatUSD(p.amount) }}</span>
+              <span class="font-medium text-info tabular-nums shrink-0 ml-2">
+                <span>{{ formatUSD(p.amount) }}</span>
+                <span class="text-text-muted ml-1">{{ formatVESInline(p.amount) + ' Bs' }}</span>
+              </span>
             </div>
           </div>
         </div>
@@ -627,9 +633,15 @@ const detailTabTotal = computed(() => {
 })
 
 const detailTabVesTotal = computed(() => {
-  if (activeDetailTab.value !== 'cobros') return ''
-  const ves = allCobrosRows.value.reduce((acc, row) => acc + Number(row.amount ?? 0) * Number(row.exchangeRateUsed ?? 1), 0)
-  return formatVESEs(ves)
+  if (activeDetailTab.value === 'cobros') {
+    const ves = allCobrosRows.value.reduce((acc, row) => acc + Number(row.amount ?? 0) * Number(row.exchangeRateUsed ?? 1), 0)
+    return formatVESEs(ves)
+  }
+  if (activeDetailTab.value === 'ventas') {
+    const ves = allVentasRows.value.reduce((acc, row) => acc + Number(row.total ?? 0) * Number(row.exchangeRateUsed ?? 1), 0)
+    return formatVESEs(ves)
+  }
+  return ''
 })
 
 const detailTabCount = computed(() => {

@@ -68,6 +68,9 @@ export type ProductSaleDetail = {
   quantity: number
   unitPrice: number
   total: number
+  currency: 'USD' | 'VES'
+  exchangeRateUsed: number
+  originalAmount: number
 }
 
 type PaymentRow = {
@@ -281,6 +284,7 @@ function useFinancialSummary(
         .from('transactions')
         .select(`
           id,
+          appointment_id,
           paid_at,
           created_at,
           total_amount,
@@ -331,6 +335,44 @@ function useFinancialSummary(
 
   const rawTransactions = computed(() => transactionsData.value ?? [])
 
+  const appointmentPaymentMap = computed(() => {
+    const map = new Map<string, { breakdown: PaymentBreakdownItem[]; exchangeRate: number }>()
+    for (const tx of rawTransactions.value) {
+      const apptId = (tx as any).appointment_id as string | undefined
+      if (!apptId) continue
+      const breakdown = (tx as any).payments_breakdown as PaymentBreakdownItem[] | null
+      if (breakdown && breakdown.length > 0) {
+        map.set(apptId, { breakdown, exchangeRate: tx.exchange_rate_used ?? 1 })
+      }
+    }
+    return map
+  })
+
+  const getProductSaleCurrency = (refType: string | null, refId: string | null, movementRate: number): {
+    currency: 'USD' | 'VES'
+    exchangeRateUsed: number
+    originalAmount: (total: number) => number
+  } => {
+    if (refType === 'appointment' && refId) {
+      const pmt = appointmentPaymentMap.value.get(refId)
+      if (pmt) {
+        const firstBreakdown = pmt.breakdown[0]
+        const isVES = firstBreakdown?.currency === 'VES'
+        return {
+          currency: isVES ? 'VES' : 'USD',
+          exchangeRateUsed: pmt.exchangeRate,
+          originalAmount: (total: number) => total,
+        }
+      }
+    }
+    const rate = movementRate || 1
+    return {
+      currency: 'USD',
+      exchangeRateUsed: rate,
+      originalAmount: (total: number) => total,
+    }
+  }
+
   // Employee payments query for same period
   const { data: rawEmployeePayments } = useQuery({
     queryKey: computed(() => ['finanzas-employee-payments', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null]),
@@ -376,7 +418,7 @@ function useFinancialSummary(
       endExclusive.setDate(endExclusive.getDate() + 1)
       const { data, error } = await supabase
         .from('inventory_movements')
-        .select('product_id, variant_id, movement_type, quantity, unit_cost, exchange_rate_used, created_at, products ( name )')
+        .select('id, product_id, variant_id, movement_type, quantity, unit_cost, exchange_rate_used, reference_type, reference_id, created_at, products ( name )')
         .eq('business_id', businessId.value!)
         .eq('movement_type', 'sale')
         .gte('created_at', cfg.start.toISOString())
@@ -451,13 +493,21 @@ function useFinancialSummary(
     return rows.map((r: any, idx: number) => {
       const quantity = Math.abs(Number(r.quantity ?? 0))
       const unitPrice = Number(r.unit_cost ?? 0)
+      const total = quantity * unitPrice
+      const { currency, exchangeRateUsed, originalAmount } = getProductSaleCurrency(
+        r.reference_type ?? null, r.reference_id ?? null, Number(r.exchange_rate_used ?? 1),
+      )
+      const orig = originalAmount(total)
       return {
-        id: `${r.product_id ?? 'product'}-${r.created_at ?? idx}-${idx}`,
+        id: r.id ?? `product-${idx}`,
         date: formatDate(r.created_at),
         product: r.products?.name ?? 'Sin producto',
         quantity,
         unitPrice,
-        total: quantity * unitPrice,
+        total,
+        currency,
+        exchangeRateUsed,
+        originalAmount: currency === 'VES' ? total * exchangeRateUsed : orig,
       }
     })
   })

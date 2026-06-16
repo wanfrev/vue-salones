@@ -207,8 +207,11 @@
               <td class="py-3 text-text-secondary whitespace-nowrap">{{ row.date }}</td>
               <td class="py-3 font-medium text-text">{{ row.product }}</td>
               <td class="py-3 text-right text-text">{{ row.quantity }}</td>
-              <td class="py-3 text-right text-text">{{ formatUSD(row.unitPrice) }}</td>
-              <td class="py-3 text-right font-medium text-success">{{ formatUSD(row.total) }}</td>
+              <td class="py-3 text-right text-text whitespace-nowrap">{{ formatUSD(row.unitPrice) }}</td>
+              <td class="py-3 text-right font-medium text-success whitespace-nowrap">
+                <div>{{ row.currency === 'VES' ? formatVESEs(row.originalAmount) : formatUSD(row.total) }}</div>
+                <div class="text-[10px] text-text-muted mt-0.5">{{ row.currency === 'VES' ? formatUSD(row.total) : formatVESInline(row.total, row.exchangeRateUsed) + ' Bs' }}</div>
+              </td>
             </tr>
             <tr v-if="summaryCtx.productSalesDetails.value.length === 0">
               <td colspan="5" class="py-6 text-center text-sm text-text-muted">No hay ventas de productos en este periodo.</td>

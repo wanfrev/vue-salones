@@ -87,7 +87,10 @@ export function useEmployeePayments(
   const employeeList = ref<EmployeeOption[]>([])
 
   const loadEmployees = async () => {
-    if (!businessId.value || employeeList.value.length > 0) return
+    if (!businessId.value) {
+      showError('No se pudo cargar la lista de empleados: no hay negocio activo')
+      return
+    }
     const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name')
@@ -95,11 +98,14 @@ export function useEmployeePayments(
       .eq('role', 'empleado')
       .eq('active', true)
       .order('full_name')
-    if (!error) {
-      employeeList.value = (data ?? []).map((p: any) => ({
-        id: p.id, name: p.full_name,
-      }))
+    if (error) {
+      console.error('[loadEmployees]', error)
+      showError('Error al cargar empleados')
+      return
     }
+    employeeList.value = (data ?? []).map((p: any) => ({
+      id: p.id, name: p.full_name,
+    }))
   }
 
   const openModal = async () => {

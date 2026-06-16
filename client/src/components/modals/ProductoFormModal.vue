@@ -272,7 +272,10 @@ const validateForm = (): boolean => {
 }
 
 const handleSubmit = async () => {
-  if (props.isSaving) return
+  if (props.isSaving) {
+    console.warn('[ProductoFormModal] handleSubmit bloqueado: isSaving=true')
+    return
+  }
 
   if (!validateForm()) {
     showError('Por favor corrige los errores en el formulario')

@@ -69,10 +69,15 @@ export const saveProducto = async (
 
   const { data: saved, error } = await query
   if (error) throw error
+  if (!saved) throw new Error('No se pudo guardar el producto')
 
   if (isNew) {
-    const loc = await ensureDefaultLocation(businessId)
-    await createInitialStock(businessId, saved.id, loc.id, Number(initialStock ?? 0))
+    try {
+      const loc = await ensureDefaultLocation(businessId)
+      await createInitialStock(businessId, saved.id, loc.id, Number(initialStock ?? 0))
+    } catch (err) {
+      console.error('[saveProducto] Error creando stock inicial:', err)
+    }
   }
 
   return mapProductToProducto(saved as Product)

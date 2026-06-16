@@ -47,6 +47,13 @@
             </div>
           </button>
         </div>
+        <div
+          v-if="showClientSuggestions && clientSuggestions.length === 0 && formData.clientName.trim().length >= 1"
+          class="absolute z-50 mt-1 w-full rounded-xl border border-border bg-surface shadow-lg px-4 py-3 text-center text-sm text-text-muted"
+        >
+          <template v-if="clientSearchLoading">Buscando...</template>
+          <template v-else>Sin resultados</template>
+        </div>
       </div>
 
       <FormInput
@@ -244,6 +251,7 @@ const businessId = computed(() => authStore.businessId)
 
 const clientSuggestions = ref<{ id: string; full_name: string; phone: string }[]>([])
 const showClientSuggestions = ref(false)
+const clientSearchLoading = ref(false)
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 const onClientNameInput = () => {
@@ -256,13 +264,23 @@ const onClientNameInput = () => {
     return
   }
   searchTimeout = setTimeout(async () => {
-    if (!businessId.value) return
+    if (!businessId.value) {
+      console.warn('[CitaFormModal] businessId no disponible para búsqueda de clientes')
+      return
+    }
+    clientSearchLoading.value = true
     try {
       clientSuggestions.value = await searchClients(businessId.value, query)
       showClientSuggestions.value = clientSuggestions.value.length > 0
-    } catch {
+      if (clientSuggestions.value.length === 0) {
+        console.log('[CitaFormModal] Sin resultados para:', query)
+      }
+    } catch (err) {
+      console.error('[CitaFormModal] Error buscando clientes:', err)
       clientSuggestions.value = []
       showClientSuggestions.value = false
+    } finally {
+      clientSearchLoading.value = false
     }
   }, 300)
 }

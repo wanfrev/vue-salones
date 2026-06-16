@@ -37,10 +37,15 @@ export async function createInitialStock(
   locationId: string,
   quantity: number,
 ): Promise<void> {
-  await mutate.from('inventory_stock').insert({
+  const { error } = await mutate.from('inventory_stock').insert({
     business_id: businessId,
     location_id: locationId,
     product_id: productId,
     quantity: Math.max(0, Number(quantity)),
   })
+
+  if (error) {
+    console.error('[createInitialStock]', error)
+    throw error
+  }
 }
