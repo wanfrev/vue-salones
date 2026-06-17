@@ -11,6 +11,7 @@ import {
   Package,
   Archive,
   ShoppingCart,
+  Truck,
 } from 'lucide-vue-next'
 import type { Component } from 'vue'
 
@@ -43,6 +44,7 @@ export const sidebarSections: SidebarSection[] = [
       { to: '/dashboard/clientes', label: 'Clientes', labelKey: 'client', icon: Users, employeeOnly: true },
       { to: '/admin/clientes', label: 'Clientes', labelKey: 'client', icon: Users, adminOnly: true },
       { to: '/admin/finanzas', label: 'Finanzas', icon: BarChart3, adminOnly: true, badge: 'Nuevo' },
+      { to: '/admin/proveedores', label: 'Proveedores', icon: Truck, adminOnly: true },
       { to: '/admin/equipo', label: 'Equipo', labelKey: 'employee', icon: Briefcase, adminOnly: true },
       { to: '/admin/servicios', label: 'Servicios', labelKey: 'service', icon: Sparkles, adminOnly: true },
       { to: '/admin/productos', label: 'Productos', icon: Package, adminOnly: true },

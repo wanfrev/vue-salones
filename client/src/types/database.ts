@@ -305,6 +305,36 @@ export interface EmployeePayment {
   updated_at: string
 }
 
+export interface Supplier {
+  id: string
+  business_id: string
+  first_name: string
+  last_name: string
+  phone: string | null
+  company: string | null
+  total_debt: number
+  debt_currency: string
+  debt_original_amount: number
+  debt_exchange_rate: number
+  notes: string | null
+  active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface SupplierPayment {
+  id: string
+  business_id: string
+  supplier_id: string
+  amount: number
+  payment_method: string
+  payment_date: string
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
 type TableShape<Row> = {
   Row: Row
   Insert: Partial<Row>
@@ -335,6 +365,8 @@ export interface Database {
       inventory_stock: TableShape<InventoryStock>
       inventory_movements: TableShape<InventoryMovement>
       employee_payments: TableShape<EmployeePayment>
+      suppliers: TableShape<Supplier>
+      supplier_payments: TableShape<SupplierPayment>
     }
     Views: Record<string, never>
     Functions: {

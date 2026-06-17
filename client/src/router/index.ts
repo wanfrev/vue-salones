@@ -22,6 +22,7 @@ import ServiciosView from '../views/Servicios.vue'
 import ProductosView from '../views/Productos.vue'
 import InventarioView from '../views/Inventario.vue'
 import POSView from '../views/POS.vue'
+import ProveedoresView from '../views/Proveedores.vue'
 import { useAuthStore } from '../store/auth'
 import { isAdminPanelRole, resolveHomeByRole } from '../constants/roles'
 
@@ -139,6 +140,11 @@ const router = createRouter({
           path: 'pos',
           name: 'admin-pos',
           component: POSView,
+        },
+        {
+          path: 'proveedores',
+          name: 'admin-proveedores',
+          component: ProveedoresView,
         },
       ],
     },

@@ -1,0 +1,269 @@
+import { computed, ref } from 'vue'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
+import { useNotification } from './useNotification'
+import { useCurrency } from './useCurrency'
+import {
+  supplierKeys,
+  supplierPaymentKeys,
+  listSuppliers,
+  listSupplierPayments,
+  saveSupplier,
+  deleteSupplier,
+  createSupplierPayment,
+  deleteSupplierPayment,
+  type SupplierRow,
+  type SupplierFormData,
+  type SupplierPaymentFormData,
+} from '../services/suppliersService'
+
+export function useSuppliers(businessId: import('vue').Ref<string | null>) {
+  const queryClient = useQueryClient()
+  const { success, error: showError } = useNotification()
+
+  const { data, isLoading } = useQuery({
+    queryKey: computed(() => supplierKeys.all(businessId.value)),
+    queryFn: () => listSuppliers(businessId.value!),
+    enabled: computed(() => !!businessId.value),
+  })
+
+  const suppliers = computed(() => data.value ?? [])
+
+  const saveMutation = useMutation({
+    mutationFn: (formData: SupplierFormData & { id?: string }) => {
+      if (!businessId.value) throw new Error('No hay negocio activo')
+      return saveSupplier(businessId.value, formData)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+      success('Proveedor guardado correctamente')
+      closeModal()
+    },
+    onError: (err) => {
+      showError(err instanceof Error ? err.message : 'Error al guardar el proveedor')
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteSupplier(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+      success('Proveedor eliminado correctamente')
+    },
+    onError: (err) => {
+      showError(err instanceof Error ? err.message : 'Error al eliminar el proveedor')
+    },
+  })
+
+  const showModal = ref(false)
+  const editingId = ref<string | null>(null)
+  const saveError = ref('')
+
+  const form = ref<SupplierFormData>({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    company: '',
+    totalDebt: 0,
+    debtCurrency: 'USD',
+    notes: '',
+  })
+
+  const resetForm = () => {
+    form.value = {
+      firstName: '',
+      lastName: '',
+      phone: '',
+      company: '',
+      totalDebt: 0,
+      debtCurrency: 'USD',
+      notes: '',
+    }
+    editingId.value = null
+    saveError.value = ''
+  }
+
+  const openNew = () => {
+    resetForm()
+    showModal.value = true
+  }
+
+  const openEdit = (supplier: SupplierRow) => {
+    editingId.value = supplier.id
+    form.value = {
+      firstName: supplier.firstName,
+      lastName: supplier.lastName,
+      phone: supplier.phone,
+      company: supplier.company,
+      totalDebt: supplier.debtCurrency === 'VES' ? supplier.debtOriginalAmount : supplier.totalDebt,
+      debtCurrency: supplier.debtCurrency,
+      notes: supplier.notes,
+    }
+    saveError.value = ''
+    showModal.value = true
+  }
+
+  const closeModal = () => {
+    showModal.value = false
+    resetForm()
+  }
+
+  const handleSave = async () => {
+    if (saveMutation.isPending.value) return
+    saveError.value = ''
+    try {
+      await saveMutation.mutateAsync({ ...form.value, id: editingId.value ?? undefined })
+    } catch (err) {
+      saveError.value = err instanceof Error ? err.message : 'Error al guardar el proveedor'
+      throw err
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('¿Eliminar este proveedor? Se marcará como inactivo.')) {
+      deleteMutation.mutate(id)
+    }
+  }
+
+  return {
+    suppliers,
+    isLoading,
+    saveMutation,
+    deleteMutation,
+    saveError,
+    showModal,
+    editingId,
+    form,
+    openNew,
+    openEdit,
+    closeModal,
+    handleSave,
+    handleDelete,
+  }
+}
+
+export function useSupplierPayments(businessId: import('vue').Ref<string | null>) {
+  const queryClient = useQueryClient()
+  const { success, error: showError } = useNotification()
+  const { exchangeRate } = useCurrency()
+
+  const { data, isLoading, isError, error: queryError } = useQuery({
+    queryKey: computed(() => supplierPaymentKeys.all(businessId.value)),
+    queryFn: () => listSupplierPayments(businessId.value!),
+    enabled: computed(() => !!businessId.value),
+  })
+
+  const payments = computed(() => data.value ?? [])
+
+  const { data: suppliersData } = useQuery({
+    queryKey: computed(() => supplierKeys.all(businessId.value)),
+    queryFn: () => listSuppliers(businessId.value!),
+    enabled: computed(() => !!businessId.value),
+  })
+
+  const supplierOptions = computed(() =>
+    (suppliersData.value ?? []).map(s => ({ id: s.id, name: s.fullName }))
+  )
+
+  const createMutation = useMutation({
+    mutationFn: (formData: SupplierPaymentFormData) => {
+      if (!businessId.value) throw new Error('No hay negocio activo')
+      return createSupplierPayment(businessId.value, formData, exchangeRate.value)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value), exact: false })
+      queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
+      success('Abono registrado correctamente')
+      closeModal()
+    },
+    onError: (err) => {
+      showError(err instanceof Error ? err.message : 'Error al registrar el abono')
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteSupplierPayment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value), exact: false })
+      queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
+      success('Abono eliminado correctamente')
+    },
+    onError: (err) => {
+      showError(err instanceof Error ? err.message : 'Error al eliminar el abono')
+    },
+  })
+
+  const showModal = ref(false)
+  const saveError = ref('')
+
+  const form = ref<SupplierPaymentFormData>({
+    supplierId: '',
+    amount: 0,
+    currency: 'USD',
+    paymentMethod: 'cash',
+    paymentDate: new Date().toISOString().slice(0, 10),
+    notes: '',
+  })
+
+  const resetForm = () => {
+    form.value = {
+      supplierId: '',
+      amount: 0,
+      currency: 'USD',
+      paymentMethod: 'cash',
+      paymentDate: new Date().toISOString().slice(0, 10),
+      notes: '',
+    }
+    saveError.value = ''
+  }
+
+  const openNew = () => {
+    resetForm()
+    showModal.value = true
+  }
+
+  const closeModal = () => {
+    showModal.value = false
+    resetForm()
+  }
+
+  const handleSave = async () => {
+    if (createMutation.isPending.value) return
+    saveError.value = ''
+    try {
+      await createMutation.mutateAsync({ ...form.value })
+    } catch (err) {
+      saveError.value = err instanceof Error ? err.message : 'Error al registrar el abono'
+      throw err
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('¿Eliminar este abono? Esta acción no se puede deshacer.')) {
+      deleteMutation.mutate(id)
+    }
+  }
+
+  const paymentTotal = computed(() =>
+    payments.value.reduce((sum, p) => sum + p.amount, 0)
+  )
+
+  return {
+    payments,
+    paymentTotal,
+    isLoading,
+    isError,
+    queryError,
+    supplierOptions,
+    createMutation,
+    deleteMutation,
+    saveError,
+    showModal,
+    form,
+    openNew,
+    closeModal,
+    handleSave,
+    handleDelete,
+  }
+}

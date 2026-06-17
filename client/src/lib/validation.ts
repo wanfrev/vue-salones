@@ -70,3 +70,22 @@ export const clienteFormSchema = z.object({
   preferredServices: z.array(z.string()).default([]),
   metadata: z.record(z.string(), z.unknown()).optional(),
 })
+
+export const supplierFormSchema = z.object({
+  firstName: z.string().min(1, 'El nombre es requerido'),
+  lastName: z.string().min(1, 'El apellido es requerido'),
+  phone: z.string().default(''),
+  company: z.string().default(''),
+  totalDebt: z.number().min(0, 'La deuda no puede ser negativa'),
+  debtCurrency: z.enum(['USD', 'VES']),
+  notes: z.string().default(''),
+})
+
+export const supplierPaymentFormSchema = z.object({
+  supplierId: z.string().min(1, 'Selecciona un proveedor'),
+  amount: z.number().min(0.01, 'El monto debe ser mayor a 0'),
+  currency: z.enum(['USD', 'VES']),
+  paymentMethod: z.string().min(1, 'Selecciona un método'),
+  paymentDate: z.string().min(1, 'Selecciona una fecha'),
+  notes: z.string().default(''),
+})

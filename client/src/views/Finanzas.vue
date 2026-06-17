@@ -450,6 +450,11 @@
     </div>
   </div>
 
+  <!-- Supplier Payments -->
+  <div class="mb-4">
+    <SupplierPaymentsSection :ctx="supplierPaymentsCtx" />
+  </div>
+
   <!-- Expense Modal (Teleported) -->
   <Teleport to="body">
     <div v-if="expensesCtx.showExpenseModal.value"
@@ -530,8 +535,10 @@ import { useCurrency } from '../composables/useCurrency'
 import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { useExpenses } from '../composables/useExpenses'
 import { useExchangeRate } from '../composables/useExchangeRate'
+import { useSupplierPayments } from '../composables/useSuppliers'
 import ExchangeRateCard from '../components/finanzas/ExchangeRateCard.vue'
 import KpiCards from '../components/finanzas/KpiCards.vue'
+import SupplierPaymentsSection from '../components/finanzas/SupplierPaymentsSection.vue'
 import { currentMonthKey } from '../lib/periodUtils'
 import { expensesKeys } from '../services/expensesService'
 
@@ -563,13 +570,14 @@ const businessId = computed(() => authStore.businessId)
 
 const expensesCtx = useExpenses(businessId, selectedPeriod, selectedMonth)
 const expenses = expensesCtx.expenses
+const supplierPaymentsCtx = useSupplierPayments(businessId)
 
 const summaryCtx = useFinancialSummary(businessId, selectedPeriod, expenses, selectedMonth)
 const rateCtx = useExchangeRate()
 
 const incomeTotal = summaryCtx.incomeTotal
 const vesIncomeTotal = summaryCtx.vesIncomeTotal
-const expenseTotal = expensesCtx.expenseTotal
+const expenseTotal = computed(() => expensesCtx.expenseTotal.value + supplierPaymentsCtx.paymentTotal.value)
 const netTotal = computed(() => incomeTotal.value - expenseTotal.value)
 const marginTotal = computed(() => (incomeTotal.value > 0 ? (netTotal.value / incomeTotal.value) * 100 : 0))
 
