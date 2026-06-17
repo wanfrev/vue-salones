@@ -81,7 +81,7 @@ export const useAgenda = () => {
       const { start, end } = range as { start: Date; end: Date }
       let query = supabase
         .from('appointments')
-        .select('*, clients(id, full_name), profiles(full_name)')
+        .select('*, clients(id, full_name), profiles!appointments_employee_id_fkey(full_name)')
         .eq('business_id', bizId)
         .gte('start_time', start.toISOString())
         .lte('start_time', end.toISOString())

@@ -38,7 +38,7 @@ export const mapProfileToEmpleado = (
         }
       : undefined,
     phone: profile.phone ?? '',
-    email: '',
+    email: profile.email ?? '',
     specialties: [],
     joinDate: profile.created_at.split('T')[0],
     payType,

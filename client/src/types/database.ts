@@ -54,6 +54,7 @@ export interface Profile {
   job_title: string | null
   phone: string | null
   avatar_url: string | null
+  email?: string | null
   active: boolean
   pay_type?: 'salary' | 'percentage' | 'mixed'
   pay_percentage?: number | null

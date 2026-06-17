@@ -114,11 +114,11 @@ export function createMockDataStore(): MockDataStore {
   }]
 
   const profiles: Profile[] = [
-    { id: SUPERADMIN, business_id: null, full_name: 'Super Admin', role: 'superadmin', job_title: null, phone: null, avatar_url: null, active: true, created_at: now, updated_at: now },
-    { id: ADMIN, business_id: BIZ, full_name: 'Admin Demo', role: 'admin', job_title: 'Administrador', phone: '+525551234500', avatar_url: null, active: true, created_at: now, updated_at: now },
-    { id: EMP1, business_id: BIZ, full_name: 'María García', role: 'empleado', job_title: 'Estilista Senior', phone: '+525551234501', avatar_url: null, active: true, pay_type: 'percentage', pay_percentage: 50, base_salary: null, created_at: now, updated_at: now },
-    { id: EMP2, business_id: BIZ, full_name: 'Ana López', role: 'empleado', job_title: 'Manicurista', phone: '+525551234502', avatar_url: null, active: true, pay_type: 'percentage', pay_percentage: 50, base_salary: null, created_at: now, updated_at: now },
-    { id: EMP3, business_id: BIZ, full_name: 'Sofía Martínez', role: 'empleado', job_title: 'Barbera', phone: '+525551234503', avatar_url: null, active: true, pay_type: 'percentage', pay_percentage: 50, base_salary: null, created_at: now, updated_at: now },
+    { id: SUPERADMIN, business_id: null, full_name: 'Super Admin', email: 'superadmin@demo.com', role: 'superadmin', job_title: null, phone: null, avatar_url: null, active: true, created_at: now, updated_at: now },
+    { id: ADMIN, business_id: BIZ, full_name: 'Admin Demo', email: 'admin@demo.com', role: 'admin', job_title: 'Administrador', phone: '+525551234500', avatar_url: null, active: true, created_at: now, updated_at: now },
+    { id: EMP1, business_id: BIZ, full_name: 'María García', email: 'maria@demo.com', role: 'empleado', job_title: 'Estilista Senior', phone: '+525551234501', avatar_url: null, active: true, pay_type: 'percentage', pay_percentage: 50, base_salary: null, created_at: now, updated_at: now },
+    { id: EMP2, business_id: BIZ, full_name: 'Ana López', email: 'ana@demo.com', role: 'empleado', job_title: 'Manicurista', phone: '+525551234502', avatar_url: null, active: true, pay_type: 'percentage', pay_percentage: 50, base_salary: null, created_at: now, updated_at: now },
+    { id: EMP3, business_id: BIZ, full_name: 'Sofía Martínez', email: 'sofia@demo.com', role: 'empleado', job_title: 'Barbera', phone: '+525551234503', avatar_url: null, active: true, pay_type: 'percentage', pay_percentage: 50, base_salary: null, created_at: now, updated_at: now },
   ]
 
   const employee_schedules: EmployeeSchedule[] = [
