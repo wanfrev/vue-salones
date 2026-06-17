@@ -143,23 +143,23 @@
                 <div v-for="appt in col.appointments" :key="appt.id"
                   class="absolute left-0.5 right-0.5 sm:left-1 sm:right-1 rounded-lg cursor-pointer overflow-hidden transition-all duration-150 hover:scale-[1.02] hover:z-10 group"
                   :class="cardBgClass(appt.status)"
-                  :style="{ top: `${appt.top}px`, height: `${Math.max(appt.height, 36)}px` }"
+                  :style="{ top: `${appt.top}px`, height: `${Math.max(appt.height, 44)}px` }"
                   @click.stop="emitEventClick(appt.raw)">
                   <div class="absolute left-0 top-0 bottom-0 w-[2px] sm:w-[3px]" :class="statusStripeClass(appt.status)" />
-                  <div class="flex flex-col h-full p-1 sm:p-2" :class="appt.height < 36 ? 'justify-center' : ''">
-                    <div class="flex items-center gap-0.5 min-w-0 sm:gap-1.5">
-                      <button class="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full flex-shrink-0 transition-transform hover:scale-125" :class="statusDotClass(appt.status)" title="Cambiar estado" @click.stop="toggleStatusMenu(appt, $event)" />
+                  <div class="flex flex-col h-full p-0.5 sm:p-1 text-[10px] leading-tight">
+                    <div class="flex items-center gap-0.5 min-w-0 sm:gap-1">
+                      <button class="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full flex-shrink-0 transition-transform hover:scale-125" :class="statusDotClass(appt.status)" title="Cambiar estado" @click.stop="toggleStatusMenu(appt, $event)" />
                       <span class="text-[9px] font-semibold text-text-muted tabular-nums whitespace-nowrap sm:text-[11px]">{{ appt.time }}</span>
-                      <button v-if="appt.status !== 'paid' && appt.status !== 'cancelled' && appt.height >= 36"
-                        class="ml-auto flex h-4 w-4 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-all hover:scale-110 flex-shrink-0"
+                      <button v-if="appt.status !== 'paid' && appt.status !== 'cancelled'"
+                        class="ml-auto flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-all hover:scale-110 flex-shrink-0"
                         :class="checkoutBtnClass(appt.status)" title="Cobrar" @click.stop="emitCheckout(appt.raw.id)">
-                        <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                        <svg class="h-2 w-2 sm:h-2.5 sm:w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
                       </button>
                     </div>
-                    <div class="text-[9px] font-bold text-text leading-tight mt-0.5 truncate sm:text-xs">{{ appt.clientName }}</div>
-                    <div class="flex items-center gap-0.5 mt-0.5 min-w-0 sm:gap-1.5">
+                    <div class="font-bold text-text truncate mt-px">{{ appt.clientName }}</div>
+                    <div class="flex items-center gap-0.5 min-w-0 mt-px sm:gap-1">
                       <span class="text-[8px] text-text-secondary bg-bg-secondary rounded px-0.5 py-px truncate sm:text-[10px] sm:px-1">{{ appt.service }}</span>
-                      <span v-if="appt.employeeName" class="text-[8px] text-text-muted truncate sm:text-[10px]">{{ appt.employeeName }}</span>
+                      <span v-if="appt.employeeName" class="text-[8px] text-text-muted truncate sm:text-[9px]">{{ appt.employeeName }}</span>
                     </div>
                   </div>
                 </div>
