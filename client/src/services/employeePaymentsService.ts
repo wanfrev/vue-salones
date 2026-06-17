@@ -14,7 +14,7 @@ export interface EmployeePaymentRecord {
   amount: number
   currency: 'USD' | 'VES'
   originalAmount: number
-  exchangeRateUsed: number
+  exchangeRateUsed?: number
   paymentMethod: string
   notes: string | null
   paymentDate: string
@@ -72,7 +72,7 @@ export const listEmployeePayments = async (
       originalAmount,
       exchangeRateUsed: Number(row.amount) > 0 && originalAmount > 0 && currency === 'VES'
         ? originalAmount / Number(row.amount)
-        : 1,
+        : undefined,
       paymentMethod: row.payment_method,
       notes: cleanNotes,
       paymentDate: row.payment_date,

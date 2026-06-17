@@ -90,7 +90,8 @@ export function usePOSPayment() {
       let breakdown = paymentsBreakdown.value
       if (paymentMethod.value !== 'mixed') {
         const currency = methodCurrency(paymentMethod.value) ?? otherCurrency.value
-        breakdown = [{ method: paymentMethod.value, inputAmount: grandTotal, currency, amount: grandTotal }]
+        const inputAmount = currency === 'VES' ? grandTotal * exchangeRate : grandTotal
+        breakdown = [{ method: paymentMethod.value, inputAmount, currency, amount: grandTotal }]
       }
 
       await recordMutation.mutateAsync({

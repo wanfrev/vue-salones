@@ -297,7 +297,7 @@ function useFinancialSummary(
       const cfg = periodConfig.value
       const { data, error } = await supabase
         .from('employee_payments')
-        .select('id, amount, payment_method, payment_date, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
+        .select('id, amount, payment_method, payment_date, notes, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
         .eq('business_id', businessId.value!)
         .gte('payment_date', toYmd(cfg.start))
         .lte('payment_date', toYmd(cfg.end))
