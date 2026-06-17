@@ -46,6 +46,10 @@
       :expense-total="expenseTotal"
       :net-total="netTotal"
       :margin="marginTotal"
+      :active-card="activeCard"
+      @click-income="toggleCard('income')"
+      @click-expense="toggleCard('expense')"
+      @click-net="toggleCard('net')"
     >
       <template #exchange-rate>
         <ExchangeRateCard
@@ -59,6 +63,13 @@
       </template>
     </KpiCards>
   </div>
+
+  <CurrencyBreakdown
+    v-if="activeBreakdown"
+    :data="activeBreakdown"
+    class="mb-4"
+    @close="activeCard = null"
+  />
 
   <!-- Transacciones Recientes -->
   <div class="mb-4 rounded-xl border border-border bg-surface shadow-sm">
@@ -539,8 +550,10 @@ import { useSupplierPayments } from '../composables/useSuppliers'
 import ExchangeRateCard from '../components/finanzas/ExchangeRateCard.vue'
 import KpiCards from '../components/finanzas/KpiCards.vue'
 import SupplierPaymentsSection from '../components/finanzas/SupplierPaymentsSection.vue'
+import CurrencyBreakdown, { type CurrencyBreakdownData } from '../components/finanzas/CurrencyBreakdown.vue'
 import { currentMonthKey } from '../lib/periodUtils'
 import { expensesKeys } from '../services/expensesService'
+import { formatMethod } from '../lib/formatters'
 
 const { authStore } = useAuth()
 
@@ -580,6 +593,119 @@ const vesIncomeTotal = summaryCtx.vesIncomeTotal
 const expenseTotal = computed(() => expensesCtx.expenseTotal.value + supplierPaymentsCtx.paymentTotal.value)
 const netTotal = computed(() => incomeTotal.value - expenseTotal.value)
 const marginTotal = computed(() => (incomeTotal.value > 0 ? (netTotal.value / incomeTotal.value) * 100 : 0))
+
+const activeCard = ref<'income' | 'expense' | 'net' | null>(null)
+
+const toggleCard = (card: 'income' | 'expense' | 'net') => {
+  activeCard.value = activeCard.value === card ? null : card
+}
+
+const incomeBreakdown = computed<CurrencyBreakdownData>(() => {
+  const usdByMethod: Record<string, number> = {}
+  const vesByMethod: Record<string, number> = {}
+  let totalUSD = 0
+  let totalVES = 0
+
+  for (const tx of summaryCtx.transactionsAll.value) {
+    if (tx.breakdown && tx.breakdown.length > 0) {
+      for (const item of tx.breakdown) {
+        if (item.currency === 'VES') {
+          totalVES += item.inputAmount
+          vesByMethod[item.method] = (vesByMethod[item.method] ?? 0) + item.inputAmount
+        } else {
+          totalUSD += item.amount
+          usdByMethod[item.method] = (usdByMethod[item.method] ?? 0) + item.amount
+        }
+      }
+    } else if (tx.exchangeRateUsed > 1) {
+      const vesAmount = tx.amount * tx.exchangeRateUsed
+      totalVES += vesAmount
+      vesByMethod[tx.rawMethod] = (vesByMethod[tx.rawMethod] ?? 0) + vesAmount
+    } else {
+      totalUSD += tx.amount
+      usdByMethod[tx.rawMethod] = (usdByMethod[tx.rawMethod] ?? 0) + tx.amount
+    }
+  }
+
+  return {
+    title: 'Desglose de Ingresos por moneda',
+    usdTotal: totalUSD,
+    vesTotal: totalVES,
+    usdItems: Object.entries(usdByMethod)
+      .map(([method, amount]) => ({ label: formatMethod(method), amount }))
+      .sort((a, b) => b.amount - a.amount),
+    vesItems: Object.entries(vesByMethod)
+      .map(([method, amount]) => ({ label: formatMethod(method), amount }))
+      .sort((a, b) => b.amount - a.amount),
+    usdLabel: 'Método de pago',
+    vesLabel: 'Método de pago',
+  }
+})
+
+const expenseBreakdown = computed<CurrencyBreakdownData>(() => {
+  const usdByCat: Record<string, number> = {}
+  const vesByCat: Record<string, number> = {}
+  let totalUSD = 0
+  let totalVES = 0
+
+  for (const exp of expenses.value) {
+    if (exp.currency === 'VES') {
+      totalVES += exp.originalAmount
+      vesByCat[exp.category] = (vesByCat[exp.category] ?? 0) + exp.originalAmount
+    } else {
+      totalUSD += exp.amount
+      usdByCat[exp.category] = (usdByCat[exp.category] ?? 0) + exp.amount
+    }
+  }
+
+  for (const sp of supplierPaymentsCtx.payments.value) {
+    if (sp.currency === 'VES') {
+      totalVES += sp.originalAmount
+      vesByCat['Proveedores'] = (vesByCat['Proveedores'] ?? 0) + sp.originalAmount
+    } else {
+      totalUSD += sp.amount
+      usdByCat['Proveedores'] = (usdByCat['Proveedores'] ?? 0) + sp.amount
+    }
+  }
+
+  return {
+    title: 'Desglose de Gastos por moneda',
+    usdTotal: totalUSD,
+    vesTotal: totalVES,
+    usdItems: Object.entries(usdByCat)
+      .map(([cat, amount]) => ({ label: cat, amount }))
+      .sort((a, b) => b.amount - a.amount),
+    vesItems: Object.entries(vesByCat)
+      .map(([cat, amount]) => ({ label: cat, amount }))
+      .sort((a, b) => b.amount - a.amount),
+    usdLabel: 'Categoría',
+    vesLabel: 'Categoría',
+  }
+})
+
+const netBreakdown = computed<CurrencyBreakdownData>(() => {
+  const incUSD = incomeBreakdown.value.usdTotal
+  const incVES = incomeBreakdown.value.vesTotal
+  const expUSD = expenseBreakdown.value.usdTotal
+  const expVES = expenseBreakdown.value.vesTotal
+
+  return {
+    title: 'Desglose de Ganancia Neta por moneda',
+    usdTotal: Math.max(0, incUSD - expUSD),
+    vesTotal: Math.max(0, incVES - expVES),
+    usdItems: [],
+    vesItems: [],
+    usdLabel: '',
+    vesLabel: '',
+  }
+})
+
+const activeBreakdown = computed<CurrencyBreakdownData | null>(() => {
+  if (activeCard.value === 'income') return incomeBreakdown.value
+  if (activeCard.value === 'expense') return expenseBreakdown.value
+  if (activeCard.value === 'net') return netBreakdown.value
+  return null
+})
 
 const visibleTransactions = computed(() => summaryCtx.transactions.value.slice(0, 5))
 
