@@ -307,7 +307,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { formatDateTime } from '../lib/formatters'
+import { formatDateTime, formatMovementType } from '../lib/formatters'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { useInventoryAdjustment } from '../composables/useInventoryAdjustment'
@@ -371,19 +371,6 @@ const filteredMovements = computed(() => {
     m.productName.toLowerCase().includes(q) || m.notes?.toLowerCase().includes(q)
   )
 })
-
-const formatMovementType = (type: string) => {
-  const map: Record<string, string> = {
-    purchase: 'Compra',
-    sale: 'Venta',
-    adjustment: 'Ajuste',
-    transfer_in: 'Transferencia (entrada)',
-    transfer_out: 'Transferencia (salida)',
-    return: 'Devolución',
-    consumption: 'Consumo',
-  }
-  return map[type] ?? type
-}
 
 // --- Producto form modal ---
 const saveProductoMutation = useMutation({

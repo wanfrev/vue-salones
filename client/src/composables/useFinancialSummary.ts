@@ -4,15 +4,10 @@ import { useNotification } from './useNotification'
 import { formatMethod, formatDate } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
 import { updateTransaction, deleteTransaction } from '../services/posService'
+import { toYmd, resolvePeriod, normalizeBucketKey, formatBucketLabel } from '../lib/periodUtils'
+import { computeServiceEarnings, type EmployeeCompProfile } from '../business/employeeEarnings'
 import type { Transaction, EmployeePayment, Expense, PaymentMethod } from '../types/database'
 import type { PaymentBreakdownItem } from '../types/pos'
-
-const toYmd = (d: Date) => {
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
-}
 
 export type UnifiedTransaction = {
   id: string
@@ -82,31 +77,6 @@ type PaymentRow = {
   earnings: number
 }
 
-type EmployeeCompProfile = {
-  pay_type?: 'salary' | 'percentage' | 'mixed' | null
-  pay_percentage?: number | null
-  base_salary?: number | null
-}
-
-const computeServiceEarnings = (
-  totalAmount: number,
-  profile?: EmployeeCompProfile | null,
-  fallbackPercentage?: number | null
-) => {
-  const payType = profile?.pay_type ?? 'percentage'
-  const configuredPercentage = Number(profile?.pay_percentage ?? fallbackPercentage ?? 0)
-
-  if (payType === 'salary') {
-    return { percentage: 0, earnings: 0 }
-  }
-
-  const normalizedPercentage = Math.max(0, configuredPercentage)
-  return {
-    percentage: normalizedPercentage,
-    earnings: totalAmount * (normalizedPercentage / 100),
-  }
-}
-
 export type ServiceRevenue = {
   name: string
   amount: number
@@ -117,69 +87,6 @@ export type ChartBar = {
   label: string
   income: number
   expense: number
-}
-
-type PeriodConfig = {
-  bucket: 'day' | 'week' | 'month'
-  start: Date
-  end: Date
-}
-
-const resolvePeriod = (value: 'month' | 'quarter' | 'year', monthKey?: string): PeriodConfig => {
-  const parseMonthKey = (key?: string) => {
-    if (!key) return null
-    const match = key.match(/^(\d{4})-(\d{2})$/)
-    if (!match) return null
-    const year = Number(match[1])
-    const month = Number(match[2]) - 1
-    if (Number.isNaN(year) || Number.isNaN(month) || month < 0 || month > 11) return null
-    return { year, month }
-  }
-
-  const today = new Date()
-  if (value === 'month') {
-    const parsed = parseMonthKey(monthKey)
-    const monthDate = parsed ? new Date(parsed.year, parsed.month, 1) : today
-    const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
-    const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)
-    const isCurrentMonth = monthStart.getFullYear() === today.getFullYear() && monthStart.getMonth() === today.getMonth()
-
-    return {
-      bucket: 'day',
-      start: monthStart,
-      end: isCurrentMonth ? today : monthEnd,
-    }
-  }
-  if (value === 'quarter') {
-    const quarterStartMonth = Math.floor(today.getMonth() / 3) * 3
-    return {
-      bucket: 'week',
-      start: new Date(today.getFullYear(), quarterStartMonth, 1),
-      end: today,
-    }
-  }
-  return {
-    bucket: 'month',
-    start: new Date(today.getFullYear(), 0, 1),
-    end: today,
-  }
-}
-
-const normalizeBucketKey = (date: Date, bucket: 'day' | 'week' | 'month') => {
-  const normalized = new Date(date)
-  normalized.setHours(0, 0, 0, 0)
-  if (bucket === 'day') return toYmd(normalized)
-  if (bucket === 'month') return `${normalized.getFullYear()}-${String(normalized.getMonth() + 1).padStart(2, '0')}-01`
-  const day = (normalized.getDay() + 6) % 7
-  normalized.setDate(normalized.getDate() - day)
-  return toYmd(normalized)
-}
-
-const formatBucketLabel = (date: Date, bucket: 'day' | 'week' | 'month') => {
-  if (bucket === 'month') {
-    return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getFullYear()).slice(-2)}`
-  }
-  return formatDate(date)
 }
 
 function formatBreakdownLabel(breakdown: PaymentBreakdownItem[] | null | undefined): string {

@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
 import { saveCita, updateCitaStatus, updateAppointmentTime, deleteCita } from '../services/agendaService'
+import { posKeys } from '../services/posService'
+import { clientesKeys } from '../services/clientesService'
+import { dashboardKeys } from '../services/employeeDashboardService'
 import { mutate } from '../lib/typedSupabase'
 import type { CitaFormData } from '../types/cita'
 
@@ -14,21 +17,22 @@ export function useAppointmentMutations(options: {
   const { success, error: showError } = useNotification()
 
   const invalidate = () => {
+    const bid = options.businessId.value
     const keys = [
-      ['appointments'],
-      ['pos-pending'],
-      ['clientes'],
-      ['cliente'],
-      ['cliente-historial'],
-      ['finanzas-transactions'],
-      ['financial-summary'],
-      ['finanzas-employee-payments'],
-      ['dashboard-services'],
-      ['dashboard-payments'],
-      ['dashboard-history'],
-      ['employee-appointments'],
-      ['employee-earnings'],
-      ['employee-history'],
+      ['appointments', bid] as const,
+      posKeys.pending(bid),
+      clientesKeys.all(bid),
+      ['cliente', bid] as const,
+      ['cliente-historial', bid] as const,
+      ['finanzas-transactions', bid] as const,
+      ['financial-summary', bid] as const,
+      ['finanzas-employee-payments', bid] as const,
+      ['dashboard-services', bid] as const,
+      dashboardKeys.payments(bid),
+      dashboardKeys.history(bid),
+      dashboardKeys.appointments(bid),
+      dashboardKeys.earnings(bid),
+      dashboardKeys.history(bid),
     ]
     for (const key of keys) {
       queryClient.invalidateQueries({ queryKey: key })

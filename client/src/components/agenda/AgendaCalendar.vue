@@ -72,6 +72,7 @@
       v-if="viewMode === 'month'"
       :appointments="appointments ?? []"
       :services="services ?? []"
+      :employees="employees ?? []"
       :employeeId="selectedEmployeeId"
       :selectedDate="selectedDate"
       :todayIso="todayIso"
@@ -208,7 +209,7 @@ const emit = defineEmits<{
   checkout: [appointmentId: string]
 }>()
 
-const { selectedEmployeeId, setDateRange, employees, loadingEmployees, services, appointments } = useAgenda()
+const { selectedEmployeeId, setDateRange, employees, loadingEmployees, services, appointments, refetchAppointments } = useAgenda()
 
 // ---- Constants ----
 const START_HOUR = 7
@@ -299,6 +300,7 @@ watch([selectedDate, viewMode], ([d, mode]) => {
   else if (mode === 'week') { start = new Date(base); start.setDate(base.getDate() - base.getDay()); start.setHours(0, 0, 0, 0); end = new Date(start); end.setDate(start.getDate() + 7) }
   else { start = new Date(d + 'T00:00:00'); end = new Date(start); end.setDate(end.getDate() + 1) }
   setDateRange(start, end)
+  nextTick(() => refetchAppointments())
 }, { immediate: true })
 
 // ---- Grid Columns (day & week) ----
@@ -392,7 +394,7 @@ function emitEventClick(raw: any) {
     citaData: {
       id: raw.id, clientId: raw.client_id, clientName: raw.clients?.full_name || 'Cliente',
       serviceId: raw.service_id, service: svc?.name || 'Servicio', employeeId: raw.employee_id,
-      employee: raw.employee?.full_name || 'Empleado', groupId: raw.group_id || undefined,
+      employee: raw.profiles?.full_name || 'Empleado', groupId: raw.group_id || undefined,
       date: toISODate(start), time: dateToHHmm(start),
       duration: svc?.duration_minutes || Math.round((end.getTime() - start.getTime()) / 60000),
       price: Number(svc?.price ?? 0), status: status as Cita['status'], notes: raw.internal_notes || '',

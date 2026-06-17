@@ -122,3 +122,25 @@ export function dateToHHmm(date: Date): string {
 export function formatNumber(n: number): string {
   return n.toLocaleString()
 }
+
+const MOVEMENT_TYPE_LABELS: Record<string, string> = {
+  purchase: 'Compra',
+  sale: 'Venta',
+  adjustment: 'Ajuste',
+  transfer_in: 'Transferencia (entrada)',
+  transfer_out: 'Transferencia (salida)',
+  return: 'Devolución',
+  consumption: 'Consumo',
+}
+
+export function formatMovementType(type: string): string {
+  return MOVEMENT_TYPE_LABELS[type] ?? type
+}
+
+export function formatPayType(payType?: string | null, baseSalary?: number, payPercentage?: number): string {
+  if (!payType) return 'Por servicio'
+  if (payType === 'salary') return `Sueldo base ($${baseSalary ?? 0})`
+  if (payType === 'mixed') return `Sueldo + % ($${baseSalary ?? 0} + ${payPercentage ?? 0}%)`
+  if (payType === 'percentage') return `${payPercentage ?? 0}% por servicio`
+  return 'Por servicio'
+}

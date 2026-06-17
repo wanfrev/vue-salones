@@ -3,52 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
 import { useCurrency } from './useCurrency'
 import { expensesKeys, listExpenses, saveExpense, deleteExpense, type ExpenseFormData, type ExpenseRow } from '../services/expensesService'
+import { resolvePeriodDates } from '../lib/periodUtils'
 
 type PeriodValue = 'month' | 'quarter' | 'year'
-
-function resolvePeriodDates(value: PeriodValue, monthKey?: string) {
-  const parseMonthKey = (key?: string) => {
-    if (!key) return null
-    const match = key.match(/^(\d{4})-(\d{2})$/)
-    if (!match) return null
-    const year = Number(match[1])
-    const month = Number(match[2]) - 1
-    if (Number.isNaN(year) || Number.isNaN(month) || month < 0 || month > 11) return null
-    return { year, month }
-  }
-
-  const toYmd = (d: Date) => {
-    const yyyy = d.getFullYear()
-    const mm = String(d.getMonth() + 1).padStart(2, '0')
-    const dd = String(d.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
-  }
-
-  const today = new Date()
-  if (value === 'month') {
-    const parsed = parseMonthKey(monthKey)
-    const monthDate = parsed ? new Date(parsed.year, parsed.month, 1) : today
-    const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
-    const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)
-    const isCurrentMonth = monthStart.getFullYear() === today.getFullYear() && monthStart.getMonth() === today.getMonth()
-
-    return {
-      start: toYmd(monthStart),
-      end: toYmd(isCurrentMonth ? today : monthEnd),
-    }
-  }
-  if (value === 'quarter') {
-    const quarterStart = Math.floor(today.getMonth() / 3) * 3
-    return {
-      start: toYmd(new Date(today.getFullYear(), quarterStart, 1)),
-      end: toYmd(today),
-    }
-  }
-  return {
-    start: toYmd(new Date(today.getFullYear(), 0, 1)),
-    end: toYmd(today),
-  }
-}
 
 export function useExpenses(
   businessId: import('vue').Ref<string | null>,

@@ -1,5 +1,6 @@
 import { formatDate, formatTime } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
+import { computeServiceEarnings } from '../business/employeeEarnings'
 import type { Transaction, EmployeePayment } from '../types/database'
 
 export const dashboardKeys = {
@@ -28,24 +29,6 @@ export interface EmployeeEarningRecord {
   totalAmount: number
   employeePercentage: number
   employeeEarnings: number
-}
-
-const computeEmployeeEarnings = (
-  totalAmount: number,
-  payType?: 'salary' | 'percentage' | 'mixed' | null,
-  payPercentage?: number | null,
-  fallbackPercentage?: number | null,
-) => {
-  const type = payType ?? 'percentage'
-  if (type === 'salary') {
-    return { percentage: 0, earnings: 0 }
-  }
-
-  const percentage = Math.max(0, Number(payPercentage ?? fallbackPercentage ?? 0))
-  return {
-    percentage,
-    earnings: totalAmount * (percentage / 100),
-  }
 }
 
 export const listEmployeeAppointments = async (
@@ -126,10 +109,9 @@ export const listEmployeeTransactions = async (
 
   return raw.map(row => {
     const totalAmount = Number(row.total_amount)
-    const calc = computeEmployeeEarnings(
+    const calc = computeServiceEarnings(
       totalAmount,
-      row.appointments?.employee_profile?.pay_type,
-      row.appointments?.employee_profile?.pay_percentage,
+      { pay_type: row.appointments?.employee_profile?.pay_type, pay_percentage: row.appointments?.employee_profile?.pay_percentage },
       row.employee_percentage,
     )
 

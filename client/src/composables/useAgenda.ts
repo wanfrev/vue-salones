@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, keepPreviousData } from '@tanstack/vue-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/auth'
 import type { Profile, Service } from '../types/database'
@@ -74,23 +74,27 @@ export const useAgenda = () => {
   })
 
   const { data: appointments, isLoading: loadingAppointments, refetch: refetchAppointments } = useQuery({
-    queryKey: computed(() => ['appointments', businessId.value, selectedEmployeeId.value, dateRange.value]),
-    queryFn: async (): Promise<any[]> => {
-      if (!businessId.value) return []
+    queryKey: computed(() => ['appointments', businessId.value, selectedEmployeeId.value, dateRange.value] as const),
+    queryFn: async ({ queryKey }): Promise<any[]> => {
+      const [, bizId, empId, range] = queryKey
+      if (!bizId) return []
+      const { start, end } = range as { start: Date; end: Date }
       let query = supabase
         .from('appointments')
         .select('*, clients(id, full_name), profiles(full_name)')
-        .eq('business_id', businessId.value)
-        .gte('start_time', dateRange.value.start.toISOString())
-        .lte('start_time', dateRange.value.end.toISOString())
-      if (selectedEmployeeId.value !== 'all') {
-        query = query.eq('employee_id', selectedEmployeeId.value)
+        .eq('business_id', bizId)
+        .gte('start_time', start.toISOString())
+        .lte('start_time', end.toISOString())
+      if (empId !== 'all') {
+        query = query.eq('employee_id', empId)
       }
       const { data, error } = await query
       if (error) throw error
       return data as any[]
     },
     enabled: computed(() => !!businessId.value),
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   })
 
   return {

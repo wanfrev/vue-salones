@@ -483,7 +483,7 @@
           <div v-if="selectedBalance" class="rounded-lg bg-bg-secondary p-3 space-y-2">
             <div class="flex items-center justify-between text-sm">
               <span class="text-text-muted">Tipo de pago</span>
-              <span class="font-medium text-text">{{ payTypeLabel() }}</span>
+              <span class="font-medium text-text">{{ formatPayType(selectedBalance.payType, selectedBalance.baseSalary, selectedBalance.payPercentage) }}</span>
             </div>
             <div class="flex items-center justify-between text-sm">
               <span class="text-text-muted">Generado en servicios</span>
@@ -579,7 +579,7 @@ import { useNotification } from '../composables/useNotification'
 import { useCurrency } from '../composables/useCurrency'
 import { deleteEmpleado, equipoKeys, listEquipo, saveEmpleado } from '../services/equipoService'
 import { useBusinessStore } from '../store/business'
-import { getInitials, formatMethod } from '../lib/formatters'
+import { getInitials, formatMethod, formatPayType } from '../lib/formatters'
 import { EmpleadoFormModal } from '../components/modals'
 import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { useEmployeePayments } from '../composables/useEmployeePayments'
@@ -780,12 +780,4 @@ const handleSubmitPayment = async () => {
 
 const handleDeletePayment = (id: string) => { paymentsCtx.handleDelete(id) }
 
-function payTypeLabel(): string {
-  if (!selectedBalance.value) return '—'
-  const b = selectedBalance.value
-  if (b.payType === 'salary') return `Sueldo base ($${b.baseSalary})`
-  if (b.payType === 'mixed') return `Sueldo + % ($${b.baseSalary} + ${b.payPercentage}%)`
-  if (b.payType === 'percentage') return `${b.payPercentage}% por servicio`
-  return 'Por servicio'
-}
 </script>

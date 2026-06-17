@@ -532,6 +532,7 @@ import { useExpenses } from '../composables/useExpenses'
 import { useExchangeRate } from '../composables/useExchangeRate'
 import ExchangeRateCard from '../components/finanzas/ExchangeRateCard.vue'
 import KpiCards from '../components/finanzas/KpiCards.vue'
+import { currentMonthKey } from '../lib/periodUtils'
 import { expensesKeys } from '../services/expensesService'
 
 const { authStore } = useAuth()
@@ -547,11 +548,6 @@ const periods = [
   { label: 'Año', value: 'year' as const },
 ]
 const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
-
-const currentMonthKey = () => {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-}
 
 const selectedMonth = ref<string>(currentMonthKey())
 
