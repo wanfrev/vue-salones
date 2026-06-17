@@ -24,9 +24,13 @@ export interface EmployeeAppointmentRecord {
 export interface EmployeeEarningRecord {
   id: string
   date: string
+  paidAt: string
   clientName: string
   serviceName: string
   totalAmount: number
+  localAmount: number
+  exchangeRateUsed: number
+  currency: 'USD' | 'VES'
   employeePercentage: number
   employeeEarnings: number
 }
@@ -80,6 +84,8 @@ export const listEmployeeTransactions = async (
       id,
       paid_at,
       total_amount,
+      local_amount,
+      exchange_rate_used,
       employee_percentage,
       appointments!inner (
         employee_id,
@@ -109,6 +115,9 @@ export const listEmployeeTransactions = async (
 
   return raw.map(row => {
     const totalAmount = Number(row.total_amount)
+    const exchangeRateUsed = Number(row.exchange_rate_used ?? 1)
+    const localAmount = Number(row.local_amount ?? 0)
+    const currency: 'USD' | 'VES' = exchangeRateUsed > 1 && localAmount > 0 ? 'VES' : 'USD'
     const calc = computeServiceEarnings(
       totalAmount,
       { pay_type: row.appointments?.employee_profile?.pay_type, pay_percentage: row.appointments?.employee_profile?.pay_percentage },
@@ -118,9 +127,13 @@ export const listEmployeeTransactions = async (
     return {
       id: row.id,
       date: formatDate(row.paid_at),
+      paidAt: row.paid_at,
       clientName: row.appointments?.clients?.full_name ?? '—',
       serviceName: row.appointments?.services?.name ?? '—',
       totalAmount,
+      localAmount,
+      exchangeRateUsed,
+      currency,
       employeePercentage: calc.percentage,
       employeeEarnings: calc.earnings,
     }

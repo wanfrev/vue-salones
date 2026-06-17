@@ -37,28 +37,39 @@
           Aún no tienes transacciones registradas.
         </div>
 
-        <table v-else class="w-full text-sm">
+        <div v-else class="overflow-x-auto">
+        <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-border bg-bg-secondary">
               <th class="px-4 py-2.5 text-left font-medium text-text-muted">Fecha</th>
               <th class="px-4 py-2.5 text-left font-medium text-text-muted">Cliente</th>
               <th class="px-4 py-2.5 text-left font-medium text-text-muted">Servicio</th>
               <th class="px-4 py-2.5 text-right font-medium text-text-muted">Total</th>
+              <th class="px-4 py-2.5 text-center font-medium text-text-muted whitespace-nowrap">Moneda</th>
               <th class="px-4 py-2.5 text-right font-medium text-text-muted">%</th>
               <th class="px-4 py-2.5 text-right font-medium text-text-muted">Ganancia</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border">
             <tr v-for="row in earnings" :key="row.id" class="transition-colors hover:bg-bg-secondary/50">
-              <td class="px-4 py-2.5 text-text-secondary">{{ row.date }}</td>
+              <td class="px-4 py-2.5 text-text-secondary whitespace-nowrap">{{ row.date }}</td>
               <td class="px-4 py-2.5 font-medium text-text">{{ row.clientName }}</td>
               <td class="px-4 py-2.5 text-text-secondary">{{ row.serviceName }}</td>
               <td class="px-4 py-2.5 text-right text-text">${{ row.totalAmount }}</td>
+              <td class="px-4 py-2.5 text-center">
+                <span v-if="row.currency === 'VES'" class="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
+                  Bs @ {{ row.exchangeRateUsed.toFixed(2) }}
+                </span>
+                <span v-else class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  USD
+                </span>
+              </td>
               <td class="px-4 py-2.5 text-right text-text-secondary">{{ row.employeePercentage }}%</td>
               <td class="px-4 py-2.5 text-right font-semibold text-success">${{ row.employeeEarnings.toFixed(2) }}</td>
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       <!-- Payment Records -->
