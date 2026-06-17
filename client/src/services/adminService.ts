@@ -13,11 +13,12 @@ async function invokeWithSessionRefresh(action: string, body: Record<string, unk
   if (result.error && /session|jwt|auth/i.test(String(result.error.message ?? ''))) {
     const { data: sessionData } = await supabase.auth.getSession()
     if (sessionData.session) {
-      await supabase.auth.setSession({
-        access_token: sessionData.session.access_token,
+      const { data: refreshed } = await supabase.auth.refreshSession({
         refresh_token: sessionData.session.refresh_token,
       })
-      result = await invoke()
+      if (refreshed.session) {
+        result = await invoke()
+      }
     }
   }
 

@@ -21,6 +21,7 @@
           label="Nombre completo"
           placeholder="Ej: Carlos Méndez"
           required
+          hint="Mínimo 2 caracteres"
           prefix-icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
           :error="errors.name"
         />
@@ -74,6 +75,7 @@
             min="0"
             max="100"
             placeholder="50"
+            hint="0 a 100"
             :disabled="formData.payType === 'salary'"
             :error="errors.payPercentage"
           />
@@ -121,6 +123,7 @@
           type="password"
           placeholder="••••••••"
           :required="!isEditing"
+          :hint="isEditing ? 'Dejar vacío para mantener la actual' : 'Mínimo 6 caracteres'"
           prefix-icon="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
           :error="errors.password"
         />
@@ -248,7 +251,7 @@ const isFormValid = computed(() => {
   const nameValid = formData.value.name.trim().length >= 2
   const roleValid = formData.value.role !== ''
   const emailValid = formData.value.email.trim().length >= 5
-  const passwordValid = isEditing.value || formData.value.password.length >= 4
+  const passwordValid = isEditing.value || formData.value.password.length >= 6
   return nameValid && roleValid && emailValid && passwordValid
 })
 
@@ -319,8 +322,8 @@ const validateForm = (): boolean => {
   }
 
   if (!isEditing.value) {
-    if (formData.value.password.length < 4) {
-      errors.value.password = 'La contraseña debe tener al menos 4 caracteres'
+    if (formData.value.password.length < 6) {
+      errors.value.password = 'La contraseña debe tener al menos 6 caracteres'
     }
   }
 

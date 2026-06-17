@@ -69,6 +69,13 @@ serve(async (req) => {
         })
       }
 
+      if (!password || String(password).length < 6) {
+        return new Response(JSON.stringify({ error: 'Password must be at least 6 characters.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
       // Verify caller can create users in this business
       // superadmin can create anywhere; admin only in their own business
       const targetBusinessId = userMetadata.business_id || callerProfile.business_id
