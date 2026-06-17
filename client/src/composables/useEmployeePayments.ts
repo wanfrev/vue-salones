@@ -61,10 +61,10 @@ export function useEmployeePayments(
       return createEmployeePayment(businessId.value, params.employeeId, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'] })
+      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
       success('Pago registrado correctamente')
       closeModal()
     },
@@ -148,10 +148,10 @@ export function useEmployeePayments(
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteEmployeePayment(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'] })
+      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
       success('Pago eliminado correctamente')
     },
     onError: (err) => {
@@ -180,10 +180,10 @@ export function useEmployeePayments(
       return updateEmployeePayment(params.id, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value) })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'] })
+      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
       success('Pago actualizado correctamente')
       closeModal()
     },

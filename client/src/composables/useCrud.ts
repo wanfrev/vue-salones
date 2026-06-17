@@ -40,9 +40,9 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
 
   const invalidateAll = () => {
     if (!businessId.value) return
-    queryClient.invalidateQueries({ queryKey: queryKey(businessId.value) })
+    queryClient.invalidateQueries({ exact: false, queryKey: queryKey(businessId.value) })
     for (const extra of extraInvalidations) {
-      queryClient.invalidateQueries({ queryKey: extra(businessId.value) })
+      queryClient.invalidateQueries({ exact: false, queryKey: extra(businessId.value) })
     }
   }
 

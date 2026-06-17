@@ -63,13 +63,13 @@ export function usePOSPayment() {
       paymentsBreakdown: PaymentBreakdownItem[]
     }) => recordSale({ ...params, businessId: businessId.value! }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
-      queryClient.invalidateQueries({ queryKey: posKeys.products(businessId.value) })
-      queryClient.invalidateQueries({ queryKey: ['inventario'] })
-      queryClient.invalidateQueries({ queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-product-sales'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: posKeys.products(businessId.value) })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['inventario'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
     },
   })
 

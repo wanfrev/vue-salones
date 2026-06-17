@@ -35,7 +35,7 @@ export function useAppointmentMutations(options: {
       dashboardKeys.history(bid),
     ]
     for (const key of keys) {
-      queryClient.invalidateQueries({ queryKey: key })
+      queryClient.invalidateQueries({ queryKey: key, exact: false })
     }
   }
 

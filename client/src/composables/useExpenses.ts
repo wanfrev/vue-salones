@@ -40,9 +40,10 @@ export function useExpenses(
       return saveExpense(businessId.value, formData, exchangeRate.value)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value) })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value] })
+      queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value), exact: false })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value], exact: false })
       success('Gasto guardado correctamente')
       closeModal()
     },
@@ -54,10 +55,10 @@ export function useExpenses(
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteExpense(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value) })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value] })
+      queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value), exact: false })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value], exact: false })
       success('Gasto eliminado correctamente')
     },
     onError: (err: unknown) => {

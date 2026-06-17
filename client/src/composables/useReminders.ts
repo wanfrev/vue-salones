@@ -29,7 +29,7 @@ export function useReminders() {
   const unreadCount = computed(() => reminders.value.length)
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['reminders'] })
+    queryClient.invalidateQueries({ exact: false, queryKey: ['reminders'] })
   }
 
   const sendMutation = useMutation({

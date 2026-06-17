@@ -591,10 +591,10 @@ const goToAllRecords = (tipo: 'gastos' | 'pagos' | 'transacciones' | 'cobros' | 
 }
 
 const invalidateAll = () => {
-  queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value) })
-  queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value] })
-  queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value] })
-  queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value] })
+  queryClient.invalidateQueries({ exact: false, queryKey: expensesKeys.all(businessId.value) })
+  queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary', businessId.value] })
+  queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions', businessId.value] })
+  queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-expenses', businessId.value] })
 }
 
 const handleExpenseSave = async () => {

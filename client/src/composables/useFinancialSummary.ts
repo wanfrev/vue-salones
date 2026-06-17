@@ -132,16 +132,16 @@ function useFinancialSummary(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'inventory_movements', filter: `business_id=eq.${id}` },
           () => {
-            queryClient.invalidateQueries({ queryKey: ['finanzas-product-sales', id] })
-            queryClient.invalidateQueries({ queryKey: ['financial-summary', id] })
+            queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales', id] })
+            queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary', id] })
           },
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'transactions', filter: `business_id=eq.${id}` },
           () => {
-            queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', id] })
-            queryClient.invalidateQueries({ queryKey: ['financial-summary', id] })
+            queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions', id] })
+            queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary', id] })
           },
         )
         .subscribe()
@@ -646,11 +646,11 @@ function useFinancialSummary(
       paymentsBreakdown?: PaymentBreakdownItem[]
     }) => updateTransaction(params),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'] })
-      queryClient.invalidateQueries({ queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-employee-payments'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
       notify('Cobro actualizado correctamente')
     },
     onError: (err: unknown) => {
@@ -661,13 +661,13 @@ function useFinancialSummary(
   const deleteTransactionMutation = useMutation({
     mutationFn: (params: { transactionId: string }) => deleteTransaction(params),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'] })
-      queryClient.invalidateQueries({ queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
-      queryClient.invalidateQueries({ queryKey: ['inventario'] })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-product-sales'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-employee-payments'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['inventario'] })
+      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales'] })
       notify('Cobro eliminado correctamente')
     },
     onError: (err: unknown) => {
