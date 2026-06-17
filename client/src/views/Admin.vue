@@ -135,11 +135,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
-import { listCitas, agendaKeys } from '../services/agendaService'
-import { equipoKeys, listEquipo } from '../services/equipoService'
-import { listServicios, serviciosKeys } from '../services/serviciosService'
+import { useAdminAgenda } from '../composables/useAdminAgenda'
 import { useBusinessStore } from '../store/business'
 import { useAppointmentMutations } from '../composables/useAppointmentMutations'
 import { toISODate } from '../lib/formatters'
@@ -150,44 +147,21 @@ import type { Cita } from '../types/cita'
 const { authStore } = useAuth()
 const businessStore = useBusinessStore()
 
-// --- Agenda del Día ---
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
 const editingCita = ref<Cita | null>(null)
 const businessId = computed(() => authStore.businessId)
 
-const selectedDate = ref<Date>(new Date())
-
-const dateRange = computed(() => {
-  const start = new Date(selectedDate.value)
-  start.setHours(0, 0, 0, 0)
-  const end = new Date(start)
-  end.setDate(end.getDate() + 1)
-  return { start, end }
-})
-
-const { data: citasData, isLoading } = useQuery({
-  queryKey: computed(() => [...agendaKeys.appointments(businessId.value), toISODate(selectedDate.value)]),
-  queryFn: () => listCitas(businessId.value!, dateRange.value),
-  enabled: computed(() => !!businessId.value),
-})
-
-const goToToday = () => {
-  selectedDate.value = new Date()
-}
-
-const citas = computed<Cita[]>(() => citasData.value ?? [])
-
-const { data: serviciosData } = useQuery({
-  queryKey: computed(() => serviciosKeys.all(businessId.value)),
-  queryFn: () => listServicios(businessId.value!),
-  enabled: computed(() => !!businessId.value),
-})
-
-const { data: empleadosData } = useQuery({
-  queryKey: computed(() => equipoKeys.all(businessId.value)),
-  queryFn: () => listEquipo(businessId.value!),
-  enabled: computed(() => !!businessId.value),
-})
+const {
+  selectedDate,
+  citas,
+  isLoading,
+  stats,
+  serviciosList,
+  empleadosList,
+  todayLabel,
+  isToday,
+  goToToday,
+} = useAdminAgenda(() => authStore.businessId)
 
 const {
   handleSaveCita,
@@ -198,43 +172,6 @@ const {
   modalRef: citaModalRef,
 })
 
-const todayLabel = computed(() => {
-  const d = selectedDate.value
-  const dd = String(d.getDate()).padStart(2, '0')
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const yy = String(d.getFullYear()).slice(-2)
-  return `${dd}-${mm}-${yy}`
-})
-
-const isToday = computed(() => toISODate(selectedDate.value) === toISODate(new Date()))
-
-const stats = computed(() => {
-  const filterDate = toISODate(selectedDate.value)
-  const citasHoy = citas.value.filter(c => c.date === filterDate)
-
-  return {
-    citasHoy: citasHoy.length,
-    pendientes: citasHoy.filter(c => c.status === 'pending').length,
-    confirmadas: citasHoy.filter(c => c.status === 'confirmed').length,
-    estimadoHoy: citasHoy
-      .filter(c => c.status !== 'cancelled')
-      .reduce((sum, c) => sum + c.price, 0)
-      .toLocaleString(),
-  }
-})
-
-const serviciosList = computed(() => (serviciosData.value ?? []).map(service => ({
-  id: service.id,
-  name: service.name,
-  price: service.price,
-  duration: service.duration,
-})))
-
-const empleadosList = computed(() => (empleadosData.value ?? []).map(employee => ({
-  id: employee.id,
-  name: employee.name,
-})))
-
 const handleNewCita = () => {
   editingCita.value = null
   citaModalRef.value?.open()
@@ -244,6 +181,5 @@ const handleEditCita = (cita: Cita) => {
   editingCita.value = cita
   citaModalRef.value?.open(cita)
 }
-
 
 </script>

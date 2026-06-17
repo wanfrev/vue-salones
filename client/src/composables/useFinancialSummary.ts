@@ -1,4 +1,4 @@
-import { computed, watch, ref } from 'vue'
+import { computed, watch } from 'vue'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
 import { formatMethod, formatDate } from '../lib/formatters'
@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase'
 import { updateTransaction, deleteTransaction } from '../services/posService'
 import { toYmd, resolvePeriod, normalizeBucketKey, formatBucketLabel } from '../lib/periodUtils'
 import { computeServiceEarnings, type EmployeeCompProfile } from '../business/employeeEarnings'
+import { useTransactionEdit } from './useTransactionEdit'
 import type { Transaction, EmployeePayment, Expense, PaymentMethod } from '../types/database'
 import type { PaymentBreakdownItem } from '../types/pos'
 
@@ -40,7 +41,7 @@ type SummaryBucket = {
   employee_amount: number
 }
 
-type TransactionRow = {
+export type TransactionRow = {
   id: string
   date: string
   client: string
@@ -675,121 +676,29 @@ function useFinancialSummary(
     },
   })
 
-  const showEditModal = ref(false)
-  const editingTransaction = ref<TransactionRow | null>(null)
-  const editingAmount = ref(0)
-  const editingMethod = ref<PaymentMethod>('cash')
-  const editingBreakdown = ref<PaymentBreakdownItem[]>([])
-
-  const paymentMethodOptions: { value: PaymentMethod; label: string }[] = [
-    { value: 'cash', label: 'Efectivo' },
-    { value: 'card', label: 'Tarjeta' },
-    { value: 'transfer', label: 'Transferencia' },
-    { value: 'zelle', label: 'Zelle' },
-    { value: 'pago_movil', label: 'Pago Móvil' },
-    { value: 'mixed', label: 'Mixto' },
-    { value: 'other', label: 'Otro' },
-  ]
-
-  const isEditingMixed = computed(() => editingMethod.value === 'mixed')
-
-  const editingTotalAmount = computed(() => {
-    if (editingMethod.value === 'mixed') {
-      return editingBreakdown.value.reduce((sum, item) => sum + item.amount, 0)
-    }
-    return editingAmount.value
-  })
-
-  const startEdit = (tx: TransactionRow) => {
-    editingTransaction.value = tx
-    editingAmount.value = tx.amount
-    editingMethod.value = tx.rawMethod
-
-    if (tx.breakdown && tx.breakdown.length > 0) {
-      editingBreakdown.value = tx.breakdown.map(item => ({ ...item }))
-    } else {
-      editingBreakdown.value = tx.rawMethod !== 'mixed'
-        ? []
-        : [{ method: 'cash' as PaymentMethod, inputAmount: tx.amount, currency: 'USD' as const, amount: tx.amount }]
-    }
-
-    showEditModal.value = true
-  }
-
-  const cancelEdit = () => {
-    showEditModal.value = false
-    editingTransaction.value = null
-    editingAmount.value = 0
-    editingMethod.value = 'cash'
-    editingBreakdown.value = []
-  }
-
-  const setEditingMethod = (method: PaymentMethod) => {
-    editingMethod.value = method
-    if (method === 'mixed' && editingBreakdown.value.length === 0) {
-      editingBreakdown.value = [{ method: 'cash' as PaymentMethod, inputAmount: editingAmount.value, currency: 'USD' as const, amount: editingAmount.value }]
-    }
-    if (method !== 'mixed') {
-      editingAmount.value = editingTotalAmount.value
-    }
-  }
-
-  const updateBreakdownItem = (index: number, field: 'method' | 'amount', value: PaymentMethod | number) => {
-    const items = [...editingBreakdown.value]
-    if (field === 'method') {
-      items[index] = { ...items[index], method: value as PaymentMethod }
-    } else {
-      const numValue = value as number
-      items[index] = { ...items[index], inputAmount: numValue, amount: numValue }
-    }
-    editingBreakdown.value = items
-  }
-
-  const addBreakdownItem = () => {
-    editingBreakdown.value = [...editingBreakdown.value, { method: 'cash' as PaymentMethod, inputAmount: 0, currency: 'USD' as const, amount: 0 }]
-  }
-
-  const removeBreakdownItem = (index: number) => {
-    editingBreakdown.value = editingBreakdown.value.filter((_, i) => i !== index)
-    if (editingBreakdown.value.length <= 1 && editingMethod.value === 'mixed') {
-      editingMethod.value = editingBreakdown.value[0]?.method ?? 'cash'
-    }
-  }
+  const {
+    showEditModal, editingTransaction, editingAmount, editingMethod, editingBreakdown,
+    isEditingMixed, editingTotalAmount, paymentMethodOptions,
+    startEdit, cancelEdit, setEditingMethod,
+    updateBreakdownItem, addBreakdownItem, removeBreakdownItem,
+    saveEdit: onSaveEdit, confirmDeleteTransaction,
+  } = useTransactionEdit(showError)
 
   const saveEdit = () => {
-    if (!editingTransaction.value) return
-    const total = editingTotalAmount.value
-    if (total <= 0) {
-      showError('El monto debe ser mayor a 0')
-      return
-    }
-
-    const effectiveMethod: PaymentMethod = editingBreakdown.value.length > 1
-      ? 'mixed'
-      : editingMethod.value
-
-    const breakdown = effectiveMethod === 'mixed' && editingBreakdown.value.length > 0
-      ? editingBreakdown.value.map(item => ({
-          method: item.method,
-          inputAmount: item.amount,
-          currency: item.currency,
-          amount: item.amount,
-        }))
-      : undefined
-
-    editTransactionMutation.mutate({
-      transactionId: editingTransaction.value.id,
-      amount: total,
-      method: effectiveMethod,
-      paymentsBreakdown: breakdown as PaymentBreakdownItem[] | undefined,
+    onSaveEdit((params) => {
+      editTransactionMutation.mutate({
+        transactionId: params.transactionId,
+        amount: params.amount,
+        method: params.method,
+        paymentsBreakdown: params.paymentsBreakdown,
+      })
     })
-    cancelEdit()
   }
 
-  const confirmDeleteTransaction = (txId: string) => {
-    if (window.confirm('¿Eliminar este cobro?\n\nSe revertirá el inventario si aplica. Esta acción no se puede deshacer.')) {
-      deleteTransactionMutation.mutate({ transactionId: txId })
-    }
+  const handleConfirmDelete = (txId: string) => {
+    confirmDeleteTransaction(txId, (id) => {
+      deleteTransactionMutation.mutate({ transactionId: id })
+    })
   }
 
   return {
@@ -826,8 +735,8 @@ function useFinancialSummary(
     addBreakdownItem,
     removeBreakdownItem,
     saveEdit,
-    confirmDeleteTransaction,
+    confirmDeleteTransaction: handleConfirmDelete,
   }
-}
 
+}
 export { useFinancialSummary }
