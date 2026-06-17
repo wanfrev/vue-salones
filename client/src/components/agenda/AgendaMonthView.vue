@@ -33,13 +33,19 @@
             <div
               v-for="appt in cell.appointments.slice(0, 2)"
               :key="appt.id"
-              class="flex items-center gap-0.5 rounded-sm px-0.5 py-px cursor-pointer transition-colors hover:brightness-95 sm:gap-1 sm:rounded sm:px-1"
+              class="flex flex-col gap-px rounded-sm px-0.5 py-px cursor-pointer transition-colors hover:brightness-95 sm:gap-0.5 sm:rounded sm:px-1"
               :class="monthCardBg(appt.status)"
               @click.stop="$emit('eventClick', appt.raw)"
             >
-              <span class="h-1 w-1 rounded-full flex-shrink-0 sm:h-1.5 sm:w-1.5" :class="statusDotClass(appt.status)" />
-              <span class="text-[8px] font-medium leading-tight truncate sm:text-[10px]">{{ appt.clientName }}</span>
-              <span class="text-[7px] text-text-muted ml-auto flex-shrink-0 hidden sm:inline">{{ appt.time }}</span>
+              <div class="flex items-center gap-0.5 sm:gap-1">
+                <span class="h-1 w-1 rounded-full flex-shrink-0 sm:h-1.5 sm:w-1.5" :class="statusDotClass(appt.status)" />
+                <span class="text-[8px] font-medium leading-tight truncate sm:text-[10px]">{{ appt.clientName }}</span>
+                <span class="text-[7px] text-text-muted ml-auto flex-shrink-0 hidden sm:inline">{{ appt.time }}</span>
+              </div>
+              <div class="flex items-center gap-0.5 text-[7px] text-text-muted truncate sm:text-[9px] sm:ml-2">
+                <span>{{ appt.service }}</span>
+                <span v-if="appt.employeeName">· {{ appt.employeeName }}</span>
+              </div>
             </div>
             <div
               v-if="cell.appointments.length > 2"
@@ -101,12 +107,14 @@ function getApptsForDate(iso: string) {
     })
     .map(a => {
       const svc = props.services.find((s: any) => s.id === a.service_id)
+      const emp = a.profiles?.full_name || ''
       return {
         id: a.id,
         clientName: a.clients?.full_name || 'Cliente',
         service: svc?.name || 'Servicio',
         time: dateToHHmm(new Date(a.start_time)),
         status: normalizeAppointmentStatus(a),
+        employeeName: emp,
         raw: a,
       }
     })

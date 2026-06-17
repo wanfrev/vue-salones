@@ -158,7 +158,7 @@
                     <div class="text-[9px] font-bold text-text leading-tight mt-0.5 truncate sm:text-xs">{{ appt.clientName }}</div>
                     <div v-if="appt.height >= 48" class="flex items-center gap-0.5 mt-0.5 min-w-0 sm:gap-1.5">
                       <span class="text-[8px] text-text-secondary bg-bg-secondary rounded px-0.5 py-px truncate sm:text-[10px] sm:px-1">{{ appt.service }}</span>
-                      <span v-if="appt.employeeInitials && isAdmin" class="flex-shrink-0 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full flex items-center justify-center text-[6px] sm:text-[8px] font-bold text-white" style="background: var(--color-primary)">{{ appt.employeeInitials }}</span>
+                      <span v-if="appt.employeeName" class="text-[8px] text-text-muted truncate sm:text-[10px]">{{ appt.employeeName }}</span>
                     </div>
                   </div>
                 </div>
@@ -303,7 +303,7 @@ watch([selectedDate, viewMode], ([d, mode]) => {
 
 // ---- Grid Columns (day & week) ----
 interface GridColumn { key: string; label: string; avatar?: string; number?: number; isToday?: boolean; widthPercent: number; appointments: DisplayAppointment[] }
-interface DisplayAppointment { id: string; clientName: string; service: string; time: string; top: number; height: number; status: string; employeeInitials: string; raw: any }
+interface DisplayAppointment { id: string; clientName: string; service: string; time: string; top: number; height: number; status: string; employeeInitials: string; employeeName: string; raw: any }
 
 function mapAppt(a: any, svcList: any[], empName: string) {
   const start = new Date(a.start_time); const end = new Date(a.end_time)
@@ -318,6 +318,7 @@ function mapAppt(a: any, svcList: any[], empName: string) {
     height: ((end.getTime() - start.getTime()) / 60000 / 60) * HOUR_HEIGHT,
     status: normalizeAppointmentStatus(a),
     employeeInitials: getInitials(empName),
+    employeeName: empName,
     raw: a,
   }
 }

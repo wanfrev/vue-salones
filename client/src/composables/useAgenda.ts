@@ -79,7 +79,7 @@ export const useAgenda = () => {
       if (!businessId.value) return []
       let query = supabase
         .from('appointments')
-        .select('*, clients(id, full_name)')
+        .select('*, clients(id, full_name), profiles(full_name)')
         .eq('business_id', businessId.value)
         .gte('start_time', dateRange.value.start.toISOString())
         .lte('start_time', dateRange.value.end.toISOString())
