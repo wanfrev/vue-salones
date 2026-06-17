@@ -394,7 +394,7 @@ function emitEventClick(raw: any) {
     citaData: {
       id: raw.id, clientId: raw.client_id, clientName: raw.clients?.full_name || 'Cliente',
       serviceId: raw.service_id, service: svc?.name || 'Servicio', employeeId: raw.employee_id,
-      employee: raw.profiles?.full_name || 'Empleado', groupId: raw.group_id || undefined,
+      employee: employees.value?.find(e => e.id === raw.employee_id)?.full_name || 'Empleado', groupId: raw.group_id || undefined,
       date: toISODate(start), time: dateToHHmm(start),
       duration: svc?.duration_minutes || Math.round((end.getTime() - start.getTime()) / 60000),
       price: Number(svc?.price ?? 0), status: status as Cita['status'], notes: raw.internal_notes || '',

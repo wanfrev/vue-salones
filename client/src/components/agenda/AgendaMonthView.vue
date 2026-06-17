@@ -108,7 +108,7 @@ function getApptsForDate(iso: string) {
     })
     .map(a => {
       const svc = props.services.find((s: any) => s.id === a.service_id)
-      const emp = a.profiles?.full_name || props.employees.find((e: any) => e.id === a.employee_id)?.full_name || ''
+      const emp = props.employees.find((e: any) => e.id === a.employee_id)?.full_name || ''
       return {
         id: a.id,
         clientName: a.clients?.full_name || 'Cliente',
