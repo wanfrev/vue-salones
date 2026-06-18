@@ -698,7 +698,7 @@ const handleViewAgenda = (empleado: Empleado) => {
 
 // ---- Tabs ----
 const tabs = [
-  { key: 'pagos' as const, label: 'Pagos a Empleados', shortLabel: 'Pagos' },
+  { key: 'pagos' as const, label: 'Servicios Realizados', shortLabel: 'Servicios' },
   { key: 'nomina' as const, label: 'Pago de Nómina', shortLabel: 'Nómina' },
   { key: 'deuda' as const, label: 'Deuda por Empleado', shortLabel: 'Deuda' },
   { key: 'horarios' as const, label: 'Horarios del Equipo', shortLabel: 'Horarios' },
