@@ -249,6 +249,42 @@ export function useSupplierPayments(businessId: import('vue').Ref<string | null>
     payments.value.reduce((sum, p) => sum + p.amount, 0)
   )
 
+  const paymentsBySupplier = computed(() => {
+    const map: Record<string, number> = {}
+    for (const p of payments.value) {
+      map[p.supplierId] = (map[p.supplierId] ?? 0) + p.amount
+    }
+    return map
+  })
+
+  const supplierMap = computed(() => {
+    const map: Record<string, { totalDebt: number; name: string }> = {}
+    for (const s of (suppliersData.value ?? [])) {
+      map[s.id] = { totalDebt: s.totalDebt, name: s.fullName }
+    }
+    return map
+  })
+
+  const selectedSupplierPendingBalance = computed(() => {
+    const sid = form.value.supplierId
+    if (!sid) return 0
+    const supplier = supplierMap.value[sid]
+    if (!supplier) return 0
+    const paid = paymentsBySupplier.value[sid] ?? 0
+    return Math.max(0, supplier.totalDebt - paid)
+  })
+
+  const selectedSupplierPendingAfter = computed(() => {
+    const pending = selectedSupplierPendingBalance.value
+    if (!pending) return 0
+    const isVES = form.value.currency === 'VES'
+    const currentAmount = form.value.amount || 0
+    if (!currentAmount) return pending
+    const rate = exchangeRate.value > 0 ? exchangeRate.value : 1
+    const currentAmountUSD = isVES ? currentAmount / rate : currentAmount
+    return Math.max(0, pending - currentAmountUSD)
+  })
+
   return {
     payments,
     paymentTotal,
@@ -256,6 +292,9 @@ export function useSupplierPayments(businessId: import('vue').Ref<string | null>
     isError,
     queryError,
     supplierOptions,
+    supplierMap,
+    selectedSupplierPendingBalance,
+    selectedSupplierPendingAfter,
     createMutation,
     deleteMutation,
     saveError,

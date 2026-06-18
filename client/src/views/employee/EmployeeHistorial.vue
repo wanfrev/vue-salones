@@ -123,12 +123,12 @@ const historyAppointments = computed<HistoryRow[]>(() => {
       earnings: 0,
     }))
   }
-  const isPaidOrCompleted = (status: string) =>
-    ['completed', 'paid'].includes(status)
+  const isPaidOrCompleted = (r: EmployeeAppointmentRecord) =>
+    r.status === 'completed' || r.paymentStatus === 'paid'
   return raw.map(r => ({
     ...r,
     percentage: info.percentage,
-    earnings: isPaidOrCompleted(r.status) ? r.servicePrice * (info.percentage / 100) : 0,
+    earnings: isPaidOrCompleted(r) ? r.servicePrice * (info.percentage / 100) : 0,
   }))
 })
 </script>

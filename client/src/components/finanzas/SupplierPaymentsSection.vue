@@ -6,7 +6,6 @@
         <p class="text-xs text-text-muted mt-0.5">Pagos realizados a proveedores</p>
       </div>
       <div class="flex items-center gap-2">
-        <span class="text-sm font-semibold text-text">{{ formatUSD(paymentTotal) }}</span>
         <button
           @click="ctx.openNew()"
           class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover"
@@ -85,6 +84,15 @@
               <option value="" disabled>Selecciona un proveedor</option>
               <option v-for="s in ctx.supplierOptions.value" :key="s.id" :value="s.id">{{ s.name }}</option>
             </select>
+            <p v-if="ctx.form.value.supplierId && ctx.supplierMap.value[ctx.form.value.supplierId]" class="mt-1.5 text-xs text-text-muted">
+              Deuda total: <span class="font-medium text-text">{{ formatUSD(ctx.supplierMap.value[ctx.form.value.supplierId].totalDebt) }}</span>
+              <span class="mx-1">|</span>
+              Pendiente: <span class="font-medium" :class="ctx.selectedSupplierPendingBalance.value > 0 ? 'text-warning' : 'text-success'">{{ formatUSD(ctx.selectedSupplierPendingBalance.value) }}</span>
+              <template v-if="ctx.selectedSupplierPendingAfter.value > 0 && ctx.form.value.amount > 0">
+                <span class="mx-1">|</span>
+                Restaría: <span class="font-medium text-text-muted">{{ formatUSD(ctx.selectedSupplierPendingAfter.value) }}</span>
+              </template>
+            </p>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -152,8 +160,6 @@ const props = defineProps<{
 }>()
 
 const { formatUSD, formatVESEs, formatVESInline } = useCurrency()
-
-const paymentTotal = props.ctx.paymentTotal
 
 const handleSave = async () => {
   try {
