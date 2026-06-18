@@ -5,6 +5,8 @@ import { posKeys } from '../services/posService'
 import { clientesKeys } from '../services/clientesService'
 import { dashboardKeys } from '../services/employeeDashboardService'
 import { mutate } from '../lib/typedSupabase'
+import { supabase } from '../lib/supabase'
+import { translateError } from '../lib/errors'
 import type { CitaFormData } from '../types/cita'
 
 export function useAppointmentMutations(options: {
@@ -50,7 +52,7 @@ export function useAppointmentMutations(options: {
     },
     onError: (err) => {
       options.modalRef?.value?.onSaveComplete?.()
-      showError(err instanceof Error ? err.message : 'Error al guardar la cita')
+      showError(translateError(err))
     },
   })
 
@@ -61,7 +63,7 @@ export function useAppointmentMutations(options: {
       invalidate()
     },
     onError: (err) => {
-      showError(err instanceof Error ? err.message : 'Error al actualizar el estado de la cita')
+      showError(translateError(err))
     },
   })
 
@@ -77,7 +79,7 @@ export function useAppointmentMutations(options: {
       if (context?.previousData) {
         queryClient.setQueryData(['appointments'], context.previousData)
       }
-      showError(err instanceof Error ? err.message : 'Error al reagendar la cita')
+      showError(translateError(err))
     },
     onSettled: () => {
       invalidate()
@@ -94,7 +96,7 @@ export function useAppointmentMutations(options: {
     },
     onError: (err) => {
       options.modalRef?.value?.onSaveComplete?.()
-      showError(err instanceof Error ? err.message : 'Error al eliminar la cita')
+      showError(translateError(err))
     },
   })
 
@@ -106,6 +108,11 @@ export function useAppointmentMutations(options: {
   }
 
   const handleSaveCita = async (data: CitaFormData & { id?: string; clientPhone?: string }) => {
+    try {
+      await supabase.auth.getSession()
+    } catch {
+      // Proceed anyway — the mutation will trigger its own token check
+    }
     try {
       await saveCitaMutation.mutateAsync(data)
     } catch {

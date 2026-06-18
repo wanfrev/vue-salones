@@ -1,6 +1,8 @@
 import { computed, ref } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
+import { supabase } from '../lib/supabase'
+import { translateError } from '../lib/errors'
 
 export interface UseCrudOptions<TData, TForm, TId = string> {
   businessId: import('vue').Ref<string | null>
@@ -58,7 +60,7 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
       success(`${entityName} guardado correctamente`)
     },
     onError: (err) => {
-      saveError.value = err instanceof Error ? err.message : `Error al guardar el ${entityName.toLowerCase()}`
+      saveError.value = translateError(err)
       showError(saveError.value)
     },
   })
@@ -72,13 +74,19 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
           success(`${entityName} eliminado correctamente`)
         },
         onError: (err) => {
-          showError(err instanceof Error ? err.message : `Error al eliminar el ${entityName.toLowerCase()}`)
+          saveError.value = translateError(err)
+          showError(saveError.value)
         },
       })
     : null
 
   const handleSave = async (formData: TForm & { id?: TId }) => {
     saveError.value = ''
+    try {
+      await supabase.auth.getSession()
+    } catch {
+      // Proceed anyway — the mutation will trigger its own token check
+    }
     try {
       await saveMutation.mutateAsync(formData)
     } catch {
