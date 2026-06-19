@@ -7,7 +7,7 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons.svg', 'lumalogo.svg'],
+      includeAssets: ['favicon.svg', 'icons.svg', 'lumalogo.jpg'],
       manifest: {
         name: 'Salones PWA',
         short_name: 'Salones',
@@ -18,9 +18,9 @@ export default defineConfig({
         theme_color: '#8b5cf6',
         icons: [
           {
-            src: '/lumalogo.svg',
+            src: '/lumalogo.jpg',
             sizes: 'any',
-            type: 'image/svg+xml',
+            type: 'image/jpeg',
             purpose: 'any',
           },
         ],
