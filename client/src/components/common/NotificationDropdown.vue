@@ -82,7 +82,6 @@
 <script setup lang="ts">
 import { Bell, MessageCircle, Calendar, CheckCircle2, CalendarPlus, AlertTriangle } from 'lucide-vue-next'
 import { useNotifications } from '../../composables/useNotifications'
-import type { NotificationRecord } from '../../services/notificationService'
 
 defineEmits<{ close: [] }>()
 
