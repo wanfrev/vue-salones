@@ -163,6 +163,34 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const refreshSession = async (): Promise<boolean> => {
+    if (!session.value) return false
+    try {
+      const { data, error } = await supabase.auth.refreshSession()
+      if (error) throw error
+      if (data.session) {
+        session.value = data.session
+        user.value = data.session.user
+        if (user.value) {
+          try {
+            await loadProfile(user.value.id)
+            const { useBusinessStore } = await import('./business')
+            const businessStore = useBusinessStore()
+            await businessStore.loadBusiness(profile.value?.business_id ?? null)
+          } catch {
+            await signOut()
+            return false
+          }
+        }
+        return true
+      }
+      return false
+    } catch {
+      await signOut()
+      return false
+    }
+  }
+
   return {
     user,
     session,
@@ -175,5 +203,6 @@ export const useAuthStore = defineStore('auth', () => {
     initialize,
     signIn,
     signOut,
+    refreshSession,
   }
 })
