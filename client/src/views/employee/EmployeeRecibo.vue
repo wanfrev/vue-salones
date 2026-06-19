@@ -33,7 +33,7 @@
 
         <template v-else>
           <!-- Summary Cards -->
-          <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
             <div class="rounded-lg bg-bg-secondary p-3">
               <p class="text-xs text-text-muted uppercase tracking-wider">Servicios</p>
               <p class="text-xl font-bold text-text mt-0.5">{{ earnings.length }}</p>
@@ -42,6 +42,11 @@
               <p class="text-xs text-text-muted uppercase tracking-wider">Total facturado</p>
               <p class="text-xl font-bold text-text mt-0.5">${{ totalBilled }}</p>
               <p class="text-xs text-text-muted mt-0.5">{{ totalBilledVES }}</p>
+            </div>
+            <div class="rounded-lg bg-bg-secondary p-3">
+              <p class="text-xs text-text-muted uppercase tracking-wider">Monto pagado</p>
+              <p class="text-xl font-bold text-success mt-0.5">${{ totalPaidFormatted }}</p>
+              <p class="text-xs text-text-muted mt-0.5">{{ totalPaidVES }}</p>
             </div>
             <div class="rounded-lg bg-bg-secondary p-3">
               <p class="text-xs text-text-muted uppercase tracking-wider">Total a cobrar</p>

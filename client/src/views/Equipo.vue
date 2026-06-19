@@ -154,6 +154,26 @@
         <p class="text-xs text-text-muted mt-0.5">Comisiones, nómina, deuda y horarios del equipo</p>
       </div>
 
+      <!-- Month Selector -->
+      <div class="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-border bg-surface px-2.5 py-1.5 shadow-sm self-start sm:self-auto"
+        v-show="activeTab !== 'horarios'">
+        <label for="equipo-month-picker" class="text-xs font-medium text-text-muted hidden sm:inline">Mes</label>
+        <input
+          id="equipo-month-picker"
+          v-model="selectedMonth"
+          type="month"
+          class="rounded-md border border-border bg-surface px-2 py-1 text-xs text-text outline-none transition-theme focus:border-primary w-full sm:w-auto"
+          @change="selectedPeriod = 'month'"
+        />
+        <button
+          type="button"
+          class="rounded-md border border-border px-2 py-1 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:text-text whitespace-nowrap"
+          @click="resetToCurrentMonth"
+        >
+          Ahora
+        </button>
+      </div>
+
       <!-- Segmented Control -->
       <div class="bg-bg-secondary p-1 rounded-xl border border-border-subtle inline-flex items-center gap-0.5 self-start sm:self-auto">
         <button
@@ -580,6 +600,7 @@ import { useCurrency } from '../composables/useCurrency'
 import { deleteEmpleado, equipoKeys, listEquipo, saveEmpleado } from '../services/equipoService'
 import { useBusinessStore } from '../store/business'
 import { getInitials, formatMethod, formatPayType } from '../lib/formatters'
+import { currentMonthKey, resolvePeriodDates } from '../lib/periodUtils'
 import { EmpleadoFormModal } from '../components/modals'
 import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { useEmployeePayments } from '../composables/useEmployeePayments'
@@ -596,32 +617,16 @@ const empleadoModalRef = ref<InstanceType<typeof EmpleadoFormModal> | null>(null
 
 const businessId = computed(() => authStore.businessId)
 
-// Period for employee payments summary (current month)
+// Period for employee payments summary
 const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
-const selectedMonth = computed(() => {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-})
+const selectedMonth = ref<string>(currentMonthKey())
 
-const periodDates = computed(() => {
-  const monthMatch = selectedMonth.value.match(/^(\d{4})-(\d{2})$/)
-  const today = new Date()
-  const toYmd = (d: Date) => {
-    const yyyy = d.getFullYear()
-    const mm = String(d.getMonth() + 1).padStart(2, '0')
-    const dd = String(d.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
-  }
-  if (monthMatch) {
-    const year = Number(monthMatch[1])
-    const monthIndex = Number(monthMatch[2]) - 1
-    const start = new Date(year, monthIndex, 1)
-    const endOfMonth = new Date(year, monthIndex + 1, 0)
-    const isCurrentMonth = year === today.getFullYear() && monthIndex === today.getMonth()
-    return { start: toYmd(start), end: toYmd(isCurrentMonth ? today : endOfMonth) }
-  }
-  return { start: toYmd(new Date(today.getFullYear(), 0, 1)), end: toYmd(today) }
-})
+const periodDates = computed(() => resolvePeriodDates(selectedPeriod.value, selectedMonth.value))
+
+const resetToCurrentMonth = () => {
+  selectedPeriod.value = 'month'
+  selectedMonth.value = currentMonthKey()
+}
 
 const emptyExpenses = ref<{ date: string; amount: number }[]>([])
 const summaryCtx = useFinancialSummary(businessId, selectedPeriod, emptyExpenses, selectedMonth)
