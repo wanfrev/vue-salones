@@ -38,6 +38,10 @@ serve(async (req) => {
     })
 
     const now = new Date()
+
+    // ============================================================
+    // 1. Generate reminders: appointments starting in ~24h
+    // ============================================================
     const in23h = new Date(now.getTime() + 23 * 60 * 60 * 1000)
     const in25h = new Date(now.getTime() + 25 * 60 * 60 * 1000)
 
@@ -56,74 +60,147 @@ serve(async (req) => {
       })
     }
 
-    if (!appointments || appointments.length === 0) {
-      return new Response(JSON.stringify({ generated: 0 }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
     let totalGenerated = 0
     const appointmentIds: string[] = []
 
-    for (const appt of appointments) {
-      const client = appt.clients as { full_name: string; phone: string } | null
-      const service = appt.services as { name: string } | null
-      if (!client || !service) continue
+    if (appointments && appointments.length > 0) {
+      for (const appt of appointments) {
+        const client = appt.clients as { full_name: string; phone: string } | null
+        const service = appt.services as { name: string } | null
+        if (!client || !service) continue
 
-      const notifications = []
+        const notifications = []
 
-      notifications.push({
-        business_id: appt.business_id,
-        appointment_id: appt.id,
-        profile_id: appt.employee_id,
-        client_name: client.full_name,
-        client_phone: client.phone,
-        service_name: service.name,
-        appointment_time: appt.start_time,
-      })
+        // Notify assigned employee
+        notifications.push({
+          business_id: appt.business_id,
+          appointment_id: appt.id,
+          profile_id: appt.employee_id,
+          type: 'reminder',
+          title: 'Recordatorio de cita',
+          message: `El cliente ${client.full_name} tiene cita de ${service.name}`,
+          client_name: client.full_name,
+          client_phone: client.phone,
+          service_name: service.name,
+          appointment_time: appt.start_time,
+        })
 
-      const { data: admins } = await supabaseAdmin
-        .from('profiles')
-        .select('id')
-        .eq('business_id', appt.business_id)
-        .eq('role', 'admin')
-        .eq('active', true)
+        // Notify admins
+        const { data: admins } = await supabaseAdmin
+          .from('profiles')
+          .select('id')
+          .eq('business_id', appt.business_id)
+          .eq('role', 'admin')
+          .eq('active', true)
 
-      if (admins) {
-        for (const admin of admins) {
-          if (admin.id !== appt.employee_id) {
-            notifications.push({
-              business_id: appt.business_id,
-              appointment_id: appt.id,
-              profile_id: admin.id,
-              client_name: client.full_name,
-              client_phone: client.phone,
-              service_name: service.name,
-              appointment_time: appt.start_time,
-            })
+        if (admins) {
+          for (const admin of admins) {
+            if (admin.id !== appt.employee_id) {
+              notifications.push({
+                business_id: appt.business_id,
+                appointment_id: appt.id,
+                profile_id: admin.id,
+                type: 'reminder',
+                title: 'Recordatorio de cita',
+                message: `El cliente ${client.full_name} tiene cita de ${service.name}`,
+                client_name: client.full_name,
+                client_phone: client.phone,
+                service_name: service.name,
+                appointment_time: appt.start_time,
+              })
+            }
           }
+        }
+
+        const { error: insertError } = await supabaseAdmin
+          .from('notifications')
+          .insert(notifications)
+
+        if (!insertError) {
+          totalGenerated += notifications.length
+          appointmentIds.push(appt.id)
         }
       }
 
-      const { error: insertError } = await supabaseAdmin
-        .from('reminder_notifications')
-        .insert(notifications)
-
-      if (!insertError) {
-        totalGenerated += notifications.length
-        appointmentIds.push(appt.id)
+      if (appointmentIds.length > 0) {
+        await supabaseAdmin
+          .from('appointments')
+          .update({ reminder_sent_at: new Date().toISOString() })
+          .in('id', appointmentIds)
       }
     }
 
-    if (appointmentIds.length > 0) {
-      await supabaseAdmin
-        .from('appointments')
-        .update({ reminder_sent_at: new Date().toISOString() })
-        .in('id', appointmentIds)
+    // ============================================================
+    // 2. Generate unpaid alerts: confirmed >24h ago, not paid
+    // ============================================================
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
+    // Find confirmed appointments whose start_time was >24h ago and are still unpaid
+    const { data: unpaidAppts, error: unpaidError } = await supabaseAdmin
+      .from('appointments')
+      .select('*, clients(full_name, phone), services(name)')
+      .eq('status', 'confirmed')
+      .neq('payment_status', 'paid')
+      .lte('start_time', twentyFourHoursAgo.toISOString())
+
+    if (unpaidError) {
+      console.error('[generate-reminders] unpaid query error:', unpaidError.message)
     }
 
-    return new Response(JSON.stringify({ generated: totalGenerated }), {
+    let unpaidGenerated = 0
+
+    if (unpaidAppts && unpaidAppts.length > 0) {
+      for (const appt of unpaidAppts) {
+        const client = appt.clients as { full_name: string; phone: string } | null
+        const service = appt.services as { name: string } | null
+        if (!client || !service) continue
+
+        // Check if an unpaid_alert already exists for this appointment
+        const { data: existingAlerts } = await supabaseAdmin
+          .from('notifications')
+          .select('id')
+          .eq('appointment_id', appt.id)
+          .eq('type', 'unpaid_alert')
+
+        if (existingAlerts && existingAlerts.length > 0) continue
+
+        // Notify all active admins
+        const { data: admins } = await supabaseAdmin
+          .from('profiles')
+          .select('id')
+          .eq('business_id', appt.business_id)
+          .eq('role', 'admin')
+          .eq('active', true)
+
+        if (admins && admins.length > 0) {
+          const notifications = admins.map((admin: { id: string }) => ({
+            business_id: appt.business_id,
+            appointment_id: appt.id,
+            profile_id: admin.id,
+            type: 'unpaid_alert',
+            title: 'Cita confirmada sin cobrar',
+            message: `Cita de ${client.full_name} — ${service.name} confirmada hace más de 24h sin cobro`,
+            client_name: client.full_name,
+            client_phone: client.phone,
+            service_name: service.name,
+            appointment_time: appt.start_time,
+          }))
+
+          const { error: insertError } = await supabaseAdmin
+            .from('notifications')
+            .insert(notifications)
+
+          if (!insertError) {
+            unpaidGenerated += notifications.length
+          }
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({
+      generated: totalGenerated,
+      unpaid_alerts: unpaidGenerated,
+    }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })

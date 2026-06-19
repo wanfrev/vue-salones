@@ -19,10 +19,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { Bell } from 'lucide-vue-next'
-import { useReminders } from '../../composables/useReminders'
+import { useNotifications } from '../../composables/useNotifications'
 import NotificationDropdown from './NotificationDropdown.vue'
 
-const { unreadCount } = useReminders()
+const { unreadCount } = useNotifications()
 const isOpen = ref(false)
 
 const handleClickOutside = (e: MouseEvent) => {
