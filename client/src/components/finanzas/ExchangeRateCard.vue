@@ -15,7 +15,7 @@
         <div class="min-w-0 flex-1">
           <p class="text-[10px] font-medium uppercase tracking-wider text-text-secondary sm:text-xs">Tasa del Día</p>
           <div class="flex items-baseline gap-0.5">
-            <p class="text-lg font-bold text-warning tabular-nums whitespace-nowrap sm:text-2xl">{{ displayRate }}</p>
+            <p class="text-lg font-bold leading-tight text-warning tabular-nums whitespace-nowrap sm:text-2xl lg:text-xl xl:text-2xl">{{ displayRate }}</p>
             <span class="text-[10px] text-text-muted font-medium">Bs</span>
           </div>
           <p class="text-[10px] text-text-muted font-medium">1 USD</p>

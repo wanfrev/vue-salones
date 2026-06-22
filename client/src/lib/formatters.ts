@@ -144,3 +144,14 @@ export function formatPayType(payType?: string | null, baseSalary?: number, payP
   if (payType === 'percentage') return `${payPercentage ?? 0}% por servicio`
   return 'Por servicio'
 }
+
+export function formatPercentage(value: number): string {
+  if (Number.isNaN(value) || !Number.isFinite(value)) {
+    return '0.0%'
+  }
+  return new Intl.NumberFormat('en-US', {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value)
+}

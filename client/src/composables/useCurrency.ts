@@ -11,10 +11,10 @@ export function useCurrency() {
   const currency = computed(() => businessStore.business?.currency ?? 'USD')
 
   const formatUSD = (value: number) => {
-    return `${new Intl.NumberFormat('en-US', {
+    return `$${new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(value)} $`
+    }).format(value)}`
   }
 
   const formatVESEs = (vesValue: number) =>
