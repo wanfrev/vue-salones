@@ -198,15 +198,20 @@ function useFinancialSummary(
           total_amount,
           method,
           employee_percentage,
+          assistant_amount,
+          assistant_percentage,
           exchange_rate_used,
           payments_breakdown,
           appointments (
             client_id,
             service_id,
             employee_id,
+            assistant_employee_id,
+            assistant_percentage,
             clients ( full_name ),
             services ( name ),
-            employee_profile:profiles!appointments_employee_id_fkey ( full_name, pay_type, pay_percentage, base_salary )
+            employee_profile:profiles!appointments_employee_id_fkey ( full_name, pay_type, pay_percentage, base_salary ),
+            assistant_profile:profiles!appointments_assistant_employee_id_fkey ( full_name, pay_type, pay_percentage, base_salary )
           )
         `)
         .eq('business_id', businessId.value!)
@@ -224,9 +229,17 @@ function useFinancialSummary(
             client_id: string | null
             service_id: string | null
             employee_id: string | null
+            assistant_employee_id: string | null
+            assistant_percentage: number | null
             clients?: { full_name: string | null } | null
             services?: { name: string | null } | null
             employee_profile?: {
+              full_name: string | null
+              pay_type?: 'salary' | 'percentage' | 'mixed' | null
+              pay_percentage?: number | null
+              base_salary?: number | null
+            } | null
+            assistant_profile?: {
               full_name: string | null
               pay_type?: 'salary' | 'percentage' | 'mixed' | null
               pay_percentage?: number | null
@@ -522,24 +535,41 @@ function useFinancialSummary(
 
   const transactions = computed(() => unifiedTransactions.value)
 
-  const employeePayments = computed<PaymentRow[]>(() =>
-    rawTransactions.value.map(row => {
-      const calc = computeServiceEarnings(
+  const employeePayments = computed<PaymentRow[]>(() => {
+    const rows: PaymentRow[] = []
+    for (const row of rawTransactions.value) {
+      const mainCalc = computeServiceEarnings(
         Number(row.total_amount ?? 0),
         row.appointments?.employee_profile,
         row.employee_percentage,
       )
-
-      return {
+      rows.push({
         id: row.id,
         employee: row.appointments?.employee_profile?.full_name ?? '—',
         service: row.appointments?.services?.name ?? '—',
         amount: row.total_amount,
-        percentage: calc.percentage,
-        earnings: calc.earnings,
+        percentage: mainCalc.percentage,
+        earnings: mainCalc.earnings,
+      })
+
+      // Assistant row if assigned
+      const assistantId = row.appointments?.assistant_employee_id
+      const assistantPct = Number(row.assistant_percentage ?? 0)
+      if (assistantId && assistantPct > 0) {
+        const assistantName = row.appointments?.assistant_profile?.full_name ?? '—'
+        const assistantEarnings = Number(row.total_amount ?? 0) * (assistantPct / 100)
+        rows.push({
+          id: `${row.id}-asst`,
+          employee: assistantName + ' (asistente)',
+          service: row.appointments?.services?.name ?? '—',
+          amount: row.total_amount,
+          percentage: assistantPct,
+          earnings: assistantEarnings,
+        })
       }
-    })
-  )
+    }
+    return rows
+  })
 
   const employeeEarningsByEmployee = computed<EmployeeEarningSummary[]>(() => {
     const map = new Map<string, {
@@ -550,31 +580,44 @@ function useFinancialSummary(
       commissionTotal: number
     }>()
 
-    for (const tx of rawTransactions.value) {
-      const profile = tx.appointments?.employee_profile
-      if (!profile) continue
-      const id = tx.appointments?.employee_id ?? ''
-      if (!id) continue
-
+    const ensureEntry = (id: string, name: string, profile?: EmployeeCompProfile | null) => {
+      if (!id) return
       if (!map.has(id)) {
-        const profileFromTx = profile as EmployeeCompProfile
-        const pt = profileFromTx.pay_type ?? 'percentage'
+        const pt = profile?.pay_type ?? 'percentage'
         map.set(id, {
-          employeeName: profile.full_name ?? '—',
+          employeeName: name || '—',
           payType: pt,
-          payPercentage: pt === 'salary' ? 0 : Number(profileFromTx.pay_percentage ?? 0),
-          baseSalary: pt === 'percentage' ? 0 : Number(profileFromTx.base_salary ?? 0),
+          payPercentage: pt === 'salary' ? 0 : Number(profile?.pay_percentage ?? 0),
+          baseSalary: pt === 'percentage' ? 0 : Number(profile?.base_salary ?? 0),
           commissionTotal: 0,
         })
       }
+    }
 
-      const entry = map.get(id)!
-      const calc = computeServiceEarnings(
-        Number(tx.total_amount ?? 0),
-        profile,
-        tx.employee_percentage,
-      )
-      entry.commissionTotal += calc.earnings
+    for (const tx of rawTransactions.value) {
+      const appt = tx.appointments
+      if (!appt) continue
+
+      // Main employee
+      const mainId = appt.employee_id ?? ''
+      const mainProfile = appt.employee_profile
+      if (mainId) {
+        ensureEntry(mainId, mainProfile?.full_name ?? '—', mainProfile)
+        const calc = computeServiceEarnings(
+          Number(tx.total_amount ?? 0),
+          mainProfile,
+          tx.employee_percentage,
+        )
+        map.get(mainId)!.commissionTotal += calc.earnings
+      }
+
+      // Assistant if assigned
+      const assistantId = appt.assistant_employee_id
+      const assistantPct = Number(tx.assistant_percentage ?? 0)
+      if (assistantId && assistantPct > 0) {
+        ensureEntry(assistantId, appt.assistant_profile?.full_name ?? '—', appt.assistant_profile)
+        map.get(assistantId)!.commissionTotal += Number(tx.total_amount ?? 0) * (assistantPct / 100)
+      }
     }
 
     return [...map.entries()].map(([employeeId, data]) => ({

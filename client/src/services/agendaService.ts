@@ -31,7 +31,7 @@ export const agendaKeys = {
   appointments: (businessId?: string | null) => ['appointments', businessId] as const,
 }
 
-const APPOINTMENT_SELECT = '*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url)'
+const APPOINTMENT_SELECT = '*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url), assistant_profile:profiles!appointments_assistant_employee_id_fkey(id, full_name, avatar_url)'
 
 export const listCitas = async (
   businessId: string,
@@ -51,7 +51,7 @@ export const listCitas = async (
   }
 
   if (employeeId && employeeId !== 'all') {
-    query = query.eq('employee_id', employeeId)
+    query = query.or(`employee_id.eq.${employeeId},assistant_employee_id.eq.${employeeId}`)
   }
 
   const { data, error } = await query
@@ -174,7 +174,14 @@ export const saveCita = async (
   // Primary service
   inserts.push(mapServiceItemToAppointmentInsert(
     businessId,
-    { serviceId: data.service, employeeId: data.employee, duration: data.duration, price: data.price },
+    {
+      serviceId: data.service,
+      employeeId: data.employee,
+      assistantEmployeeId: data.assistantEmployee,
+      assistantPercentage: data.assistantPercentage,
+      duration: data.duration,
+      price: data.price,
+    },
     clientId,
     data.date,
     data.time,

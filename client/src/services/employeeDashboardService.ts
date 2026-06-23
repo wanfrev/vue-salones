@@ -51,7 +51,7 @@ export const listEmployeeAppointments = async (
       services ( name, price )
     `)
     .eq('business_id', businessId)
-    .eq('employee_id', employeeId)
+    .or(`employee_id.eq.${employeeId},assistant_employee_id.eq.${employeeId}`)
     .in('status', ['confirmed', 'completed', 'cancelled', 'no_show'])
     .order('start_time', { ascending: false })
     .limit(100)
@@ -87,14 +87,18 @@ export const listEmployeeTransactions = async (
       local_amount,
       exchange_rate_used,
       employee_percentage,
+      assistant_amount,
+      assistant_percentage,
       appointments!inner (
         employee_id,
+        assistant_employee_id,
         clients ( full_name ),
         services ( name ),
-        employee_profile:profiles!appointments_employee_id_fkey ( pay_type, pay_percentage )
+        employee_profile:profiles!appointments_employee_id_fkey ( pay_type, pay_percentage ),
+        assistant_profile:profiles!appointments_assistant_employee_id_fkey ( pay_type, pay_percentage )
       )
     `)
-    .eq('appointments.employee_id', employeeId)
+    .or(`appointments.employee_id.eq.${employeeId},appointments.assistant_employee_id.eq.${employeeId}`)
     .eq('business_id', businessId)
     .order('paid_at', { ascending: false })
 
@@ -102,10 +106,18 @@ export const listEmployeeTransactions = async (
 
   const raw = (data ?? []) as Array<
     Transaction & {
+      assistant_amount?: number | null
+      assistant_percentage?: number | null
       appointments?: {
+        employee_id?: string
+        assistant_employee_id?: string | null
         clients?: { full_name: string | null } | null
         services?: { name: string | null } | null
         employee_profile?: {
+          pay_type?: 'salary' | 'percentage' | 'mixed' | null
+          pay_percentage?: number | null
+        } | null
+        assistant_profile?: {
           pay_type?: 'salary' | 'percentage' | 'mixed' | null
           pay_percentage?: number | null
         } | null
@@ -118,11 +130,19 @@ export const listEmployeeTransactions = async (
     const exchangeRateUsed = Number(row.exchange_rate_used ?? 1)
     const localAmount = Number(row.local_amount ?? 0)
     const currency: 'USD' | 'VES' = exchangeRateUsed > 1 && localAmount > 0 ? 'VES' : 'USD'
-    const calc = computeServiceEarnings(
-      totalAmount,
-      { pay_type: row.appointments?.employee_profile?.pay_type, pay_percentage: row.appointments?.employee_profile?.pay_percentage },
-      row.employee_percentage,
-    )
+    const isAssistant = row.appointments?.assistant_employee_id != null &&
+      row.appointments.assistant_employee_id !== row.appointments.employee_id
+
+    const calc = isAssistant
+      ? {
+          percentage: Number(row.assistant_percentage ?? 0),
+          earnings: Number(row.assistant_amount ?? 0),
+        }
+      : computeServiceEarnings(
+          totalAmount,
+          { pay_type: row.appointments?.employee_profile?.pay_type, pay_percentage: row.appointments?.employee_profile?.pay_percentage },
+          row.employee_percentage,
+        )
 
     return {
       id: row.id,

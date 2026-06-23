@@ -124,6 +124,27 @@
               @update:model-value="updateServiceRow(index, 'employeeId', $event)"
             />
           </div>
+
+          <!-- Assistant -->
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2" :class="{ 'mt-3': true }">
+            <FormSelect
+              :model-value="row.assistantEmployeeId"
+              label="Asistente (opcional)"
+              :options="assistantOptions"
+              :error="getRowError(index, 'assistantEmployeeId')"
+              @update:model-value="updateServiceRow(index, 'assistantEmployeeId', $event)"
+            />
+            <FormInput
+              v-if="row.assistantEmployeeId"
+              :model-value="String(row.assistantPercentage)"
+              label="% asistente"
+              type="number"
+              placeholder="10"
+              min="0"
+              max="100"
+              @update:model-value="updateServiceRow(index, 'assistantPercentage', String($event))"
+            />
+          </div>
         </div>
 
         <!-- Totales -->
@@ -314,6 +335,11 @@ const employeeOptions = computed(() =>
   (props.empleados ?? []).map(e => ({ value: e.id, label: e.name }))
 )
 
+const assistantOptions = computed(() => [
+  { value: '', label: 'Sin asistente' },
+  ...(props.empleados ?? []).map(e => ({ value: e.id, label: e.name })),
+])
+
 const statusOptions = [
   { value: 'confirmed', label: 'Confirmada' },
   { value: 'pending', label: 'Pendiente' },
@@ -324,6 +350,8 @@ const statusOptions = [
 const emptyServiceRow = (): CitaFormServiceItem => ({
   serviceId: '',
   employeeId: '',
+  assistantEmployeeId: '',
+  assistantPercentage: 0,
   duration: 30,
   price: 0,
 })
@@ -339,6 +367,8 @@ const defaultFormData = (): CitaFormData & { extraServices: CitaFormServiceItem[
     clientPhone: '',
     service: '',
     employee: '',
+    assistantEmployee: '',
+    assistantPercentage: 0,
     duration: 30,
     price: 0,
     extraServices: [],
@@ -369,6 +399,8 @@ const serviceRows = computed<CitaFormServiceItem[]>(() => {
   const rows: CitaFormServiceItem[] = [{
     serviceId: formData.value.service,
     employeeId: formData.value.employee,
+    assistantEmployeeId: formData.value.assistantEmployee,
+    assistantPercentage: formData.value.assistantPercentage,
     duration: formData.value.duration,
     price: formData.value.price,
   }]
@@ -398,6 +430,11 @@ const updateServiceRow = (index: number, field: keyof CitaFormServiceItem, value
       formData.value.service = value
     } else if (field === 'employeeId') {
       formData.value.employee = value
+    } else if (field === 'assistantEmployeeId') {
+      formData.value.assistantEmployee = value
+      if (!value) formData.value.assistantPercentage = 0
+    } else if (field === 'assistantPercentage') {
+      formData.value.assistantPercentage = Number(value) || 0
     }
   } else {
     const extraIndex = index - 1
@@ -412,6 +449,11 @@ const updateServiceRow = (index: number, field: keyof CitaFormServiceItem, value
         }
       } else if (field === 'employeeId') {
         extra.employeeId = value
+      } else if (field === 'assistantEmployeeId') {
+        extra.assistantEmployeeId = value
+        if (!value) extra.assistantPercentage = 0
+      } else if (field === 'assistantPercentage') {
+        extra.assistantPercentage = Number(value) || 0
       }
     }
   }
@@ -496,6 +538,8 @@ watch(
             .map(m => ({
               serviceId: m.service_id,
               employeeId: m.employee_id,
+              assistantEmployeeId: m.assistant_employee_id ?? '',
+              assistantPercentage: Number(m.assistant_percentage ?? 0),
               duration: m.services?.duration_minutes ?? 30,
               price: Number(m.services?.price ?? 0),
             }))
@@ -508,6 +552,8 @@ watch(
         clientPhone: phone,
         service: cita.serviceId || '',
         employee: cita.employeeId || '',
+        assistantEmployee: cita.assistantId || '',
+        assistantPercentage: cita.assistantPercentage || 0,
         duration: cita.duration || 30,
         price: cita.price || 0,
         extraServices: groupMembers,
@@ -571,6 +617,13 @@ const validateForm = (): boolean => {
   if (!formData.value.employee) {
     rowErrors[0] = { ...rowErrors[0], employeeId: 'Selecciona un empleado' }
   }
+  // Validate assistant can't be same as main employee
+  if (formData.value.assistantEmployee && formData.value.assistantEmployee === formData.value.employee) {
+    rowErrors[0] = { ...rowErrors[0], assistantEmployeeId: 'El asistente no puede ser el mismo empleado' }
+  }
+  if (formData.value.assistantEmployee && !formData.value.assistantPercentage) {
+    rowErrors[0] = { ...rowErrors[0], assistantPercentage: 'Define el porcentaje del asistente' }
+  }
 
   // Validate extra service rows
   for (let i = 0; i < formData.value.extraServices.length; i++) {
@@ -581,6 +634,12 @@ const validateForm = (): boolean => {
     }
     if (!extra.employeeId) {
       rowErrors[idx] = { ...rowErrors[idx], employeeId: 'Selecciona un empleado' }
+    }
+    if (extra.assistantEmployeeId && extra.assistantEmployeeId === extra.employeeId) {
+      rowErrors[idx] = { ...rowErrors[idx], assistantEmployeeId: 'El asistente no puede ser el mismo empleado' }
+    }
+    if (extra.assistantEmployeeId && !extra.assistantPercentage) {
+      rowErrors[idx] = { ...rowErrors[idx], assistantPercentage: 'Define el porcentaje del asistente' }
     }
   }
 

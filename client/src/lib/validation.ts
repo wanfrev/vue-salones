@@ -5,6 +5,8 @@ const paymentMethodSchema = z.enum(['cash', 'cash_ves', 'card', 'transfer', 'oth
 export const serviceItemSchema = z.object({
   serviceId: z.string().min(1, 'Selecciona un servicio'),
   employeeId: z.string().min(1, 'Selecciona un empleado'),
+  assistantEmployeeId: z.string().default(''),
+  assistantPercentage: z.number().min(0).max(100).default(0),
   duration: z.number().positive('La duración debe ser positiva'),
   price: z.number().min(0, 'El precio no puede ser negativo'),
 })
@@ -15,6 +17,8 @@ export const citaFormSchema = z.object({
   clientPhone: z.string().min(1, 'El teléfono del cliente es requerido'),
   service: z.string().min(1, 'Selecciona un servicio'),
   employee: z.string().min(1, 'Selecciona un empleado'),
+  assistantEmployee: z.string().default(''),
+  assistantPercentage: z.number().min(0).max(100).default(0),
   duration: z.number().positive('La duración debe ser positiva'),
   price: z.number().min(0, 'El precio no puede ser negativo'),
   extraServices: z.array(serviceItemSchema).default([]),

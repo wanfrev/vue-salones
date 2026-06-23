@@ -20,6 +20,7 @@ const toTimeInput = (iso: string) => {
 export const mapAppointmentToCita = (appointment: AppointmentWithRelations): Cita => {
   const service = appointment.services
   const employee = appointment.profiles
+  const assistant = appointment.assistant_profile
   const client = appointment.clients
   const normalizedStatus = normalizeAppointmentStatus(appointment) as 'confirmed' | 'pending' | 'cancelled' | 'paid'
 
@@ -31,6 +32,9 @@ export const mapAppointmentToCita = (appointment: AppointmentWithRelations): Cit
     service: service?.name ?? 'Servicio',
     employeeId: appointment.employee_id,
     employee: employee?.full_name ?? 'Empleado',
+    assistantId: appointment.assistant_employee_id ?? undefined,
+    assistantName: assistant?.full_name ?? undefined,
+    assistantPercentage: appointment.assistant_percentage ?? undefined,
     groupId: appointment.group_id ?? undefined,
     date: toDateInput(appointment.start_time),
     time: toTimeInput(appointment.start_time),
@@ -63,6 +67,8 @@ export const mapCitaFormToAppointmentInsert = (
     business_id: businessId,
     client_id: clientId,
     employee_id: data.employee,
+    assistant_employee_id: data.assistantEmployee || null,
+    assistant_percentage: data.assistantPercentage || 0,
     service_id: data.service,
     start_time: startTime.toISOString(),
     end_time: endTime.toISOString(),
@@ -100,6 +106,8 @@ export const mapServiceItemToAppointmentInsert = (
     business_id: businessId,
     client_id: clientId,
     employee_id: item.employeeId,
+    assistant_employee_id: item.assistantEmployeeId || null,
+    assistant_percentage: item.assistantPercentage || 0,
     service_id: item.serviceId,
     group_id: groupId,
     start_time: startTime.toISOString(),

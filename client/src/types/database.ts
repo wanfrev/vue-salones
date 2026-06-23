@@ -118,6 +118,8 @@ export interface Appointment {
   business_id: string
   client_id: string
   employee_id: string
+  assistant_employee_id: string | null
+  assistant_percentage: number | null
   service_id: string
   group_id: string | null
   start_time: string
@@ -138,6 +140,7 @@ export interface AppointmentWithRelations extends Appointment {
   clients?: Pick<Client, 'id' | 'full_name' | 'phone' | 'email'> | null
   services?: Pick<Service, 'id' | 'name' | 'duration_minutes' | 'price' | 'color'> | null
   profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null
+  assistant_profile?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null
 }
 
 export interface Transaction {
@@ -147,8 +150,10 @@ export interface Transaction {
   total_amount: number
   local_amount: number
   employee_amount: number
+  assistant_amount: number
   local_percentage: number
   employee_percentage: number
+  assistant_percentage: number
   method: PaymentMethod
   exchange_rate_used: number
   payments_breakdown: any
