@@ -226,7 +226,7 @@
           <svg v-else-if="tab.key === 'ventas'" class="h-3.5 w-3.5" :class="activeDetailTab === 'ventas' ? 'text-info' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
-          <svg v-else class="h-3.5 w-3.5" :class="activeDetailTab === 'gastos' ? 'text-danger' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg v-else-if="tab.key === 'gastos'" class="h-3.5 w-3.5" :class="activeDetailTab === 'gastos' ? 'text-danger' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
           <svg v-else class="h-3.5 w-3.5" :class="activeDetailTab === 'servicios' ? 'text-primary' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
