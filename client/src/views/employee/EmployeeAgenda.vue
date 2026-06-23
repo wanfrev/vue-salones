@@ -3,12 +3,13 @@
     <template #header-actions>
       <button
         @click="handleNewCita"
-        class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
+        :aria-label="`Nueva ${t.appointment?.toLowerCase() || 'cita'}`"
+        class="flex items-center gap-1 rounded-lg bg-primary px-2 py-2 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover sm:gap-2 sm:px-4"
       >
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
-        <span>Nueva {{ t.appointment?.toLowerCase() || 'cita' }}</span>
+        <span class="hidden sm:inline">Nueva {{ t.appointment?.toLowerCase() || 'cita' }}</span>
       </button>
     </template>
 
