@@ -234,7 +234,7 @@ const earningsWithVES = computed(() =>
   earnings.value.map(row => {
     const rate = exchangeRate.value
     const isVES = row.currency === 'VES'
-    const vesTotal = isVES ? row.localAmount : row.totalAmount * rate
+    const vesTotal = isVES ? row.totalAmount * row.exchangeRateUsed : row.totalAmount * rate
     const vesEarnings = isVES ? row.employeeEarnings * row.exchangeRateUsed : row.employeeEarnings * rate
     return { ...row, vesTotal, vesEarnings }
   })

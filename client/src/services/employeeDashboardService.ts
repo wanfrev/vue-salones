@@ -28,8 +28,8 @@ export interface EmployeeEarningRecord {
   clientName: string
   serviceName: string
   totalAmount: number
-  localAmount: number
   exchangeRateUsed: number
+  method: string
   currency: 'USD' | 'VES'
   employeePercentage: number
   employeeEarnings: number
@@ -84,11 +84,12 @@ export const listEmployeeTransactions = async (
       id,
       paid_at,
       total_amount,
-      local_amount,
       exchange_rate_used,
       employee_percentage,
       assistant_amount,
       assistant_percentage,
+      method,
+      payments_breakdown,
       appointments!inner (
         employee_id,
         assistant_employee_id,
@@ -108,6 +109,8 @@ export const listEmployeeTransactions = async (
     Transaction & {
       assistant_amount?: number | null
       assistant_percentage?: number | null
+      method?: string
+      payments_breakdown?: any
       appointments?: {
         employee_id?: string
         assistant_employee_id?: string | null
@@ -128,8 +131,19 @@ export const listEmployeeTransactions = async (
   return raw.map(row => {
     const totalAmount = Number(row.total_amount)
     const exchangeRateUsed = Number(row.exchange_rate_used ?? 1)
-    const localAmount = Number(row.local_amount ?? 0)
-    const currency: 'USD' | 'VES' = exchangeRateUsed > 1 && localAmount > 0 ? 'VES' : 'USD'
+    const method = row.method ?? 'cash'
+
+    const isMixed = method === 'mixed'
+    const isVESMethod = ['cash_ves', 'transfer', 'pago_movil'].includes(method)
+
+    let currency: 'USD' | 'VES' = 'USD'
+    if (isVESMethod) {
+      currency = 'VES'
+    } else if (isMixed && row.payments_breakdown) {
+      const breakdown = Array.isArray(row.payments_breakdown) ? row.payments_breakdown : []
+      const hasVES = breakdown.some((b: any) => b.currency === 'VES')
+      if (hasVES) currency = 'VES'
+    }
     const isAssistant = row.appointments?.assistant_employee_id != null &&
       row.appointments.assistant_employee_id !== row.appointments.employee_id
 
@@ -151,8 +165,8 @@ export const listEmployeeTransactions = async (
       clientName: row.appointments?.clients?.full_name ?? '—',
       serviceName: row.appointments?.services?.name ?? '—',
       totalAmount,
-      localAmount,
       exchangeRateUsed,
+      method,
       currency,
       employeePercentage: calc.percentage,
       employeeEarnings: calc.earnings,
