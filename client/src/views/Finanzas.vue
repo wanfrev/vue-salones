@@ -589,73 +589,15 @@
   </div>
 
   <!-- Expense Modal (Teleported) -->
-  <Teleport to="body">
-    <div v-if="expensesCtx.showExpenseModal.value"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-      @click.self="expensesCtx.closeModal"
-    >
-      <div class="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
-        <div class="mb-4">
-          <h2 class="text-lg font-semibold text-text">{{ expensesCtx.editingExpenseId.value ? 'Editar gasto' : 'Registrar gasto' }}</h2>
-          <p class="text-sm text-text-muted">{{ expensesCtx.editingExpenseId.value ? 'Modifica los datos del egreso' : 'Agrega un egreso al negocio' }}</p>
-        </div>
-        <form class="space-y-4" @submit.prevent="handleExpenseSave">
-          <div>
-            <label class="mb-1 block text-sm font-medium text-text" for="exp-name">Concepto</label>
-            <input id="exp-name" v-model="expensesCtx.expenseForm.value.name" type="text"
-              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-              placeholder="Ej: Renta del local" required />
-          </div>
-          <div class="grid grid-cols-3 gap-3">
-            <div>
-              <label class="mb-1 block text-sm font-medium text-text" for="exp-category">Categoría</label>
-              <select id="exp-category" v-model="expensesCtx.expenseForm.value.category"
-                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
-                <option value="Fijos">Fijos</option>
-                <option value="Insumos">Insumos</option>
-                <option value="General">General</option>
-              </select>
-            </div>
-            <div>
-              <label class="mb-1 block text-sm font-medium text-text" for="exp-amount">Monto</label>
-              <input id="exp-amount" v-model.number="expensesCtx.expenseForm.value.amount" type="number" min="0" step="0.01"
-                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-                placeholder="0.00" required />
-            </div>
-            <div>
-              <label class="mb-1 block text-sm font-medium text-text" for="exp-currency">Moneda</label>
-              <select id="exp-currency" v-model="expensesCtx.expenseForm.value.currency"
-                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
-                <option value="USD">USD $</option>
-                <option value="VES">Bs</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="mb-1 block text-sm font-medium text-text" for="exp-date">Fecha</label>
-            <input id="exp-date" v-model="expensesCtx.expenseForm.value.date" type="date"
-              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30" required />
-          </div>
-          <div>
-            <label class="mb-1 block text-sm font-medium text-text" for="exp-notes">Notas</label>
-            <textarea id="exp-notes" v-model="expensesCtx.expenseForm.value.notes" rows="2"
-              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
-              placeholder="Opcional" />
-          </div>
-          <p v-if="expensesCtx.saveError.value" class="text-sm text-danger">{{ expensesCtx.saveError.value }}</p>
-          <div class="flex items-center justify-end gap-3">
-            <button type="button"
-              class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
-              @click="expensesCtx.closeModal">Cancelar</button>
-            <button type="submit" :disabled="expensesCtx.saveMutation.isPending.value"
-              class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
-              {{ expensesCtx.saveMutation.isPending.value ? 'Guardando...' : 'Guardar' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </Teleport>
+  <ExpenseFormModal
+    :is-open="expensesCtx.showExpenseModal.value"
+    :is-editing="!!expensesCtx.editingExpenseId.value"
+    :form="expensesCtx.expenseForm.value"
+    :save-error="expensesCtx.saveError.value"
+    :is-saving="expensesCtx.saveMutation.isPending.value"
+    @close="expensesCtx.closeModal"
+    @save="handleExpenseSave"
+  />
 
   <!-- Servicios Modals -->
   <ServicioFormModal
@@ -733,10 +675,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
+import { usePeriodSelection } from '../composables/usePeriodSelection'
+import { useCategoryCRUD } from '../composables/useCategoryCRUD'
 
 import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { useExpenses } from '../composables/useExpenses'
@@ -745,8 +689,8 @@ import { useSupplierPayments } from '../composables/useSuppliers'
 import ExchangeRateCard from '../components/finanzas/ExchangeRateCard.vue'
 import KpiCards from '../components/finanzas/KpiCards.vue'
 import SupplierPaymentsSection from '../components/finanzas/SupplierPaymentsSection.vue'
+import ExpenseFormModal from '../components/finanzas/ExpenseFormModal.vue'
 import CurrencyBreakdown, { type CurrencyBreakdownData } from '../components/finanzas/CurrencyBreakdown.vue'
-import { currentMonthKey } from '../lib/periodUtils'
 import { expensesKeys } from '../services/expensesService'
 import { formatMethod } from '../lib/formatters'
 
@@ -757,8 +701,6 @@ import {
   listServicios,
   saveServicio,
   deleteServicio,
-  renameBusinessCategory,
-  deleteBusinessCategory,
   serviciosKeys,
 } from '../services/serviciosService'
 import { ServicioFormModal } from '../components/modals'
@@ -768,26 +710,10 @@ import type { Servicio, ServicioFormData } from '../types/servicio'
 const { authStore } = useAuth()
 
 const { formatUSD, formatVESInline, formatVESEs } = useCurrency()
-const route = useRoute()
 const router = useRouter()
 const queryClient = useQueryClient()
 
-const periods = [
-  { label: 'Mes', value: 'month' as const },
-  { label: 'Trimestre', value: 'quarter' as const },
-  { label: 'Año', value: 'year' as const },
-]
-const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
-
-const selectedMonth = ref<string>(currentMonthKey())
-
-if (route.query.period === 'quarter' || route.query.period === 'year' || route.query.period === 'month') {
-  selectedPeriod.value = route.query.period
-}
-
-if (typeof route.query.month === 'string' && /^\d{4}-\d{2}$/.test(route.query.month)) {
-  selectedMonth.value = route.query.month
-}
+const { selectedPeriod, selectedMonth, resetToCurrentMonth, periods } = usePeriodSelection()
 
 const businessId = computed(() => authStore.businessId)
 
@@ -804,14 +730,6 @@ const { success: notifySuccess, error: notifyError, warning: notifyWarning } = u
 const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null)
 const servicioToDelete = ref<Servicio | null>(null)
 const isDeleteServicioOpen = ref(false)
-const isUpdatingCategory = ref(false)
-const activeSvcCategory = ref('all')
-const categoryToEdit = ref('')
-const newCategoryName = ref('')
-const isRenameCategoryOpen = ref(false)
-const categoryToDeleteName = ref('')
-const replacementCategory = ref('')
-const isDeleteCategoryOpen = ref(false)
 
 const {
   items: servicios,
@@ -833,20 +751,31 @@ const {
   ],
 })
 
-const svcCategories = computed(() => {
-  const list = servicios.value.map(s => s.category).filter(Boolean)
-  const unique = Array.from(new Set(list))
-  return [{ id: 'all', name: 'Todos' }, ...unique.map(cat => ({ id: cat, name: cat }))]
+const {
+  isUpdatingCategory,
+  activeCategory: activeSvcCategory,
+  newCategoryName,
+  isRenameCategoryOpen,
+  categoryToDelete: categoryToDeleteName,
+  replacementCategory,
+  isDeleteCategoryOpen,
+  categories: svcCategories,
+  deleteCategoryOptions,
+  filteredByCategory: filteredServicios,
+  openRenameCategoryModal,
+  closeRenameCategoryModal,
+  confirmRenameCategory,
+  openDeleteCategoryModal,
+  closeDeleteCategoryModal,
+  confirmDeleteCategory,
+} = useCategoryCRUD<Servicio>({
+  businessId,
+  services: servicios,
+  businessStore: svcBusinessStore,
+  success: notifySuccess,
+  error: notifyError,
+  warning: notifyWarning,
 })
-
-const filteredServicios = computed(() => {
-  if (activeSvcCategory.value === 'all') return servicios.value
-  return servicios.value.filter(s => s.category === activeSvcCategory.value)
-})
-
-const deleteCategoryOptions = computed(() =>
-  svcCategories.value.filter((item) => item.id !== 'all' && item.id !== categoryToDeleteName.value)
-)
 
 const handleEditServicio = (servicio: Servicio) => {
   servicioModalRef.value?.open(servicio)
@@ -865,79 +794,6 @@ const confirmDeleteServicio = async () => {
       isDeleteServicioOpen.value = false
       servicioToDelete.value = null
     }
-  }
-}
-
-const openRenameCategoryModal = (cat: string) => {
-  categoryToEdit.value = cat
-  newCategoryName.value = cat
-  isRenameCategoryOpen.value = true
-}
-
-const closeRenameCategoryModal = () => {
-  isRenameCategoryOpen.value = false
-  categoryToEdit.value = ''
-  newCategoryName.value = ''
-}
-
-const confirmRenameCategory = async () => {
-  const bid = businessId.value
-  if (!bid) return
-  const cur = categoryToEdit.value
-  const next = newCategoryName.value.trim()
-  if (!cur || !next || next === cur) { closeRenameCategoryModal(); return }
-  try {
-    isUpdatingCategory.value = true
-    const updated = await renameBusinessCategory(bid, cur, next)
-    svcBusinessStore.updateBusiness({ service_categories: updated })
-    await queryClient.invalidateQueries({ queryKey: serviciosKeys.all(bid) })
-    activeSvcCategory.value = next
-    closeRenameCategoryModal()
-    notifySuccess('Categoría actualizada')
-  } catch (err) {
-    console.error(err)
-    notifyError('No se pudo actualizar la categoría')
-  } finally {
-    isUpdatingCategory.value = false
-  }
-}
-
-const openDeleteCategoryModal = (cat: string) => {
-  categoryToDeleteName.value = cat
-  const def = svcCategories.value.find(item => item.id !== 'all' && item.id !== cat)?.id
-  replacementCategory.value = def ?? ''
-  if (!replacementCategory.value) {
-    notifyWarning('Debe existir al menos otra categoría para poder eliminarla')
-    return
-  }
-  isDeleteCategoryOpen.value = true
-}
-
-const closeDeleteCategoryModal = () => {
-  isDeleteCategoryOpen.value = false
-  categoryToDeleteName.value = ''
-  replacementCategory.value = ''
-}
-
-const confirmDeleteCategory = async () => {
-  const bid = businessId.value
-  if (!bid) return
-  const cat = categoryToDeleteName.value
-  const repl = replacementCategory.value
-  if (!cat || !repl) { closeDeleteCategoryModal(); return }
-  try {
-    isUpdatingCategory.value = true
-    const updated = await deleteBusinessCategory(bid, cat, repl)
-    svcBusinessStore.updateBusiness({ service_categories: updated })
-    await queryClient.invalidateQueries({ queryKey: serviciosKeys.all(bid) })
-    if (activeSvcCategory.value === cat) activeSvcCategory.value = repl
-    closeDeleteCategoryModal()
-    notifySuccess('Categoría eliminada')
-  } catch (err) {
-    console.error(err)
-    notifyError('No se pudo eliminar la categoría')
-  } finally {
-    isUpdatingCategory.value = false
   }
 }
 
@@ -1063,11 +919,6 @@ const activeBreakdown = computed<CurrencyBreakdownData | null>(() => {
 const visibleTransactions = computed(() => summaryCtx.transactions.value.slice(0, 5))
 
 const canViewAllTransactions = computed(() => summaryCtx.transactions.value.length > 5)
-
-const resetToCurrentMonth = () => {
-  selectedPeriod.value = 'month'
-  selectedMonth.value = currentMonthKey()
-}
 
 const goToAllRecords = (tipo: 'gastos' | 'pagos' | 'transacciones' | 'cobros' | 'ventas-productos') => {
   router.push({

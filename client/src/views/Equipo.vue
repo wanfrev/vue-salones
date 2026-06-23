@@ -24,61 +24,30 @@
 
   <!-- Stats -->
   <div class="mb-5 grid grid-cols-2 gap-2 sm:gap-3 lg:mb-8 lg:grid-cols-4">
-    <div class="group rounded-xl border border-border bg-surface p-3 shadow-sm transition-theme hover:shadow-md hover:border-primary/30 sm:p-4">
-      <div class="flex items-center gap-2.5 sm:gap-3">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 sm:h-10 sm:w-10 transition-theme group-hover:bg-primary/15 group-hover:scale-105">
-          <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
-        </div>
-        <div class="min-w-0">
-          <p class="text-lg font-bold text-text tabular-nums sm:text-xl">{{ totalEmpleados }}</p>
-          <p class="text-[11px] font-medium uppercase tracking-wider text-text-muted sm:text-xs">Total</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="group rounded-xl border border-border bg-surface p-3 shadow-sm transition-theme hover:shadow-md hover:border-info/30 sm:p-4">
-      <div class="flex items-center gap-2.5 sm:gap-3">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-info/10 text-info shrink-0 sm:h-10 sm:w-10 transition-theme group-hover:bg-info/15 group-hover:scale-105">
-          <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div class="min-w-0">
-          <p class="text-lg font-bold text-text tabular-nums sm:text-xl">{{ empleadosPorcentaje }}</p>
-          <p class="text-[11px] font-medium uppercase tracking-wider text-text-muted sm:text-xs">Con %</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="group rounded-xl border border-border bg-surface p-3 shadow-sm transition-theme hover:shadow-md hover:border-warning/30 sm:p-4">
-      <div class="flex items-center gap-2.5 sm:gap-3">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-warning/10 text-warning shrink-0 sm:h-10 sm:w-10 transition-theme group-hover:bg-warning/15 group-hover:scale-105">
-          <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div class="min-w-0">
-          <p class="text-lg font-bold text-text tabular-nums sm:text-xl">{{ empleadosSueldoBase }}</p>
-          <p class="text-[11px] font-medium uppercase tracking-wider text-text-muted sm:text-xs">Sueldo base</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="group rounded-xl border border-border bg-surface p-3 shadow-sm transition-theme hover:shadow-md hover:border-success/30 sm:p-4">
-      <div class="flex items-center gap-2.5 sm:gap-3">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success shrink-0 sm:h-10 sm:w-10 transition-theme group-hover:bg-success/15 group-hover:scale-105">
-          <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div class="min-w-0">
-          <p class="text-lg font-bold text-text tabular-nums sm:text-xl">{{ empleadosMixto }}</p>
-          <p class="text-[11px] font-medium uppercase tracking-wider text-text-muted sm:text-xs">Sueldo + %</p>
-        </div>
-      </div>
-    </div>
+    <StatCard
+      icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+      icon-color="primary"
+      :value="totalEmpleados"
+      label="Total"
+    />
+    <StatCard
+      icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      icon-color="info"
+      :value="empleadosPorcentaje"
+      label="Con %"
+    />
+    <StatCard
+      icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+      icon-color="warning"
+      :value="empleadosSueldoBase"
+      label="Sueldo base"
+    />
+    <StatCard
+      icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      icon-color="success"
+      :value="empleadosMixto"
+      label="Sueldo + %"
+    />
   </div>
 
   <!-- Team Grid -->
@@ -701,15 +670,17 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { useCurrency } from '../composables/useCurrency'
+import { usePeriodSelection } from '../composables/usePeriodSelection'
 import { deleteEmpleado, equipoKeys, listEquipo, saveEmpleado } from '../services/equipoService'
 import { useBusinessStore } from '../store/business'
 import { getInitials, formatMethod, formatPayType } from '../lib/formatters'
-import { currentMonthKey, resolvePeriodDates } from '../lib/periodUtils'
+import { resolvePeriodDates } from '../lib/periodUtils'
 import { EmpleadoFormModal } from '../components/modals'
 import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { useEmployeePayments } from '../composables/useEmployeePayments'
 import { useQueryClient } from '@tanstack/vue-query'
 import { employeePaymentKeys, getEmployeeBalance, type EmployeeBalance, type EmployeePaymentRecord } from '../services/employeePaymentsService'
+import { StatCard } from '../components/common'
 import type { Empleado, EmpleadoFormData } from '../types/empleado'
 
 const router = useRouter()
@@ -722,15 +693,9 @@ const empleadoModalRef = ref<InstanceType<typeof EmpleadoFormModal> | null>(null
 const businessId = computed(() => authStore.businessId)
 
 // Period for employee payments summary
-const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
-const selectedMonth = ref<string>(currentMonthKey())
+const { selectedPeriod, selectedMonth, resetToCurrentMonth } = usePeriodSelection()
 
 const periodDates = computed(() => resolvePeriodDates(selectedPeriod.value, selectedMonth.value))
-
-const resetToCurrentMonth = () => {
-  selectedPeriod.value = 'month'
-  selectedMonth.value = currentMonthKey()
-}
 
 const emptyExpenses = ref<{ date: string; amount: number }[]>([])
 const summaryCtx = useFinancialSummary(businessId, selectedPeriod, emptyExpenses, selectedMonth)
