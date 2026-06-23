@@ -478,8 +478,8 @@
         </div>
       </div>
 
-      <!-- Tab: Catálogo de Servicios -->
-      <div v-if="activeDetailTab === 'servicios'">
+      <!-- Tab: Servicios -->
+      <div v-else-if="activeDetailTab === 'servicios'">
         <!-- Category tabs -->
         <div class="flex flex-wrap items-center gap-1.5 mb-4">
           <button
