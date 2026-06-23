@@ -6,7 +6,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="service.icon" />
         </svg>
       </div>
-      <div class="flex gap-1 opacity-0 transition-theme group-hover:opacity-100">
+      <div class="flex gap-1">
         <button
           @click="$emit('edit', service)"
           class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"

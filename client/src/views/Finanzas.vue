@@ -458,7 +458,7 @@
                     ]">{{ svc.category }}</span>
                     <button
                       @click="openRenameCategoryModal(svc.category)"
-                      class="opacity-0 group-hover:opacity-100 rounded p-0.5 text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+                      class="rounded p-0.5 text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
                       title="Editar categoría"
                     >
                       <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -468,7 +468,7 @@
                     <button
                       v-if="svcCategories.length > 2"
                       @click="openDeleteCategoryModal(svc.category)"
-                      class="opacity-0 group-hover:opacity-100 rounded p-0.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-all"
+                      class="rounded p-0.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-all"
                       title="Eliminar categoría"
                     >
                       <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

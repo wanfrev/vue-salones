@@ -70,7 +70,7 @@
         {{ cat.name }}
       </button>
 
-      <div v-if="cat.id !== 'all'" class="flex items-center gap-0.5 opacity-100 transition-theme sm:opacity-0 sm:group-hover/category:opacity-100">
+      <div v-if="cat.id !== 'all'" class="flex items-center gap-0.5">
         <button
           @click.stop="openRenameCategoryModal(cat.id)"
           type="button"
