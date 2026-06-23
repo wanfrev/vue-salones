@@ -6,6 +6,7 @@ import { useCurrency } from './useCurrency'
 import {
   listEmployeePayments,
   createEmployeePayment,
+  createEmployeeConsumption,
   updateEmployeePayment,
   deleteEmployeePayment,
   employeePaymentKeys,
@@ -166,6 +167,81 @@ export function useEmployeePayments(
     }
   }
 
+  // --- Consumption / Debit flow ---
+  const showConsumptionModal = ref(false)
+  const consumptionForm = ref({
+    employeeId: '',
+    amount: 0,
+    concept: '',
+    date: localDateStr(),
+    currency: 'USD' as 'USD' | 'VES',
+  })
+  const consumptionError = ref('')
+
+  const consumeMutation = useMutation({
+    mutationFn: (params: {
+      employeeId: string
+      amount: number
+      concept: string
+      date: string
+      currency: 'USD' | 'VES'
+    }) => {
+      if (!businessId.value) throw new Error('No hay negocio activo')
+      return createEmployeeConsumption(businessId.value, params.employeeId, params.amount, params.concept, params.date, params.currency, exchangeRate.value)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
+      success('Consumo registrado correctamente')
+      closeConsumptionModal()
+    },
+    onError: (err) => {
+      showError(err instanceof Error ? err.message : 'Error al registrar el consumo')
+    },
+  })
+
+  const openConsumptionModal = async () => {
+    consumptionForm.value = {
+      employeeId: '',
+      amount: 0,
+      concept: '',
+      date: localDateStr(),
+      currency: 'USD',
+    }
+    consumptionError.value = ''
+    showConsumptionModal.value = true
+    await loadEmployees()
+  }
+
+  const closeConsumptionModal = () => {
+    showConsumptionModal.value = false
+  }
+
+  const handleSaveConsumption = async () => {
+    if (consumeMutation.isPending.value) return
+    if (!consumptionForm.value.employeeId) {
+      consumptionError.value = 'Selecciona un empleado'
+      return
+    }
+    if (consumptionForm.value.amount <= 0) {
+      consumptionError.value = 'El monto debe ser mayor a 0'
+      return
+    }
+    if (!consumptionForm.value.concept.trim()) {
+      consumptionError.value = 'Describe el consumo (servicio o producto)'
+      return
+    }
+    consumptionError.value = ''
+    try {
+      await consumeMutation.mutateAsync(consumptionForm.value)
+    } catch (err) {
+      consumptionError.value = err instanceof Error ? err.message : 'Error al registrar el consumo'
+      throw err
+    }
+  }
+
   const editingPaymentId = ref<string | null>(null)
 
   const updateMutation = useMutation({
@@ -242,16 +318,23 @@ export function useEmployeePayments(
     createMutation,
     updateMutation,
     deleteMutation,
+    consumeMutation,
     paymentError,
     showPaymentModal,
+    showConsumptionModal,
     paymentForm,
+    consumptionForm,
     employeeList,
     editingPaymentId,
+    consumptionError,
     openModal,
     openEditModal,
     closeModal,
+    openConsumptionModal,
+    closeConsumptionModal,
     handleSave,
     handleUpdate,
+    handleSaveConsumption,
     handleDelete,
   }
 }

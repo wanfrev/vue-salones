@@ -227,6 +227,13 @@
           <span class="hidden sm:inline">Registrar pago</span>
           <span class="sm:hidden">+ Pago</span>
         </button>
+        <button @click="openConsumptionModal" class="flex items-center gap-1.5 rounded-lg bg-danger/10 px-3 py-2 text-xs font-semibold text-danger transition-theme hover:bg-danger/20 shrink-0 border border-danger/20">
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
+          </svg>
+          <span class="hidden sm:inline">Debitar consumo</span>
+          <span class="sm:hidden">Debitar</span>
+        </button>
       </div>
     </div>
 
@@ -239,10 +246,10 @@
           </svg>
         </div>
         <div>
-          <span class="text-[10px] sm:text-[11px] text-text-muted uppercase tracking-wider font-semibold">Total Pagado en Nómina</span>
+          <span class="text-[10px] sm:text-[11px] text-text-muted uppercase tracking-wider font-semibold">Total Pagado + Consumido</span>
           <div class="flex items-baseline gap-2 mt-0.5 flex-wrap">
-            <span class="text-xl sm:text-2xl font-bold text-text tracking-tight tabular-nums">{{ formatUSD(totalNominaPagada) }}</span>
-            <span class="text-xs text-text-muted font-mono">{{ paymentsCtx.paymentsMade.value.length }} pago(s)</span>
+            <span class="text-xl sm:text-2xl font-bold text-text tracking-tight tabular-nums">{{ formatUSD(totalNominaPagada + totalConsumido) }}</span>
+            <span class="text-xs text-text-muted font-mono">{{ paymentsCtx.paymentsMade.value.length }} registro(s)</span>
           </div>
         </div>
         <button @click="openPaymentModal" class="ml-auto flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-text-inverse transition-theme hover:bg-primary-hover shrink-0">
@@ -251,6 +258,13 @@
           </svg>
           <span class="hidden sm:inline">Registrar pago</span>
           <span class="sm:hidden">+ Pago</span>
+        </button>
+        <button @click="openConsumptionModal" class="flex items-center gap-1.5 rounded-lg bg-danger/10 px-3 py-2 text-xs font-semibold text-danger transition-theme hover:bg-danger/20 shrink-0 border border-danger/20">
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
+          </svg>
+          <span class="hidden sm:inline">Debitar consumo</span>
+          <span class="sm:hidden">Debitar</span>
         </button>
       </div>
     </div>
@@ -350,9 +364,14 @@
               <tr v-for="ep in paymentsCtx.paymentsMade.value" :key="ep.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
                 <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ ep.paymentDate }}</td>
                 <td class="px-3 py-3 font-medium text-text">{{ ep.employeeName }}</td>
-                <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ formatMethod(ep.paymentMethod) }}</td>
+                <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">
+                  <span v-if="ep.type === 'consumption'" class="inline-flex items-center gap-1 rounded-full bg-danger/10 px-2 py-0.5 text-[11px] font-medium text-danger">
+                    {{ ep.concept || 'Consumo' }}
+                  </span>
+                  <span v-else>{{ formatMethod(ep.paymentMethod) }}</span>
+                </td>
                 <td class="px-3 py-3 text-right">
-                  <div class="font-medium text-danger">{{ ep.currency === 'VES' ? formatVESEs(ep.originalAmount) : formatUSD(ep.amount) }}</div>
+                  <div :class="['font-medium', ep.type === 'consumption' ? 'text-danger' : 'text-danger']">{{ ep.currency === 'VES' ? formatVESEs(ep.originalAmount) : formatUSD(ep.amount) }}</div>
                   <div class="text-[10px] text-text-muted">{{ ep.currency === 'VES' ? formatUSD(ep.amount) : formatVESInline(ep.amount, ep.exchangeRateUsed) + ' Bs' }}</div>
                 </td>
                 <td class="px-3 py-3 text-center">
@@ -581,6 +600,91 @@
     </div>
   </Teleport>
 
+  <!-- Consumption Modal -->
+  <Teleport to="body">
+    <div v-if="paymentsCtx.showConsumptionModal.value"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      @click.self="closeConsumptionModal"
+    >
+      <div class="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-text">Debitar consumo</h2>
+          <p class="text-sm text-text-muted">Registra un servicio o producto consumido por el empleado. Se descontará de su saldo.</p>
+        </div>
+        <form class="space-y-4" @submit.prevent="handleSubmitConsumption">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text">{{ businessStore.terminology.employee || 'Empleado' }}</label>
+            <select v-model="paymentsCtx.consumptionForm.value.employeeId" required @change="onEmployeeConsumptionChange"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
+              <option value="" disabled>Seleccionar {{ (businessStore.terminology.employee || 'empleado').toLowerCase() }}</option>
+              <option v-for="emp in paymentsCtx.employeeList.value" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
+            </select>
+          </div>
+
+          <div v-if="consumptionBalance" class="rounded-lg bg-bg-secondary p-3 space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-text-muted">Tipo de pago</span>
+              <span class="font-medium text-text">{{ formatPayType(consumptionBalance.payType, consumptionBalance.baseSalary, consumptionBalance.payPercentage) }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-text-muted">Generado en servicios</span>
+              <span class="font-medium text-success">{{ formatUSD(consumptionBalance.totalEarned) }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-text-muted">Pagado + Consumido</span>
+              <span class="font-medium text-danger">{{ formatUSD(consumptionBalance.totalPaid) }}</span>
+            </div>
+            <div class="flex items-center justify-between border-t border-border pt-2">
+              <span class="text-sm font-semibold text-text">Saldo pendiente</span>
+              <span class="text-base font-bold" :class="consumptionBalance.pendingBalance > 0 ? 'text-primary' : 'text-text-muted'">
+                {{ formatUSD(consumptionBalance.pendingBalance) }}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text">Servicio / Producto consumido</label>
+            <input v-model="paymentsCtx.consumptionForm.value.concept" type="text"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+              placeholder="Ej: Corte de cabello, Shampoo..." required />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text">Monto</label>
+              <input v-model.number="paymentsCtx.consumptionForm.value.amount" type="number" min="0.01" step="0.01"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30"
+                placeholder="0.00" required />
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text">Moneda</label>
+              <select v-model="paymentsCtx.consumptionForm.value.currency"
+                class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30">
+                <option value="USD">USD $</option>
+                <option value="VES">Bs</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text">Fecha</label>
+            <input v-model="paymentsCtx.consumptionForm.value.date" type="date"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/30" required />
+          </div>
+          <p v-if="paymentsCtx.consumptionError.value" class="text-sm text-danger">{{ paymentsCtx.consumptionError.value }}</p>
+          <div class="flex items-center justify-end gap-3">
+            <button type="button"
+              class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
+              @click="closeConsumptionModal">Cancelar</button>
+            <button type="submit" :disabled="paymentsCtx.consumeMutation.isPending.value"
+              class="inline-flex items-center justify-center rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-danger-hover disabled:cursor-not-allowed disabled:opacity-60">
+              {{ paymentsCtx.consumeMutation.isPending.value ? 'Guardando...' : 'Debitar consumo' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </Teleport>
+
   <!-- Modals -->
   <EmpleadoFormModal
     ref="empleadoModalRef"
@@ -719,15 +823,20 @@ const selectedBalance = ref<EmployeeBalance | null>(null)
 const employeeDebtSummary = computed(() => {
   const summaries = summaryCtx.employeeEarningsByEmployee.value ?? []
   return summaries.map(s => {
-    const totalPaid = paymentsCtx.paymentsMade.value
-      .filter(p => p.employeeId === s.employeeId)
+    const employeePayments = paymentsCtx.paymentsMade.value.filter(p => p.employeeId === s.employeeId)
+    const totalPaid = employeePayments
+      .filter(p => p.type !== 'consumption')
+      .reduce((sum, p) => sum + p.amount, 0)
+    const totalConsumed = employeePayments
+      .filter(p => p.type === 'consumption')
       .reduce((sum, p) => sum + p.amount, 0)
     return {
       ...s,
       totalPaid,
-      pendingBalance: Math.max(0, s.totalEarned - totalPaid),
+      totalConsumed,
+      pendingBalance: Math.max(0, s.totalEarned - totalPaid - totalConsumed),
     }
-  }).filter(s => s.totalEarned > 0 || s.totalPaid > 0)
+  }).filter(s => s.totalEarned > 0 || s.totalPaid > 0 || (s as any).totalConsumed > 0)
 })
 
 const deudaConSaldo = computed(() => employeeDebtSummary.value.filter(r => r.pendingBalance > 0))
@@ -737,7 +846,15 @@ const totalComisiones = computed(() =>
 )
 
 const totalNominaPagada = computed(() =>
-  paymentsCtx.paymentsMade.value.reduce((acc, p) => acc + p.amount, 0)
+  paymentsCtx.paymentsMade.value
+    .filter(p => p.type !== 'consumption')
+    .reduce((acc, p) => acc + p.amount, 0)
+)
+
+const totalConsumido = computed(() =>
+  paymentsCtx.paymentsMade.value
+    .filter(p => p.type === 'consumption')
+    .reduce((acc, p) => acc + p.amount, 0)
 )
 
 const totalDeudaPendiente = computed(() =>
@@ -747,6 +864,7 @@ const totalDeudaPendiente = computed(() =>
 const buildBalanceFromSummary = (employeeId: string): EmployeeBalance | null => {
   const summary = employeeDebtSummary.value.find(row => row.employeeId === employeeId)
   if (!summary) return null
+  const totalConsumed = (summary as any).totalConsumed ?? 0
   return {
     employeeId: summary.employeeId,
     employeeName: summary.employeeName,
@@ -754,7 +872,7 @@ const buildBalanceFromSummary = (employeeId: string): EmployeeBalance | null => 
     payPercentage: Number(summary.payPercentage ?? 0),
     baseSalary: Number(summary.baseSalary ?? 0),
     totalEarned: Number(summary.totalEarned ?? 0),
-    totalPaid: Number(summary.totalPaid ?? 0),
+    totalPaid: Number(summary.totalPaid ?? 0) + totalConsumed,
     pendingBalance: Number(summary.pendingBalance ?? 0),
   }
 }
@@ -770,6 +888,24 @@ const onEmployeeChange = async () => {
 
 const openPaymentModal = () => { paymentsCtx.openModal(); selectedBalance.value = null }
 const closePaymentModal = () => { paymentsCtx.closeModal(); selectedBalance.value = null }
+
+const consumptionBalance = ref<EmployeeBalance | null>(null)
+
+const openConsumptionModal = () => { paymentsCtx.openConsumptionModal(); consumptionBalance.value = null }
+const closeConsumptionModal = () => { paymentsCtx.closeConsumptionModal(); consumptionBalance.value = null }
+
+const onEmployeeConsumptionChange = async () => {
+  const employeeId = paymentsCtx.consumptionForm.value.employeeId
+  if (!employeeId) { consumptionBalance.value = null; return }
+  const balanceFromSummary = buildBalanceFromSummary(employeeId)
+  if (balanceFromSummary) { consumptionBalance.value = balanceFromSummary; return }
+  if (!authStore.businessId) { consumptionBalance.value = null; return }
+  try { consumptionBalance.value = await getEmployeeBalance(authStore.businessId, employeeId) } catch { consumptionBalance.value = null }
+}
+
+const handleSubmitConsumption = async () => {
+  try { await paymentsCtx.handleSaveConsumption(); closeConsumptionModal(); onPaymentSaved() } catch {}
+}
 
 const openEditPaymentModal = (payment: EmployeePaymentRecord) => { paymentsCtx.openEditModal(payment); selectedBalance.value = null }
 

@@ -772,8 +772,34 @@ const route = useRoute()
 const router = useRouter()
 const queryClient = useQueryClient()
 
+const periods = [
+  { label: 'Mes', value: 'month' as const },
+  { label: 'Trimestre', value: 'quarter' as const },
+  { label: 'Año', value: 'year' as const },
+]
+const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
+
+const selectedMonth = ref<string>(currentMonthKey())
+
+if (route.query.period === 'quarter' || route.query.period === 'year' || route.query.period === 'month') {
+  selectedPeriod.value = route.query.period
+}
+
+if (typeof route.query.month === 'string' && /^\d{4}-\d{2}$/.test(route.query.month)) {
+  selectedMonth.value = route.query.month
+}
+
+const businessId = computed(() => authStore.businessId)
+
+const expensesCtx = useExpenses(businessId, selectedPeriod, selectedMonth)
+const expenses = expensesCtx.expenses
+const supplierPaymentsCtx = useSupplierPayments(businessId)
+
+const summaryCtx = useFinancialSummary(businessId, selectedPeriod, expenses, selectedMonth)
+const rateCtx = useExchangeRate()
+
 // --- Servicios CRUD ---
-const businessStore = useBusinessStore()
+const svcBusinessStore = useBusinessStore()
 const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useNotification()
 const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null)
 const servicioToDelete = ref<Servicio | null>(null)
@@ -863,7 +889,7 @@ const confirmRenameCategory = async () => {
   try {
     isUpdatingCategory.value = true
     const updated = await renameBusinessCategory(bid, cur, next)
-    businessStore.updateBusiness({ service_categories: updated })
+    svcBusinessStore.updateBusiness({ service_categories: updated })
     await queryClient.invalidateQueries({ queryKey: serviciosKeys.all(bid) })
     activeSvcCategory.value = next
     closeRenameCategoryModal()
@@ -902,7 +928,7 @@ const confirmDeleteCategory = async () => {
   try {
     isUpdatingCategory.value = true
     const updated = await deleteBusinessCategory(bid, cat, repl)
-    businessStore.updateBusiness({ service_categories: updated })
+    svcBusinessStore.updateBusiness({ service_categories: updated })
     await queryClient.invalidateQueries({ queryKey: serviciosKeys.all(bid) })
     if (activeSvcCategory.value === cat) activeSvcCategory.value = repl
     closeDeleteCategoryModal()
@@ -914,32 +940,6 @@ const confirmDeleteCategory = async () => {
     isUpdatingCategory.value = false
   }
 }
-
-const periods = [
-  { label: 'Mes', value: 'month' as const },
-  { label: 'Trimestre', value: 'quarter' as const },
-  { label: 'Año', value: 'year' as const },
-]
-const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
-
-const selectedMonth = ref<string>(currentMonthKey())
-
-if (route.query.period === 'quarter' || route.query.period === 'year' || route.query.period === 'month') {
-  selectedPeriod.value = route.query.period
-}
-
-if (typeof route.query.month === 'string' && /^\d{4}-\d{2}$/.test(route.query.month)) {
-  selectedMonth.value = route.query.month
-}
-
-const businessId = computed(() => authStore.businessId)
-
-const expensesCtx = useExpenses(businessId, selectedPeriod, selectedMonth)
-const expenses = expensesCtx.expenses
-const supplierPaymentsCtx = useSupplierPayments(businessId)
-
-const summaryCtx = useFinancialSummary(businessId, selectedPeriod, expenses, selectedMonth)
-const rateCtx = useExchangeRate()
 
 const incomeTotal = summaryCtx.incomeTotal
 const vesIncomeTotal = summaryCtx.vesIncomeTotal

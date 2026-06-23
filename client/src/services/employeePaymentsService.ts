@@ -16,6 +16,8 @@ export interface EmployeePaymentRecord {
   originalAmount: number
   exchangeRateUsed?: number
   paymentMethod: string
+  type: string
+  concept: string | null
   notes: string | null
   paymentDate: string
 }
@@ -27,7 +29,7 @@ export const listEmployeePayments = async (
 ): Promise<EmployeePaymentRecord[]> => {
   let query = supabase
     .from('employee_payments')
-    .select('id, employee_id, amount, payment_method, notes, payment_date, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
+    .select('id, employee_id, amount, payment_method, type, concept, notes, payment_date, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
     .eq('business_id', businessId)
     .order('payment_date', { ascending: false })
 
@@ -40,6 +42,8 @@ export const listEmployeePayments = async (
 
   const raw = (data ?? []) as Array<
     Pick<EmployeePayment, 'id' | 'employee_id' | 'amount' | 'payment_method' | 'notes' | 'payment_date'> & {
+      type?: string
+      concept?: string | null
       employee_profile?: { full_name: string } | null
     }
   >
@@ -48,6 +52,7 @@ export const listEmployeePayments = async (
     let currency: 'USD' | 'VES' = 'USD'
     let originalAmount = Number(row.amount)
     let cleanNotes = (row.notes ?? '')
+    const rowType = row.type ?? 'payment'
 
     const vesMatch = cleanNotes.match(/^\[VES:(\d+(?:\.\d+)?)\]\s?(.*)/s)
     if (vesMatch) {
@@ -74,6 +79,8 @@ export const listEmployeePayments = async (
         ? originalAmount / Number(row.amount)
         : undefined,
       paymentMethod: row.payment_method,
+      type: rowType,
+      concept: row.concept ?? null,
       notes: cleanNotes,
       paymentDate: row.payment_date,
     }
@@ -177,6 +184,56 @@ export const createEmployeePayment = async (
   if (error) {
     console.error('[createEmployeePayment] supabase error:', error)
     handleDbError(error, 'Error al registrar el pago del empleado')
+  }
+}
+
+export const createEmployeeConsumption = async (
+  businessId: string,
+  employeeId: string,
+  amount: number,
+  concept: string,
+  paymentDate: string,
+  currency: 'USD' | 'VES' = 'USD',
+  exchangeRate?: number,
+): Promise<void> => {
+  if (!businessId) throw new Error('Falta el negocio (businessId)')
+  if (!employeeId) throw new Error('Selecciona un empleado')
+  if (!amount || amount <= 0) throw new Error('El monto debe ser mayor a 0')
+  if (!concept.trim()) throw new Error('Describe el consumo (servicio o producto)')
+  if (!paymentDate) throw new Error('Selecciona una fecha')
+
+  let userId: string | null = null
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    userId = session?.user?.id ?? null
+  } catch {
+    // Session not available
+  }
+
+  const isVES = currency === 'VES'
+  const rate = isVES && exchangeRate && exchangeRate > 0 ? exchangeRate : 1
+  const usdAmount = isVES ? amount / rate : amount
+
+  const currencyTag = isVES ? `[VES:${amount}]` : `[USD:${amount}]`
+
+  const { error } = await mutate
+    .from('employee_payments')
+    .insert({
+      business_id: businessId,
+      employee_id: employeeId,
+      amount: Math.round(usdAmount * 100) / 100,
+      payment_method: 'consumption',
+      type: 'consumption',
+      concept: concept.trim(),
+      notes: currencyTag,
+      payment_date: paymentDate,
+      created_by: userId,
+    })
+    .select()
+
+  if (error) {
+    console.error('[createEmployeeConsumption] supabase error:', error)
+    handleDbError(error, 'Error al registrar el consumo del empleado')
   }
 }
 
