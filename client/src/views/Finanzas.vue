@@ -249,6 +249,7 @@
         <div class="p-2.5 rounded-lg border shrink-0" :class="[
           activeDetailTab === 'cobros' ? 'bg-success/10 border-success/10 text-success' :
           activeDetailTab === 'ventas' ? 'bg-info/10 border-info/10 text-info' :
+          activeDetailTab === 'servicios' ? 'bg-primary/10 border-primary/10 text-primary' :
           'bg-danger/10 border-danger/10 text-danger'
         ]">
           <svg v-if="activeDetailTab === 'cobros'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -257,11 +258,11 @@
           <svg v-else-if="activeDetailTab === 'ventas'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
+          <svg v-else-if="activeDetailTab === 'servicios'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
           <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-          </svg>
-          <svg v-if="activeDetailTab === 'servicios'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
           </svg>
         </div>
         <div>
@@ -406,6 +407,109 @@
         </div>
       </div>
 
+      <!-- Tab: Servicios -->
+      <div v-else-if="activeDetailTab === 'servicios'">
+        <!-- Category tabs -->
+        <div class="flex flex-wrap items-center gap-1.5 mb-4">
+          <button
+            v-for="cat in svcCategories"
+            :key="cat.id"
+            @click="activeSvcCategory = cat.id"
+            :class="[
+              'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
+              activeSvcCategory === cat.id
+                ? 'bg-primary text-text-inverse shadow-sm'
+                : 'bg-bg-secondary text-text-secondary hover:text-text hover:bg-bg-secondary/80'
+            ]"
+          >
+            {{ cat.name }}
+          </button>
+        </div>
+
+        <div v-if="filteredServicios.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
+            <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+          </div>
+          <p class="text-sm text-text-muted">No hay servicios en esta categoría</p>
+        </div>
+
+        <div v-else class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-border-subtle">
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Nombre</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Categoría</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Precio</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Duración</th>
+                <th class="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Estado</th>
+                <th class="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Acción</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-subtle">
+              <tr v-for="svc in filteredServicios" :key="svc.id" class="group text-xs transition-theme hover:bg-bg-secondary/40">
+                <td class="px-3 py-3 font-medium text-text">{{ svc.name }}</td>
+                <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">
+                  <div class="flex items-center gap-2">
+                    <span :class="[
+                      'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                      'bg-primary/10 text-primary'
+                    ]">{{ svc.category }}</span>
+                    <button
+                      @click="openRenameCategoryModal(svc.category)"
+                      class="opacity-0 group-hover:opacity-100 rounded p-0.5 text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+                      title="Editar categoría"
+                    >
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button
+                      v-if="svcCategories.length > 2"
+                      @click="openDeleteCategoryModal(svc.category)"
+                      class="opacity-0 group-hover:opacity-100 rounded p-0.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-all"
+                      title="Eliminar categoría"
+                    >
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+                <td class="px-3 py-3 text-right">
+                  <div class="font-semibold text-success tabular-nums">{{ formatUSD(svc.price) }}</div>
+                  <div class="text-[10px] text-text-muted">{{ formatVESInline(svc.price) }} Bs</div>
+                </td>
+                <td class="px-3 py-3 text-right text-text-secondary hidden sm:table-cell">{{ svc.duration }} min</td>
+                <td class="px-3 py-3 text-center">
+                  <span :class="[
+                    'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                    svc.status === 'Activo'
+                      ? 'bg-success/10 text-success'
+                      : 'bg-text-muted/10 text-text-muted'
+                  ]">{{ svc.status }}</span>
+                </td>
+                <td class="px-3 py-3 text-center">
+                  <div class="flex items-center justify-center gap-1">
+                    <button @click="handleEditServicio(svc)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary" title="Editar servicio">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button @click="handleDeleteServicio(svc)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar servicio">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Tab: Gastos Operativos -->
       <div v-else>
         <div v-if="isLoadingExpenses" class="flex items-center justify-center gap-2 py-12 text-sm text-text-muted">
@@ -466,109 +570,6 @@
                       </svg>
                     </button>
                     <button @click="expensesCtx.handleDelete(expense.id)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar gasto">
-                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Tab: Servicios -->
-      <div v-else-if="activeDetailTab === 'servicios'">
-        <!-- Category tabs -->
-        <div class="flex flex-wrap items-center gap-1.5 mb-4">
-          <button
-            v-for="cat in svcCategories"
-            :key="cat.id"
-            @click="activeSvcCategory = cat.id"
-            :class="[
-              'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
-              activeSvcCategory === cat.id
-                ? 'bg-primary text-text-inverse shadow-sm'
-                : 'bg-bg-secondary text-text-secondary hover:text-text hover:bg-bg-secondary/80'
-            ]"
-          >
-            {{ cat.name }}
-          </button>
-        </div>
-
-        <div v-if="filteredServicios.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
-            <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-            </svg>
-          </div>
-          <p class="text-sm text-text-muted">No hay servicios en esta categoría</p>
-        </div>
-
-        <div v-else class="overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b border-border-subtle">
-                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Nombre</th>
-                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Categoría</th>
-                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Precio</th>
-                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Duración</th>
-                <th class="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Estado</th>
-                <th class="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Acción</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-border-subtle">
-              <tr v-for="svc in filteredServicios" :key="svc.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
-                <td class="px-3 py-3 font-medium text-text">{{ svc.name }}</td>
-                <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">
-                  <div class="flex items-center gap-2">
-                    <span :class="[
-                      'rounded-full px-2 py-0.5 text-[11px] font-medium',
-                      'bg-primary/10 text-primary'
-                    ]">{{ svc.category }}</span>
-                    <button
-                      @click="openRenameCategoryModal(svc.category)"
-                      class="opacity-0 group-hover:opacity-100 rounded p-0.5 text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-                      title="Editar categoría"
-                    >
-                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                    </button>
-                    <button
-                      v-if="svcCategories.length > 2"
-                      @click="openDeleteCategoryModal(svc.category)"
-                      class="opacity-0 group-hover:opacity-100 rounded p-0.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-all"
-                      title="Eliminar categoría"
-                    >
-                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-                <td class="px-3 py-3 text-right">
-                  <div class="font-semibold text-success tabular-nums">{{ formatUSD(svc.price) }}</div>
-                  <div class="text-[10px] text-text-muted">{{ formatVESInline(svc.price) }} Bs</div>
-                </td>
-                <td class="px-3 py-3 text-right text-text-secondary hidden sm:table-cell">{{ svc.duration }} min</td>
-                <td class="px-3 py-3 text-center">
-                  <span :class="[
-                    'rounded-full px-2 py-0.5 text-[11px] font-medium',
-                    svc.status === 'Activo'
-                      ? 'bg-success/10 text-success'
-                      : 'bg-text-muted/10 text-text-muted'
-                  ]">{{ svc.status }}</span>
-                </td>
-                <td class="px-3 py-3 text-center">
-                  <div class="flex items-center justify-center gap-1">
-                    <button @click="handleEditServicio(svc)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary" title="Editar servicio">
-                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                    </button>
-                    <button @click="handleDeleteServicio(svc)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar servicio">
                       <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
