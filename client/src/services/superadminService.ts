@@ -125,7 +125,6 @@ export const deleteBusiness = async (businessId: string): Promise<void> => {
 }
 
 export const suspendBusiness = async (businessId: string): Promise<void> => {
-  // Try edge function first, fall back to direct update
   try {
     const { data, error } = await mutate.functions.invoke('superadmin-invite', {
       body: {
@@ -135,19 +134,26 @@ export const suspendBusiness = async (businessId: string): Promise<void> => {
     })
     if (!error && data?.success) return
   } catch {
-    // Edge function not available, try direct update
+    // Edge function not available, fall back to direct update
   }
 
-  const { error } = await mutate
+  const { error: bizErr } = await mutate
     .from('businesses')
     .update({ active: false })
     .eq('id', businessId)
 
-  if (error) throw error
+  if (bizErr) throw bizErr
+
+  const { error: profilesErr } = await mutate
+    .from('profiles')
+    .update({ active: false })
+    .eq('business_id', businessId)
+    .neq('role', 'superadmin')
+
+  if (profilesErr) throw profilesErr
 }
 
 export const resumeBusiness = async (businessId: string): Promise<void> => {
-  // Try edge function first, fall back to direct update
   try {
     const { data, error } = await mutate.functions.invoke('superadmin-invite', {
       body: {
@@ -157,15 +163,23 @@ export const resumeBusiness = async (businessId: string): Promise<void> => {
     })
     if (!error && data?.success) return
   } catch {
-    // Edge function not available, try direct update
+    // Edge function not available, fall back to direct update
   }
 
-  const { error } = await mutate
+  const { error: bizErr } = await mutate
     .from('businesses')
     .update({ active: true })
     .eq('id', businessId)
 
-  if (error) throw error
+  if (bizErr) throw bizErr
+
+  const { error: profilesErr } = await mutate
+    .from('profiles')
+    .update({ active: true })
+    .eq('business_id', businessId)
+    .neq('role', 'superadmin')
+
+  if (profilesErr) throw profilesErr
 }
 
 export const listBusinessAdmins = async (businessId: string): Promise<AuthProfile[]> => {

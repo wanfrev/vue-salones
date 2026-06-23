@@ -134,6 +134,36 @@ serve(async (req) => {
         })
       }
 
+      // Validate caller can manage this target user
+      if (callerProfile.role !== 'superadmin') {
+        const { data: targetProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('business_id, role')
+          .eq('id', userId)
+          .single()
+
+        if (!targetProfile) {
+          return new Response(JSON.stringify({ error: 'Target user not found.' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+
+        if (targetProfile.business_id !== callerProfile.business_id) {
+          return new Response(JSON.stringify({ error: 'Forbidden: cannot manage users outside your business.' }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+
+        if (callerProfile.role === 'admin' && targetProfile.role !== 'empleado') {
+          return new Response(JSON.stringify({ error: 'Forbidden: admin can only manage employees.' }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+      }
+
       if (password) {
         const { error: pwdErr } = await supabaseAdmin.auth.admin.updateUserById(userId, { password })
         if (pwdErr) {
@@ -182,6 +212,36 @@ serve(async (req) => {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
+      }
+
+      // Validate caller can manage this target user
+      if (callerProfile.role !== 'superadmin') {
+        const { data: targetProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('business_id, role')
+          .eq('id', userId)
+          .single()
+
+        if (!targetProfile) {
+          return new Response(JSON.stringify({ error: 'Target user not found.' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+
+        if (targetProfile.business_id !== callerProfile.business_id) {
+          return new Response(JSON.stringify({ error: 'Forbidden: cannot delete users outside your business.' }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+
+        if (callerProfile.role === 'admin' && targetProfile.role !== 'empleado') {
+          return new Response(JSON.stringify({ error: 'Forbidden: admin can only delete employees.' }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
       }
 
       const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(userId)
