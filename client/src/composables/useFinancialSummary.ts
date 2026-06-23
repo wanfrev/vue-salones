@@ -311,7 +311,7 @@ function useFinancialSummary(
       const cfg = periodConfig.value
       const { data, error } = await supabase
         .from('employee_payments')
-        .select('id, amount, payment_method, payment_date, notes, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
+        .select('id, amount, payment_method, payment_date, notes, currency, original_amount, exchange_rate_used, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
         .eq('business_id', businessId.value!)
         .gte('payment_date', toYmd(cfg.start))
         .lte('payment_date', toYmd(cfg.end))
@@ -329,7 +329,7 @@ function useFinancialSummary(
       const cfg = periodConfig.value
       const { data, error } = await supabase
         .from('expenses')
-        .select('id, name, amount, expense_date, notes')
+        .select('id, name, amount, expense_date, notes, currency, original_amount, exchange_rate_used')
         .eq('business_id', businessId.value!)
         .gte('expense_date', toYmd(cfg.start))
         .lte('expense_date', toYmd(cfg.end))
@@ -470,19 +470,8 @@ function useFinancialSummary(
     // Employee payments (nomina)
     const empPayments = rawEmployeePayments.value ?? []
     for (const ep of empPayments) {
-      let epCurrency: 'USD' | 'VES' = 'USD'
-      let epOriginalAmount = Number(ep.amount)
-      const epNotes = (ep.notes ?? '')
-      const vesMatch = epNotes.match(/^\[VES:(\d+(?:\.\d+)?)\]/)
-      if (vesMatch) {
-        epCurrency = 'VES'
-        epOriginalAmount = Number(vesMatch[1])
-      }
-      const usdMatch = !vesMatch && epNotes.match(/^\[USD:(\d+(?:\.\d+)?)\]/)
-      if (usdMatch) {
-        epCurrency = 'USD'
-        epOriginalAmount = Number(usdMatch[1])
-      }
+      const epCurrency = ((ep as any).currency === 'VES' ? 'VES' : 'USD') as 'USD' | 'VES'
+      const epOriginalAmount = epCurrency === 'VES' ? Number((ep as any).original_amount ?? 0) : Number(ep.amount)
       result.push({
         id: 'ep-' + ep.id,
         date: formatDate(ep.payment_date),
@@ -499,22 +488,9 @@ function useFinancialSummary(
     // Expenses (gastos)
     const expenses = rawExpenses.value ?? []
     for (const ex of expenses) {
-      let exCurrency: 'USD' | 'VES' | undefined = undefined
-      let exOriginalAmount: number | undefined = undefined
-      let exExchangeRate: number | undefined = undefined
-      const exNotes = ((ex as any).notes ?? '') as string
-      const vesNewMatch = exNotes.match(/^\[VES:(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)\]/)
-      if (vesNewMatch) {
-        exCurrency = 'VES'
-        exOriginalAmount = Number(vesNewMatch[1])
-        exExchangeRate = Number(vesNewMatch[2])
-      } else {
-        const vesMatch = exNotes.match(/^\[VES:(\d+(?:\.\d+)?)\]/)
-        if (vesMatch) {
-          exCurrency = 'VES'
-          exOriginalAmount = Number(vesMatch[1])
-        }
-      }
+      const exCurrency = ((ex as any).currency === 'VES' ? 'VES' : undefined) as 'USD' | 'VES' | undefined
+      const exOriginalAmount = exCurrency === 'VES' ? Number((ex as any).original_amount ?? 0) : undefined
+      const exExchangeRate = exCurrency === 'VES' ? Number((ex as any).exchange_rate_used ?? 1) : undefined
       result.push({
         id: 'ex-' + ex.id,
         date: formatDate(ex.expense_date),

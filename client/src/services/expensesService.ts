@@ -33,15 +33,29 @@ export type ExpenseFormData = {
 export const listExpenses = async (businessId: string, startDate: string, endDate: string): Promise<ExpenseRow[]> => {
   const { data, error } = await supabase
     .from('expenses')
-    .select('id, name, category, amount, expense_date, notes')
+    .select('id, name, category, amount, expense_date, notes, currency, original_amount, exchange_rate_used')
     .eq('business_id', businessId)
     .gte('expense_date', startDate)
     .lte('expense_date', endDate)
     .order('expense_date', { ascending: false })
 
   if (error) throw error
-  const raw = (data ?? []) as Expense[]
+  const raw = (data ?? []) as Array<Expense & { currency?: string; original_amount?: number; exchange_rate_used?: number }>
   return raw.map(row => {
+    if (row.currency && row.currency !== 'USD') {
+      return {
+        id: row.id,
+        date: row.expense_date,
+        name: row.name,
+        category: row.category,
+        amount: row.amount,
+        currency: row.currency as 'USD' | 'VES',
+        originalAmount: Number(row.original_amount ?? 0),
+        exchangeRateUsed: Number(row.exchange_rate_used ?? 1),
+        notes: row.notes ?? '',
+      }
+    }
+
     let currency: 'USD' | 'VES' = 'USD'
     let originalAmount = row.amount
     let exchangeRateUsed = 1
@@ -89,33 +103,27 @@ export const saveExpense = async (
   const isVES = parsed.data.currency === 'VES'
   const rate = isVES && exchangeRate && exchangeRate > 0 ? exchangeRate : 1
   const usdAmount = isVES ? parsed.data.amount / rate : parsed.data.amount
+  const effRate = isVES ? rate : 1
 
-  let notesContent = parsed.data.notes || ''
-  if (isVES) {
-    notesContent = `[VES:${parsed.data.amount}:${rate}]` + (notesContent ? ' ' + notesContent : '')
+  const payload = {
+    name: parsed.data.name,
+    category: parsed.data.category,
+    amount: Math.round(usdAmount * 100) / 100,
+    expense_date: parsed.data.date,
+    notes: parsed.data.notes || null,
+    currency: parsed.data.currency,
+    original_amount: isVES ? parsed.data.amount : 0,
+    exchange_rate_used: effRate,
   }
 
   if (data.id) {
     const { error } = await mutate
       .from('expenses')
-      .update({
-        name: parsed.data.name,
-        category: parsed.data.category,
-        amount: Math.round(usdAmount * 100) / 100,
-        expense_date: parsed.data.date,
-        notes: notesContent || null,
-      })
+      .update(payload)
       .eq('id', data.id)
     if (error) handleDbError(error, 'Error al actualizar el gasto')
   } else {
-    const { error } = await mutate.from('expenses').insert({
-      business_id: businessId,
-      name: parsed.data.name,
-      category: parsed.data.category,
-      amount: Math.round(usdAmount * 100) / 100,
-      expense_date: parsed.data.date,
-      notes: notesContent || null,
-    })
+    const { error } = await mutate.from('expenses').insert({ ...payload, business_id: businessId })
     if (error) handleDbError(error, 'Error al guardar el gasto')
   }
 }

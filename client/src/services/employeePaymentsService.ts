@@ -29,7 +29,7 @@ export const listEmployeePayments = async (
 ): Promise<EmployeePaymentRecord[]> => {
   let query = supabase
     .from('employee_payments')
-    .select('id, employee_id, amount, payment_method, type, concept, notes, payment_date, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
+    .select('id, employee_id, amount, payment_method, type, concept, notes, payment_date, currency, original_amount, exchange_rate_used, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
     .eq('business_id', businessId)
     .order('payment_date', { ascending: false })
 
@@ -44,11 +44,31 @@ export const listEmployeePayments = async (
     Pick<EmployeePayment, 'id' | 'employee_id' | 'amount' | 'payment_method' | 'notes' | 'payment_date'> & {
       type?: string
       concept?: string | null
+      currency?: string
+      original_amount?: number
+      exchange_rate_used?: number
       employee_profile?: { full_name: string } | null
     }
   >
 
   return raw.map(row => {
+    if (row.currency && row.currency !== 'USD') {
+      return {
+        id: row.id,
+        employeeId: row.employee_id,
+        employeeName: row.employee_profile?.full_name ?? '—',
+        amount: Number(row.amount),
+        currency: row.currency as 'USD' | 'VES',
+        originalAmount: Number(row.original_amount ?? 0),
+        exchangeRateUsed: Number(row.exchange_rate_used ?? 1),
+        paymentMethod: row.payment_method,
+        type: row.type ?? 'payment',
+        concept: row.concept ?? null,
+        notes: row.notes ?? '',
+        paymentDate: row.payment_date,
+      }
+    }
+
     let currency: 'USD' | 'VES' = 'USD'
     let originalAmount = Number(row.amount)
     let cleanNotes = (row.notes ?? '')
@@ -111,20 +131,16 @@ export const updateEmployeePayment = async (
   const rate = isVES && exchangeRate && exchangeRate > 0 ? exchangeRate : 1
   const usdAmount = isVES ? amount / rate : amount
 
-  let notesContent = notes || ''
-  if (isVES) {
-    notesContent = `[VES:${amount}]` + (notesContent ? ' ' + notesContent : '')
-  } else {
-    notesContent = `[USD:${amount}]` + (notesContent ? ' ' + notesContent : '')
-  }
-
   const { error } = await mutate
     .from('employee_payments')
     .update({
       amount: Math.round(usdAmount * 100) / 100,
       payment_method: paymentMethod,
-      notes: notesContent || null,
+      notes: notes || null,
       payment_date: paymentDate,
+      currency: currency,
+      original_amount: isVES ? amount : 0,
+      exchange_rate_used: rate,
     })
     .eq('id', id)
 
@@ -161,13 +177,6 @@ export const createEmployeePayment = async (
   const rate = isVES && exchangeRate && exchangeRate > 0 ? exchangeRate : 1
   const usdAmount = isVES ? amount / rate : amount
 
-  let notesContent = notes || ''
-  if (isVES) {
-    notesContent = `[VES:${amount}]` + (notesContent ? ' ' + notesContent : '')
-  } else {
-    notesContent = `[USD:${amount}]` + (notesContent ? ' ' + notesContent : '')
-  }
-
   const { error } = await mutate
     .from('employee_payments')
     .insert({
@@ -175,9 +184,12 @@ export const createEmployeePayment = async (
       employee_id: employeeId,
       amount: Math.round(usdAmount * 100) / 100,
       payment_method: paymentMethod,
-      notes: notesContent || null,
+      notes: notes || null,
       payment_date: paymentDate,
       created_by: userId,
+      currency: currency,
+      original_amount: isVES ? amount : 0,
+      exchange_rate_used: rate,
     })
     .select()
 
@@ -214,8 +226,6 @@ export const createEmployeeConsumption = async (
   const rate = isVES && exchangeRate && exchangeRate > 0 ? exchangeRate : 1
   const usdAmount = isVES ? amount / rate : amount
 
-  const currencyTag = isVES ? `[VES:${amount}]` : `[USD:${amount}]`
-
   const { error } = await mutate
     .from('employee_payments')
     .insert({
@@ -225,9 +235,12 @@ export const createEmployeeConsumption = async (
       payment_method: 'consumption',
       type: 'consumption',
       concept: concept.trim(),
-      notes: currencyTag,
+      notes: null,
       payment_date: paymentDate,
       created_by: userId,
+      currency: currency,
+      original_amount: isVES ? amount : 0,
+      exchange_rate_used: rate,
     })
     .select()
 

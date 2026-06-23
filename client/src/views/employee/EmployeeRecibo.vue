@@ -278,18 +278,19 @@ const { formatUSD, formatVES, formatVESEs, exchangeRate } = useCurrency()
 
 const paymentsWithCurrency = computed(() => {
   return (paymentsData.value ?? []).map((p: any) => {
-    let currency: 'USD' | 'VES' = 'USD'
-    let originalAmount = Number(p.amount)
-    const notes = p.notes ?? ''
-    const vesMatch = notes.match(/^\[VES:(\d+(?:\.\d+)?)\]/)
-    if (vesMatch) {
-      currency = 'VES'
-      originalAmount = Number(vesMatch[1])
-    }
-    const usdMatch = !vesMatch && notes.match(/^\[USD:(\d+(?:\.\d+)?)\]/)
-    if (usdMatch) {
-      currency = 'USD'
-      originalAmount = Number(usdMatch[1])
+    let currency: 'USD' | 'VES' = p.currency === 'VES' ? 'VES' : 'USD'
+    let originalAmount = currency === 'VES' ? Number(p.original_amount ?? 0) : Number(p.amount)
+    if (currency === 'USD' && p.notes) {
+      const notes = p.notes
+      const vesMatch = notes.match(/^\[VES:(\d+(?:\.\d+)?)\]/)
+      if (vesMatch) {
+        currency = 'VES'
+        originalAmount = Number(vesMatch[1])
+      }
+      const usdMatch = !vesMatch && notes.match(/^\[USD:(\d+(?:\.\d+)?)\]/)
+      if (usdMatch) {
+        originalAmount = Number(usdMatch[1])
+      }
     }
     const usdAmount = Number(p.amount)
     const displayVES = currency === 'VES' ? formatVESEs(originalAmount) : formatVES(usdAmount)
