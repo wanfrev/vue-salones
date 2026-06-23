@@ -187,6 +187,7 @@ export function createMockDataStore(): MockDataStore {
     return {
       id, business_id: BIZ,
       client_id: cl.id, employee_id: employeeId, service_id: svc.id,
+      assistant_employee_id: null, assistant_percentage: null,
       group_id: null,
       start_time: start.toISOString(), end_time: end.toISOString(),
       status: status as Appointment['status'],
@@ -222,14 +223,16 @@ export function createMockDataStore(): MockDataStore {
     {
       id: 'txn-01', business_id: BIZ, appointment_id: 'apt-04',
       total_amount: 250, local_amount: 125, employee_amount: 125,
-      local_percentage: 50, employee_percentage: 50,
+      assistant_amount: 0, local_percentage: 50, employee_percentage: 50,
+      assistant_percentage: 0,
       method: 'cash', exchange_rate_used: 36.50, payments_breakdown: [], paid_at: dateOffset(-1).toISOString(),
       created_by: ADMIN, notes: null, created_at: now,
     },
     {
       id: 'txn-02', business_id: BIZ, appointment_id: 'apt-12',
       total_amount: 250, local_amount: 125, employee_amount: 125,
-      local_percentage: 50, employee_percentage: 50,
+      assistant_amount: 0, local_percentage: 50, employee_percentage: 50,
+      assistant_percentage: 0,
       method: 'card', exchange_rate_used: 36.50, payments_breakdown: [], paid_at: dateOffset(-2).toISOString(),
       created_by: ADMIN, notes: null, created_at: now,
     },

@@ -229,6 +229,9 @@
           <svg v-else class="h-3.5 w-3.5" :class="activeDetailTab === 'gastos' ? 'text-danger' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
+          <svg v-else class="h-3.5 w-3.5" :class="activeDetailTab === 'servicios' ? 'text-primary' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
           <span class="hidden sm:inline">{{ tab.label }}</span>
           <span class="sm:hidden">{{ tab.shortLabel }}</span>
         </button>
@@ -236,9 +239,10 @@
     </div>
 
     <!-- KPI Summary Banner -->
-    <div class="mx-3 sm:mx-5 mt-3 sm:mt-4 mb-0 rounded-xl border border-border-subtle p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" :class="[
+    <div class="mx-3 sm:mx-5 mt-3 sm:mt-4 mb-0 rounded-xl border border-border-subtle p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"     :class="[
       activeDetailTab === 'cobros' ? 'bg-gradient-to-r from-success/[0.04] to-transparent' :
       activeDetailTab === 'ventas' ? 'bg-gradient-to-r from-info/[0.04] to-transparent' :
+      activeDetailTab === 'servicios' ? 'bg-gradient-to-r from-primary/[0.04] to-transparent' :
       'bg-gradient-to-r from-danger/[0.04] to-transparent'
     ]">
       <div class="flex items-center gap-3">
@@ -256,13 +260,17 @@
           <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
+          <svg v-if="activeDetailTab === 'servicios'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
         </div>
         <div>
-          <span class="text-[10px] sm:text-[11px] text-text-muted uppercase tracking-wider font-semibold">Total {{ activeDetailTab === 'cobros' ? 'Cobrado' : activeDetailTab === 'ventas' ? 'Vendido' : 'Gastado' }}</span>
+          <span class="text-[10px] sm:text-[11px] text-text-muted uppercase tracking-wider font-semibold">Total {{ activeDetailTab === 'cobros' ? 'Cobrado' : activeDetailTab === 'ventas' ? 'Vendido' : activeDetailTab === 'servicios' ? 'Activos' : 'Gastado' }}</span>
             <div class="flex items-baseline gap-2 mt-0.5 flex-wrap">
-              <span class="text-xl sm:text-2xl font-bold text-text tracking-tight tabular-nums">{{ formatUSD(detailTabTotal) }}</span>
+              <span v-if="activeDetailTab !== 'servicios'" class="text-xl sm:text-2xl font-bold text-text tracking-tight tabular-nums">{{ formatUSD(detailTabTotal) }}</span>
+              <span v-else class="text-xl sm:text-2xl font-bold text-text tracking-tight tabular-nums">{{ servicios.filter(s => s.status === 'Activo').length }}</span>
               <span v-if="activeDetailTab === 'cobros'" class="text-sm text-text-muted font-medium">{{ detailTabVesTotal }}</span>
-              <span class="text-xs text-text-muted font-mono">{{ detailTabCount }} {{ activeDetailTab === 'cobros' ? 'cobros' : activeDetailTab === 'ventas' ? 'ventas' : 'gastos' }}</span>
+              <span class="text-xs text-text-muted font-mono">{{ activeDetailTab === 'servicios' ? servicios.length : detailTabCount }} {{ activeDetailTab === 'cobros' ? 'cobros' : activeDetailTab === 'ventas' ? 'ventas' : activeDetailTab === 'gastos' ? 'gastos' : 'servicios' }}</span>
             </div>
         </div>
       </div>
@@ -278,6 +286,17 @@
           </svg>
           <span class="hidden sm:inline">Registrar gasto</span>
           <span class="sm:hidden">+ Gasto</span>
+        </button>
+        <button
+          v-if="activeDetailTab === 'servicios'"
+          @click="servicioModalRef?.open()"
+          class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-text-inverse transition-theme hover:bg-primary-hover shadow-sm shadow-primary/20"
+        >
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 4v16m8-8H4" />
+          </svg>
+          <span class="hidden sm:inline">Nuevo servicio</span>
+          <span class="sm:hidden">+ Servicio</span>
         </button>
         <button
           v-if="canViewDetailTab"
@@ -458,6 +477,109 @@
           </table>
         </div>
       </div>
+
+      <!-- Tab: Catálogo de Servicios -->
+      <div v-if="activeDetailTab === 'servicios'">
+        <!-- Category tabs -->
+        <div class="flex flex-wrap items-center gap-1.5 mb-4">
+          <button
+            v-for="cat in svcCategories"
+            :key="cat.id"
+            @click="activeSvcCategory = cat.id"
+            :class="[
+              'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
+              activeSvcCategory === cat.id
+                ? 'bg-primary text-text-inverse shadow-sm'
+                : 'bg-bg-secondary text-text-secondary hover:text-text hover:bg-bg-secondary/80'
+            ]"
+          >
+            {{ cat.name }}
+          </button>
+        </div>
+
+        <div v-if="filteredServicios.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary mb-2">
+            <svg class="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+          </div>
+          <p class="text-sm text-text-muted">No hay servicios en esta categoría</p>
+        </div>
+
+        <div v-else class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-border-subtle">
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Nombre</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Categoría</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Precio</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Duración</th>
+                <th class="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Estado</th>
+                <th class="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Acción</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-subtle">
+              <tr v-for="svc in filteredServicios" :key="svc.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
+                <td class="px-3 py-3 font-medium text-text">{{ svc.name }}</td>
+                <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">
+                  <div class="flex items-center gap-2">
+                    <span :class="[
+                      'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                      'bg-primary/10 text-primary'
+                    ]">{{ svc.category }}</span>
+                    <button
+                      @click="openRenameCategoryModal(svc.category)"
+                      class="opacity-0 group-hover:opacity-100 rounded p-0.5 text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+                      title="Editar categoría"
+                    >
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button
+                      v-if="svcCategories.length > 2"
+                      @click="openDeleteCategoryModal(svc.category)"
+                      class="opacity-0 group-hover:opacity-100 rounded p-0.5 text-text-muted hover:text-danger hover:bg-danger/10 transition-all"
+                      title="Eliminar categoría"
+                    >
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+                <td class="px-3 py-3 text-right">
+                  <div class="font-semibold text-success tabular-nums">{{ formatUSD(svc.price) }}</div>
+                  <div class="text-[10px] text-text-muted">{{ formatVESInline(svc.price) }} Bs</div>
+                </td>
+                <td class="px-3 py-3 text-right text-text-secondary hidden sm:table-cell">{{ svc.duration }} min</td>
+                <td class="px-3 py-3 text-center">
+                  <span :class="[
+                    'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                    svc.status === 'Activo'
+                      ? 'bg-success/10 text-success'
+                      : 'bg-text-muted/10 text-text-muted'
+                  ]">{{ svc.status }}</span>
+                </td>
+                <td class="px-3 py-3 text-center">
+                  <div class="flex items-center justify-center gap-1">
+                    <button @click="handleEditServicio(svc)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary" title="Editar servicio">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button @click="handleDeleteServicio(svc)" class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger" title="Eliminar servicio">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -534,6 +656,79 @@
       </div>
     </div>
   </Teleport>
+
+  <!-- Servicios Modals -->
+  <ServicioFormModal
+    ref="servicioModalRef"
+    :is-saving="saveServicioMutation.isPending.value ?? false"
+    @save="handleSaveServicio"
+  />
+
+  <ModalBase
+    :is-open="isDeleteServicioOpen"
+    :title="`Eliminar ${businessStore.terminology.service || 'Servicio'}`"
+    subtitle="Esta acción no se puede deshacer"
+    icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+    variant="danger"
+    size="sm"
+    confirm-text="Eliminar"
+    cancel-text="Cancelar"
+    :loading="deleteServicioMutation?.isPending.value ?? false"
+    @close="isDeleteServicioOpen = false"
+    @confirm="confirmDeleteServicio"
+    @cancel="isDeleteServicioOpen = false"
+  >
+    <p class="text-sm text-text-secondary">
+      ¿Estás seguro de que deseas eliminar <strong>{{ servicioToDelete?.name }}</strong>?
+      Este servicio será eliminado permanentemente del catálogo.
+    </p>
+  </ModalBase>
+
+  <ModalBase
+    :is-open="isRenameCategoryOpen"
+    title="Editar categoría"
+    subtitle="Actualiza el nombre de la categoría"
+    icon="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+    size="sm"
+    confirm-text="Guardar"
+    cancel-text="Cancelar"
+    :loading="isUpdatingCategory"
+    @close="closeRenameCategoryModal"
+    @confirm="confirmRenameCategory"
+    @cancel="closeRenameCategoryModal"
+  >
+    <label class="mb-2 block text-sm font-medium text-text" for="new-cat-name">Nombre</label>
+    <input
+      id="new-cat-name"
+      v-model="newCategoryName"
+      type="text"
+      class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary"
+      required
+    />
+  </ModalBase>
+
+  <ModalBase
+    :is-open="isDeleteCategoryOpen"
+    title="Eliminar categoría"
+    subtitle="Reasigna los servicios a otra categoría antes de eliminar"
+    icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+    variant="danger"
+    size="sm"
+    confirm-text="Eliminar categoría"
+    cancel-text="Cancelar"
+    :loading="isUpdatingCategory"
+    @close="closeDeleteCategoryModal"
+    @confirm="confirmDeleteCategory"
+    @cancel="closeDeleteCategoryModal"
+  >
+    <p class="text-sm text-text-secondary mb-3">
+      Los servicios de <strong>{{ categoryToDeleteName }}</strong> se moverán a:
+    </p>
+    <select v-model="replacementCategory"
+      class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme focus:border-primary">
+      <option v-for="opt in deleteCategoryOptions" :key="opt.id" :value="opt.id">{{ opt.name }}</option>
+    </select>
+  </ModalBase>
   </template>
 
 <script setup lang="ts">
@@ -555,12 +750,170 @@ import { currentMonthKey } from '../lib/periodUtils'
 import { expensesKeys } from '../services/expensesService'
 import { formatMethod } from '../lib/formatters'
 
+import { useCrud } from '../composables/useCrud'
+import { useBusinessStore } from '../store/business'
+import { useNotification } from '../composables/useNotification'
+import {
+  listServicios,
+  saveServicio,
+  deleteServicio,
+  renameBusinessCategory,
+  deleteBusinessCategory,
+  serviciosKeys,
+} from '../services/serviciosService'
+import { ServicioFormModal } from '../components/modals'
+import { ModalBase } from '../components/common'
+import type { Servicio, ServicioFormData } from '../types/servicio'
+
 const { authStore } = useAuth()
 
 const { formatUSD, formatVESInline, formatVESEs } = useCurrency()
 const route = useRoute()
 const router = useRouter()
 const queryClient = useQueryClient()
+
+// --- Servicios CRUD ---
+const businessStore = useBusinessStore()
+const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useNotification()
+const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null)
+const servicioToDelete = ref<Servicio | null>(null)
+const isDeleteServicioOpen = ref(false)
+const isUpdatingCategory = ref(false)
+const activeSvcCategory = ref('all')
+const categoryToEdit = ref('')
+const newCategoryName = ref('')
+const isRenameCategoryOpen = ref(false)
+const categoryToDeleteName = ref('')
+const replacementCategory = ref('')
+const isDeleteCategoryOpen = ref(false)
+
+const {
+  items: servicios,
+  saveMutation: saveServicioMutation,
+  handleSave: handleSaveServicio,
+  deleteMutation: deleteServicioMutation,
+} = useCrud<Servicio, ServicioFormData>({
+  businessId,
+  queryKey: (id) => serviciosKeys.all(id),
+  queryFn: (id) => listServicios(id),
+  saveFn: (id, data) => saveServicio(id, data),
+  deleteFn: (id) => deleteServicio(id),
+  entityName: 'Servicio',
+  modalRef: servicioModalRef,
+  extraInvalidations: [
+    () => ['appointments'],
+    () => ['pos-pending'],
+    () => ['financial-summary'],
+  ],
+})
+
+const svcCategories = computed(() => {
+  const list = servicios.value.map(s => s.category).filter(Boolean)
+  const unique = Array.from(new Set(list))
+  return [{ id: 'all', name: 'Todos' }, ...unique.map(cat => ({ id: cat, name: cat }))]
+})
+
+const filteredServicios = computed(() => {
+  if (activeSvcCategory.value === 'all') return servicios.value
+  return servicios.value.filter(s => s.category === activeSvcCategory.value)
+})
+
+const deleteCategoryOptions = computed(() =>
+  svcCategories.value.filter((item) => item.id !== 'all' && item.id !== categoryToDeleteName.value)
+)
+
+const handleEditServicio = (servicio: Servicio) => {
+  servicioModalRef.value?.open(servicio)
+}
+
+const handleDeleteServicio = (servicio: Servicio) => {
+  servicioToDelete.value = servicio
+  isDeleteServicioOpen.value = true
+}
+
+const confirmDeleteServicio = async () => {
+  if (servicioToDelete.value && deleteServicioMutation) {
+    try {
+      await deleteServicioMutation.mutateAsync(servicioToDelete.value.id)
+    } catch { /* handled by useCrud */ } finally {
+      isDeleteServicioOpen.value = false
+      servicioToDelete.value = null
+    }
+  }
+}
+
+const openRenameCategoryModal = (cat: string) => {
+  categoryToEdit.value = cat
+  newCategoryName.value = cat
+  isRenameCategoryOpen.value = true
+}
+
+const closeRenameCategoryModal = () => {
+  isRenameCategoryOpen.value = false
+  categoryToEdit.value = ''
+  newCategoryName.value = ''
+}
+
+const confirmRenameCategory = async () => {
+  const bid = businessId.value
+  if (!bid) return
+  const cur = categoryToEdit.value
+  const next = newCategoryName.value.trim()
+  if (!cur || !next || next === cur) { closeRenameCategoryModal(); return }
+  try {
+    isUpdatingCategory.value = true
+    const updated = await renameBusinessCategory(bid, cur, next)
+    businessStore.updateBusiness({ service_categories: updated })
+    await queryClient.invalidateQueries({ queryKey: serviciosKeys.all(bid) })
+    activeSvcCategory.value = next
+    closeRenameCategoryModal()
+    notifySuccess('Categoría actualizada')
+  } catch (err) {
+    console.error(err)
+    notifyError('No se pudo actualizar la categoría')
+  } finally {
+    isUpdatingCategory.value = false
+  }
+}
+
+const openDeleteCategoryModal = (cat: string) => {
+  categoryToDeleteName.value = cat
+  const def = svcCategories.value.find(item => item.id !== 'all' && item.id !== cat)?.id
+  replacementCategory.value = def ?? ''
+  if (!replacementCategory.value) {
+    notifyWarning('Debe existir al menos otra categoría para poder eliminarla')
+    return
+  }
+  isDeleteCategoryOpen.value = true
+}
+
+const closeDeleteCategoryModal = () => {
+  isDeleteCategoryOpen.value = false
+  categoryToDeleteName.value = ''
+  replacementCategory.value = ''
+}
+
+const confirmDeleteCategory = async () => {
+  const bid = businessId.value
+  if (!bid) return
+  const cat = categoryToDeleteName.value
+  const repl = replacementCategory.value
+  if (!cat || !repl) { closeDeleteCategoryModal(); return }
+  try {
+    isUpdatingCategory.value = true
+    const updated = await deleteBusinessCategory(bid, cat, repl)
+    businessStore.updateBusiness({ service_categories: updated })
+    await queryClient.invalidateQueries({ queryKey: serviciosKeys.all(bid) })
+    if (activeSvcCategory.value === cat) activeSvcCategory.value = repl
+    closeDeleteCategoryModal()
+    notifySuccess('Categoría eliminada')
+  } catch (err) {
+    console.error(err)
+    notifyError('No se pudo eliminar la categoría')
+  } finally {
+    isUpdatingCategory.value = false
+  }
+}
 
 const periods = [
   { label: 'Mes', value: 'month' as const },
@@ -745,8 +1098,9 @@ const detailTabs = [
   { key: 'cobros' as const, label: 'Cobros de Citas', shortLabel: 'Cobros' },
   { key: 'ventas' as const, label: 'Ventas de Productos', shortLabel: 'Ventas' },
   { key: 'gastos' as const, label: 'Gastos Operativos', shortLabel: 'Gastos' },
+  { key: 'servicios' as const, label: 'Catálogo de Servicios', shortLabel: 'Servicios' },
 ]
-const activeDetailTab = ref<'cobros' | 'ventas' | 'gastos'>('cobros')
+const activeDetailTab = ref<'cobros' | 'ventas' | 'gastos' | 'servicios'>('cobros')
 
 const allCobrosRows = computed(() => summaryCtx.appointmentIncomeDetails.value)
 const allVentasRows = computed(() => summaryCtx.productSalesDetails.value)
@@ -758,6 +1112,9 @@ const detailTabTotal = computed(() => {
   }
   if (activeDetailTab.value === 'ventas') {
     return allVentasRows.value.reduce((acc, row) => acc + Number(row.total ?? 0), 0)
+  }
+  if (activeDetailTab.value === 'servicios') {
+    return servicios.value.filter(s => s.status === 'Activo').length
   }
   return allGastosRows.value.reduce((acc, row) => acc + row.amount, 0)
 })
@@ -777,12 +1134,14 @@ const detailTabVesTotal = computed(() => {
 const detailTabCount = computed(() => {
   if (activeDetailTab.value === 'cobros') return allCobrosRows.value.length
   if (activeDetailTab.value === 'ventas') return allVentasRows.value.length
+  if (activeDetailTab.value === 'servicios') return servicios.value.length
   return allGastosRows.value.length
 })
 
 const canViewDetailTab = computed(() => {
   if (activeDetailTab.value === 'cobros') return allCobrosRows.value.length > 8
   if (activeDetailTab.value === 'ventas') return allVentasRows.value.length > 8
+  if (activeDetailTab.value === 'servicios') return false
   return allGastosRows.value.length > 8
 })
 
