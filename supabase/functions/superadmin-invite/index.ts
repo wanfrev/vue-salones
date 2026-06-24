@@ -149,7 +149,7 @@ serve(async (req) => {
       }
 
       const allowed: Record<string, unknown> = {}
-      const fields = ['name', 'phone', 'address', 'timezone', 'currency', 'niche_type', 'active', 'ves_exchange_rate', 'theme_config', 'terminology']
+      const fields = ['name', 'phone', 'address', 'timezone', 'currency', 'niche_type', 'active', 'ves_exchange_rate', 'theme_config', 'terminology', 'multi_branch_enabled', 'features']
       for (const f of fields) {
         if (body[f] !== undefined) allowed[f] = body[f]
       }

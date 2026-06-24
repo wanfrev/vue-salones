@@ -606,7 +606,7 @@ export function createMockClient() {
         if (!biz) {
           return { data: null, error: { message: 'Business not found' } }
         }
-        const allowed = ['name', 'phone', 'address', 'timezone', 'currency', 'niche_type', 'active', 'ves_exchange_rate', 'theme_config', 'terminology'] as const
+        const allowed = ['name', 'phone', 'address', 'timezone', 'currency', 'niche_type', 'active', 'ves_exchange_rate', 'theme_config', 'terminology', 'multi_branch_enabled', 'features'] as const
         for (const f of allowed) {
           if (payload[f] !== undefined) (biz as any)[f] = payload[f]
         }

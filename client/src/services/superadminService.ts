@@ -92,6 +92,8 @@ export const updateBusiness = async (input: UpdateBusinessInput): Promise<Busine
   if (input.niche_type !== undefined) patch.niche_type = input.niche_type
   if (input.active !== undefined) patch.active = input.active
   if (input.ves_exchange_rate !== undefined) patch.ves_exchange_rate = input.ves_exchange_rate
+  if (input.multi_branch_enabled !== undefined) patch.multi_branch_enabled = input.multi_branch_enabled
+  if (input.features !== undefined) patch.features = input.features
 
   const { data, error } = await mutate
     .from('businesses')

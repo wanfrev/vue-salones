@@ -65,7 +65,7 @@ export const EMPLOYEE_PASSWORD = 'demo123'
 export function createMockDataStore(): MockDataStore {
   const now = new Date().toISOString()
 
-  const businesses: Business[] = [{
+  const businesses = ([{
     id: BIZ, name: 'Salón Demo', slug: 'demo',
     phone: '+525551234567', address: 'Av. Principal #123',
     timezone: 'America/New_York', currency: 'USD', ves_exchange_rate: 36.50,
@@ -84,6 +84,8 @@ export function createMockDataStore(): MockDataStore {
       vaccines: 'Vacunas',
     },
     active: true,
+    multi_branch_enabled: false,
+    features: { pos: true, inventario: true, productos: true, proveedores: true, multi_branch: false },
     job_titles: [],
     service_categories: [],
     deleted_at: null,
@@ -107,11 +109,13 @@ export function createMockDataStore(): MockDataStore {
       vaccines: 'Vacunas',
     },
     active: true,
+    multi_branch_enabled: false,
+    features: { pos: true, inventario: true, productos: true, proveedores: true, multi_branch: false },
     job_titles: [],
     service_categories: [],
     deleted_at: null,
     created_at: now, updated_at: now,
-  }]
+  }] as any) as Business[]
 
   const profiles: Profile[] = [
     { id: SUPERADMIN, business_id: null, full_name: 'Super Admin', email: 'superadmin@demo.com', role: 'superadmin', job_title: null, phone: null, avatar_url: null, active: true, created_at: now, updated_at: now },
