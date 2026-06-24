@@ -82,29 +82,35 @@
 
         <!-- Feature Flags -->
         <div class="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-          <h2 class="text-lg font-semibold text-text mb-3">Funcionalidades</h2>
-          <label class="flex items-center justify-between gap-3 cursor-pointer">
-            <div>
-              <p class="text-sm font-medium text-text">Múltiples sucursales</p>
-              <p class="text-xs text-text-muted">Permite al negocio gestionar varias ubicaciones físicas</p>
-            </div>
-            <button
-              type="button"
-              :disabled="isTogglingFeature"
-              @click="toggleMultiBranch"
-              :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                (business as any).multi_branch_enabled ? 'bg-primary' : 'bg-border'
-              ]"
+          <h2 class="text-lg font-semibold text-text mb-4">Funcionalidades</h2>
+          <div class="space-y-3">
+            <label
+              v-for="ft in featureToggles"
+              :key="ft.key"
+              class="flex items-center justify-between gap-3"
             >
-              <span
+              <div>
+                <p class="text-sm font-medium text-text">{{ ft.label }}</p>
+                <p class="text-xs text-text-muted">{{ ft.description }}</p>
+              </div>
+              <button
+                type="button"
+                :disabled="isTogglingFeature"
+                @click="toggleFeature(ft.key)"
                 :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                  (business as any).multi_branch_enabled ? 'translate-x-6' : 'translate-x-1'
+                  'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors',
+                  (business as any).features?.[ft.key] ? 'bg-primary' : 'bg-border'
                 ]"
-              />
-            </button>
-          </label>
+              >
+                <span
+                  :class="[
+                    'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                    (business as any).features?.[ft.key] ? 'translate-x-6' : 'translate-x-1'
+                  ]"
+                />
+              </button>
+            </label>
+          </div>
         </div>
 
         <!-- Admins -->
@@ -402,16 +408,25 @@ const { mutateAsync: resumeBiz, isPending: isResuming } = useMutation({
   },
 })
 
+const featureToggles = [
+  { key: 'pos', label: 'Punto de Venta', description: 'Cobro de citas con productos y método de pago' },
+  { key: 'inventario', label: 'Inventario', description: 'Control de stock, entradas y salidas' },
+  { key: 'productos', label: 'Productos', description: 'Catálogo de productos vendibles' },
+  { key: 'proveedores', label: 'Proveedores', description: 'Gestión de proveedores, deudas y pagos' },
+  { key: 'multi_branch', label: 'Múltiples sucursales', description: 'Gestionar varias ubicaciones físicas' },
+]
+
 const isTogglingFeature = ref(false)
-const toggleMultiBranch = async () => {
+const toggleFeature = async (key: string) => {
   const biz = business.value
   if (!biz) return
-  const enabled = !(biz as any).multi_branch_enabled
+  const current = (biz as any).features ?? {}
+  const enabled = !current[key]
   isTogglingFeature.value = true
   try {
-    await updateBusiness({ business_id: biz.id, multi_branch_enabled: enabled })
+    await updateBusiness({ business_id: biz.id, features: { ...current, [key]: enabled } })
     await queryClient.invalidateQueries({ queryKey: superadminKeys.businesses() })
-    success(enabled ? 'Múltiples sucursales activado' : 'Múltiples sucursales desactivado')
+    success(enabled ? 'Funcionalidad activada' : 'Funcionalidad desactivada')
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Error al cambiar la configuración'
     error(message)

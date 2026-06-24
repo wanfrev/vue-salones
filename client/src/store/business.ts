@@ -16,6 +16,16 @@ const DEFAULT_TERMINOLOGY: Terminology = {
   vaccines: 'Vacunas',
 }
 
+const DEFAULT_FEATURES = {
+  pos: true,
+  inventario: true,
+  productos: true,
+  proveedores: true,
+  multi_branch: false,
+}
+
+export type FeatureKey = keyof typeof DEFAULT_FEATURES
+
 export const useBusinessStore = defineStore('business', () => {
   const business = ref<Business | null>(null)
   const loading = ref(false)
@@ -24,7 +34,9 @@ export const useBusinessStore = defineStore('business', () => {
   const terminology = computed(() => business.value?.terminology ?? DEFAULT_TERMINOLOGY)
   const jobTitles = computed(() => business.value?.job_titles ?? [])
   const serviceCategories = computed(() => business.value?.service_categories ?? [])
-  const isMultiBranch = computed(() => (business.value as any)?.multi_branch_enabled ?? false)
+  const features = computed(() => ({ ...DEFAULT_FEATURES, ...(business.value as any)?.features }))
+  const hasFeature = (key: FeatureKey): boolean => features.value[key]
+  const isMultiBranch = computed(() => features.value.multi_branch)
 
   const loadBusiness = async (nextBusinessId: string | null) => {
     if (!nextBusinessId) {
@@ -36,7 +48,7 @@ export const useBusinessStore = defineStore('business', () => {
     try {
       const { data, error } = await supabase
         .from('businesses')
-        .select('id, name, slug, phone, address, timezone, currency, ves_exchange_rate, niche_type, theme_config, terminology, job_titles, service_categories, active, multi_branch_enabled')
+        .select('id, name, slug, phone, address, timezone, currency, ves_exchange_rate, niche_type, theme_config, terminology, job_titles, service_categories, active, features')
         .eq('id', nextBusinessId)
         .single()
 
@@ -71,6 +83,8 @@ export const useBusinessStore = defineStore('business', () => {
     jobTitles,
     serviceCategories,
     isMultiBranch,
+    features,
+    hasFeature,
     loadBusiness,
     clearBusiness,
     updateBusiness,

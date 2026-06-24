@@ -6,4 +6,5 @@ export { default as StatCard } from './StatCard.vue'
 export { default as SectionCard } from './SectionCard.vue'
 export { default as SegmentedTabs } from './SegmentedTabs.vue'
 export { default as DualAmount } from './DualAmount.vue'
+export { default as FeatureGate } from './FeatureGate.vue'
 

@@ -1,4 +1,5 @@
 <template>
+  <FeatureGate feature="pos">
   <header class="mb-4 lg:mb-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
@@ -194,6 +195,7 @@
       </div>
     </Teleport>
   </div>
+  </FeatureGate>
 </template>
 
 <script setup lang="ts">
@@ -206,6 +208,7 @@ import { useNotification } from '../composables/useNotification'
 import { listPendingAppointments, listSaleableProducts, posKeys } from '../services/posService'
 import { usePOSCart } from '../composables/usePOSCart'
 import { usePOSPayment } from '../composables/usePOSPayment'
+import { FeatureGate } from '../components/common'
 import POSAppointmentSelector from '../components/pos/POSAppointmentSelector.vue'
 import POSCart from '../components/pos/POSCart.vue'
 import POSPaymentPanel from '../components/pos/POSPaymentPanel.vue'

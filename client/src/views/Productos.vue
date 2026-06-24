@@ -1,4 +1,5 @@
 <template>
+  <FeatureGate feature="productos">
   <header class="mb-4 lg:mb-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
@@ -307,13 +308,14 @@
       </div>
     </div>
   </ModalBase>
+  </FeatureGate>
 </template>
 
 <script setup lang="ts">
 import { useProductCRUD } from '../composables/useProductCRUD'
 import ProductStats from '../components/productos/ProductStats.vue'
 import ProductoFormModal from '../components/modals/ProductoFormModal.vue'
-import { ModalBase } from '../components/common'
+import { ModalBase, FeatureGate } from '../components/common'
 
 const {
   productoModalRef,

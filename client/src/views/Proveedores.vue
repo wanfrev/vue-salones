@@ -1,4 +1,5 @@
 <template>
+  <FeatureGate feature="proveedores">
   <header class="mb-5 lg:mb-8">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
@@ -167,6 +168,7 @@
       </div>
     </div>
   </Teleport>
+  </FeatureGate>
 </template>
 
 <script setup lang="ts">
@@ -175,6 +177,7 @@ import { useAuth } from '../composables/useAuth'
 import { useSuppliers } from '../composables/useSuppliers'
 import { getInitials } from '../lib/formatters'
 import { useCurrency } from '../composables/useCurrency'
+import { FeatureGate } from '../components/common'
 
 const { authStore } = useAuth()
 const businessId = computed(() => authStore.businessId)

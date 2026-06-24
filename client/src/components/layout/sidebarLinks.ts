@@ -24,7 +24,7 @@ export interface SidebarLink {
   adminOnly?: boolean
   employeeOnly?: boolean
   badge?: string
-  requiresMultiBranch?: boolean
+  requiresFeature?: string
 }
 
 export interface SidebarSection {
@@ -46,25 +46,25 @@ export const sidebarSections: SidebarSection[] = [
       { to: '/dashboard/clientes', label: 'Clientes', labelKey: 'client', icon: Users, employeeOnly: true },
       { to: '/admin/clientes', label: 'Clientes', labelKey: 'client', icon: Users, adminOnly: true },
       { to: '/admin/finanzas', label: 'Finanzas', icon: BarChart3, adminOnly: true, badge: 'Nuevo' },
-      { to: '/admin/proveedores', label: 'Proveedores', icon: Truck, adminOnly: true },
+      { to: '/admin/proveedores', label: 'Proveedores', icon: Truck, adminOnly: true, requiresFeature: 'proveedores' },
       { to: '/admin/equipo', label: 'Equipo', labelKey: 'employee', icon: Briefcase, adminOnly: true },
       { to: '/admin/servicios', label: 'Servicios', labelKey: 'service', icon: Sparkles, adminOnly: true },
-      { to: '/admin/productos', label: 'Productos', icon: Package, adminOnly: true },
-      { to: '/admin/inventario', label: 'Inventario', icon: Archive, adminOnly: true },
+      { to: '/admin/productos', label: 'Productos', icon: Package, adminOnly: true, requiresFeature: 'productos' },
+      { to: '/admin/inventario', label: 'Inventario', icon: Archive, adminOnly: true, requiresFeature: 'inventario' },
     ],
   },
   {
     title: 'Ventas',
     adminOnly: true,
     links: [
-      { to: '/admin/pos', label: 'Punto de Venta', icon: ShoppingCart, adminOnly: true, badge: 'Nuevo' },
+      { to: '/admin/pos', label: 'Punto de Venta', icon: ShoppingCart, adminOnly: true, requiresFeature: 'pos' },
     ],
   },
   {
     title: 'Ajustes',
     adminOnly: true,
     links: [
-      { to: '/admin/configuracion', label: 'Configuración', icon: Settings, adminOnly: true, requiresMultiBranch: true },
+      { to: '/admin/configuracion', label: 'Configuración', icon: Settings, adminOnly: true, requiresFeature: 'multi_branch' },
     ],
   },
 ]

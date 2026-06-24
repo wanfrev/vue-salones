@@ -1,4 +1,5 @@
 <template>
+  <FeatureGate feature="inventario">
   <header class="mb-4 lg:mb-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
@@ -302,6 +303,7 @@
     :is-saving="saveProductoMutation.isPending.value"
     @save="handleSaveProducto"
   />
+  </FeatureGate>
 </template>
 
 <script setup lang="ts">
@@ -310,6 +312,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { formatDateTime, formatMovementType } from '../lib/formatters'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
+import { FeatureGate } from '../components/common'
 import { useInventoryAdjustment } from '../composables/useInventoryAdjustment'
 import { inventarioKeys, listInventario, listInventoryMovements } from '../services/inventarioService'
 import { productosKeys, saveProducto } from '../services/productosService'

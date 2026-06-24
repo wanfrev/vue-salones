@@ -66,6 +66,7 @@ export type UpdateBusinessInput = {
   active?: boolean
   ves_exchange_rate?: number
   multi_branch_enabled?: boolean
+  features?: Record<string, boolean>
 }
 
 export const updateBusiness = async (input: UpdateBusinessInput): Promise<Business> => {
