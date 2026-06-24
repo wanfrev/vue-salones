@@ -15,6 +15,7 @@
 -- After:  only admins (and triggers via security definer) can insert.
 
 drop policy if exists "Triggers y edge functions pueden insertar" on public.notifications;
+drop policy if exists "notifications_insert_admin" on public.notifications;
 
 create policy "notifications_insert_admin"
   on public.notifications for insert
@@ -82,41 +83,40 @@ $$;
 -- These 3 functions were security definer without set search_path,
 -- making them vulnerable to search_path injection attacks.
 
+-- ---------------------------------------------------------------------------
+-- Fix #3: Add set search_path to notification trigger functions
+-- ---------------------------------------------------------------------------
+-- These functions were security definer without set search_path.
+
 create or replace function public.fn_notify_new_appointment()
 returns trigger
 language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
-declare
-  v_business_id   uuid;
-  v_service_name  text;
-  v_admin_id      uuid;
-  v_employee_id   uuid;
-  v_notif_title   text;
-  v_notif_body    text;
 begin
-  select a.business_id, s.name
-    into v_business_id, v_service_name
-  from public.appointments a
-  join public.services s on s.id = a.service_id
-  where a.id = new.id;
+  -- Notify main employee
+  insert into public.notifications (business_id, profile_id, type, title, message,
+    appointment_id, client_name, client_phone, service_name, appointment_time)
+  select
+    new.business_id, new.employee_id, 'new_appointment',
+    'Nueva cita agendada',
+    format('%s — %s', c.full_name, s.name),
+    new.id, c.full_name, c.phone, s.name, new.start_time
+  from public.clients c, public.services s
+  where c.id = new.client_id and s.id = new.service_id;
 
-  if not found or v_business_id is null then
-    return new;
-  end if;
-
-  v_notif_title := 'Nueva cita: ' || coalesce(v_service_name, 'servicio');
-
-  select p.id into v_admin_id
-  from public.profiles p
-  where p.business_id = v_business_id and p.role = 'admin' and p.active = true
-  limit 1;
-
-  if v_admin_id is not null then
-    insert into public.notifications (business_id, user_id, type, title, body, data)
-    values (v_business_id, v_admin_id, 'new_appointment', v_notif_title,
-            'Se ha agendado una nueva cita', jsonb_build_object('appointment_id', new.id));
+  -- Notify assistant if assigned
+  if new.assistant_employee_id is not null then
+    insert into public.notifications (business_id, profile_id, type, title, message,
+      appointment_id, client_name, client_phone, service_name, appointment_time)
+    select
+      new.business_id, new.assistant_employee_id, 'new_appointment',
+      'Nueva cita como asistente',
+      format('%s — %s (asistente)', c.full_name, s.name),
+      new.id, c.full_name, c.phone, s.name, new.start_time
+    from public.clients c, public.services s
+    where c.id = new.client_id and s.id = new.service_id;
   end if;
 
   return new;
@@ -130,68 +130,33 @@ security definer
 set search_path = public, pg_temp
 as $$
 declare
-  v_business_id  uuid;
-  v_admin_id     uuid;
+  status_label text;
 begin
-  if old.status = new.status and old.payment_status = new.payment_status then
-    return new;
-  end if;
+  if old.status is distinct from new.status
+     and new.status in ('confirmed', 'cancelled') then
 
-  select a.business_id into v_business_id
-  from public.appointments a
-  where a.id = new.id;
+    status_label := case new.status
+      when 'confirmed' then 'confirmada'
+      when 'cancelled' then 'cancelada'
+    end;
 
-  if not found or v_business_id is null then
-    return new;
-  end if;
-
-  select p.id into v_admin_id
-  from public.profiles p
-  where p.business_id = v_business_id and p.role = 'admin' and p.active = true
-  limit 1;
-
-  if v_admin_id is not null then
-    insert into public.notifications (business_id, user_id, type, title, body, data)
-    values (v_business_id, v_admin_id, 'appointment_update',
-            'Cita actualizada', 'El estado de una cita ha cambiado',
-            jsonb_build_object('appointment_id', new.id, 'status', new.status, 'payment_status', new.payment_status));
+    insert into public.notifications (business_id, profile_id, type, title, message,
+      appointment_id, client_name, client_phone, service_name, appointment_time)
+    select
+      new.business_id, new.employee_id, 'status_change',
+      'Cita ' || status_label,
+      format('Tu cita con %s ha sido %s', c.full_name, status_label),
+      new.id, c.full_name, c.phone, s.name, new.start_time
+    from public.clients c, public.services s
+    where c.id = new.client_id and s.id = new.service_id;
   end if;
 
   return new;
 end;
 $$;
 
-create or replace function public.fn_notify_assistant_appointment()
-returns trigger
-language plpgsql
-security definer
-set search_path = public, pg_temp
-as $$
-declare
-  v_business_id  uuid;
-  v_assistant_id uuid;
-begin
-  if new.assistant_employee_id is null
-     or new.assistant_employee_id = old.assistant_employee_id then
-    return new;
-  end if;
-
-  select a.business_id into v_business_id
-  from public.appointments a
-  where a.id = new.id;
-
-  if not found or v_business_id is null then
-    return new;
-  end if;
-
-  insert into public.notifications (business_id, user_id, type, title, body, data)
-  values (v_business_id, new.assistant_employee_id, 'assistant_assigned',
-          'Asignado como ayudante', 'Te han asignado como ayudante en una cita',
-          jsonb_build_object('appointment_id', new.id));
-
-  return new;
-end;
-$$;
+-- Drop the non-existent assistant function (it was baked into fn_notify_new_appointment)
+drop function if exists public.fn_notify_assistant_appointment();
 
 -- ---------------------------------------------------------------------------
 -- Fix #4: Trigger to auto-create default branch for new businesses
