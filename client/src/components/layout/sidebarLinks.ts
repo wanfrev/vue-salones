@@ -12,6 +12,7 @@ import {
   Archive,
   ShoppingCart,
   Truck,
+  Settings,
 } from 'lucide-vue-next'
 import type { Component } from 'vue'
 
@@ -23,6 +24,7 @@ export interface SidebarLink {
   adminOnly?: boolean
   employeeOnly?: boolean
   badge?: string
+  requiresMultiBranch?: boolean
 }
 
 export interface SidebarSection {
@@ -56,6 +58,13 @@ export const sidebarSections: SidebarSection[] = [
     adminOnly: true,
     links: [
       { to: '/admin/pos', label: 'Punto de Venta', icon: ShoppingCart, adminOnly: true, badge: 'Nuevo' },
+    ],
+  },
+  {
+    title: 'Ajustes',
+    adminOnly: true,
+    links: [
+      { to: '/admin/configuracion', label: 'Configuración', icon: Settings, adminOnly: true, requiresMultiBranch: true },
     ],
   },
 ]

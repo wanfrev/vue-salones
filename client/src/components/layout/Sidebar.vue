@@ -95,6 +95,7 @@ const visibleSections = computed(() =>
       links: section.links.filter(link => {
         if (link.adminOnly) return isAdmin.value
         if (link.employeeOnly) return !isAdmin.value
+        if (link.requiresMultiBranch) return businessStore.isMultiBranch
         return true
       }),
     }))

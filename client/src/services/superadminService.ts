@@ -65,6 +65,7 @@ export type UpdateBusinessInput = {
   niche_type?: string
   active?: boolean
   ves_exchange_rate?: number
+  multi_branch_enabled?: boolean
 }
 
 export const updateBusiness = async (input: UpdateBusinessInput): Promise<Business> => {

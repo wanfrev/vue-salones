@@ -80,6 +80,33 @@
           </div>
         </div>
 
+        <!-- Feature Flags -->
+        <div class="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+          <h2 class="text-lg font-semibold text-text mb-3">Funcionalidades</h2>
+          <label class="flex items-center justify-between gap-3 cursor-pointer">
+            <div>
+              <p class="text-sm font-medium text-text">Múltiples sucursales</p>
+              <p class="text-xs text-text-muted">Permite al negocio gestionar varias ubicaciones físicas</p>
+            </div>
+            <button
+              type="button"
+              :disabled="isTogglingFeature"
+              @click="toggleMultiBranch"
+              :class="[
+                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                (business as any).multi_branch_enabled ? 'bg-primary' : 'bg-border'
+              ]"
+            >
+              <span
+                :class="[
+                  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                  (business as any).multi_branch_enabled ? 'translate-x-6' : 'translate-x-1'
+                ]"
+              />
+            </button>
+          </label>
+        </div>
+
         <!-- Admins -->
         <div class="rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <div class="mb-4 flex items-center justify-between">
@@ -374,6 +401,24 @@ const { mutateAsync: resumeBiz, isPending: isResuming } = useMutation({
     error(message)
   },
 })
+
+const isTogglingFeature = ref(false)
+const toggleMultiBranch = async () => {
+  const biz = business.value
+  if (!biz) return
+  const enabled = !(biz as any).multi_branch_enabled
+  isTogglingFeature.value = true
+  try {
+    await updateBusiness({ business_id: biz.id, multi_branch_enabled: enabled })
+    await queryClient.invalidateQueries({ queryKey: superadminKeys.businesses() })
+    success(enabled ? 'Múltiples sucursales activado' : 'Múltiples sucursales desactivado')
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error al cambiar la configuración'
+    error(message)
+  } finally {
+    isTogglingFeature.value = false
+  }
+}
 
 const confirmSuspend = () => {
   if (!business.value || isSuspending.value) return

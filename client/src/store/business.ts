@@ -24,6 +24,7 @@ export const useBusinessStore = defineStore('business', () => {
   const terminology = computed(() => business.value?.terminology ?? DEFAULT_TERMINOLOGY)
   const jobTitles = computed(() => business.value?.job_titles ?? [])
   const serviceCategories = computed(() => business.value?.service_categories ?? [])
+  const isMultiBranch = computed(() => (business.value as any)?.multi_branch_enabled ?? false)
 
   const loadBusiness = async (nextBusinessId: string | null) => {
     if (!nextBusinessId) {
@@ -35,7 +36,7 @@ export const useBusinessStore = defineStore('business', () => {
     try {
       const { data, error } = await supabase
         .from('businesses')
-        .select('id, name, slug, phone, address, timezone, currency, ves_exchange_rate, niche_type, theme_config, terminology, job_titles, service_categories, active')
+        .select('id, name, slug, phone, address, timezone, currency, ves_exchange_rate, niche_type, theme_config, terminology, job_titles, service_categories, active, multi_branch_enabled')
         .eq('id', nextBusinessId)
         .single()
 
@@ -69,6 +70,7 @@ export const useBusinessStore = defineStore('business', () => {
     terminology,
     jobTitles,
     serviceCategories,
+    isMultiBranch,
     loadBusiness,
     clearBusiness,
     updateBusiness,
