@@ -143,9 +143,13 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const signOut = async () => {
-    if (!session.value && !user.value) return
     try {
       loading.value = true
+      await supabase.auth.signOut()
+    } catch {
+      // Even if the API call fails (network), we clear local state
+      // so the user is not stuck in a broken session
+    } finally {
       if (authUnsubscribe) {
         authUnsubscribe()
         authUnsubscribe = null
@@ -154,10 +158,6 @@ export const useAuthStore = defineStore('auth', () => {
       queryClient.clear()
       const { useBusinessStore } = await import('./business')
       useBusinessStore().clearBusiness()
-      await supabase.auth.signOut()
-    } catch {
-      // signOut from Supabase failed, but local state is already cleared
-    } finally {
       loading.value = false
       initialized.value = false
     }
