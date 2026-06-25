@@ -265,7 +265,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
 import { useAuthStore } from '../../store/auth'
@@ -410,6 +410,7 @@ const defaultFormData = (): CitaFormData & { extraServices: CitaFormServiceItem[
 
 const formData = ref<CitaFormData & { extraServices: CitaFormServiceItem[] }>(defaultFormData())
 const errors = ref<Partial<Record<keyof CitaFormData, string>> & { rowErrors?: Record<number, Partial<Record<string, string>>> }>({})
+const activeEmployeeOverrides = reactive(new Set<number>())
 
 const priceOverride = ref<number | null>(null)
 
@@ -500,9 +501,7 @@ const getEmployeeDefaultPercentage = (employeeId: string): number | undefined =>
 }
 
 const hasEmployeeOverride = (index: number): boolean => {
-  if (index === 0) return formData.value.employeePercentageOverride != null
-  const extra = formData.value.extraServices[index - 1]
-  return extra?.employeePercentageOverride != null
+  return activeEmployeeOverrides.has(index)
 }
 
 const getEmployeeOverrideValue = (index: number): string => {
@@ -523,8 +522,10 @@ const setEmployeeOverride = (index: number, value: string) => {
 
 const toggleEmployeeOverride = (index: number) => {
   if (hasEmployeeOverride(index)) {
+    activeEmployeeOverrides.delete(index)
     setEmployeeOverride(index, '')
   } else {
+    activeEmployeeOverrides.add(index)
     const row = index === 0
       ? { employeeId: formData.value.employee }
       : formData.value.extraServices[index - 1]
@@ -588,6 +589,7 @@ watch(
   async ([open, cita]) => {
     if (!open) return
     priceOverride.value = null
+    activeEmployeeOverrides.clear()
     if (cita) {
       let phone = ''
       let groupMembers: CitaFormServiceItem[] = []
@@ -637,6 +639,14 @@ watch(
     } else {
       formData.value = defaultFormData()
     }
+    if (formData.value.employeePercentageOverride != null) {
+      activeEmployeeOverrides.add(0)
+    }
+    formData.value.extraServices.forEach((extra, i) => {
+      if (extra.employeePercentageOverride != null) {
+        activeEmployeeOverrides.add(i + 1)
+      }
+    })
     errors.value = {}
   },
   { immediate: true }
