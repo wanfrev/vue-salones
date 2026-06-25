@@ -5,8 +5,8 @@ import type { PaymentMethod } from '../types/database'
 import type { POSProductItem, PaymentBreakdownItem } from '../types/pos'
 
 export const posKeys = {
-  pending: (businessId?: string | null) => ['pos-pending', businessId] as const,
-  products: (businessId?: string | null) => ['pos-products', businessId] as const,
+  pending: (businessId?: string | null, branchId?: string | null) => ['pos-pending', businessId, branchId] as const,
+  products: (businessId?: string | null, branchId?: string | null) => ['pos-products', businessId, branchId] as const,
 }
 
 export const recordSale = async (params: {
@@ -18,18 +18,25 @@ export const recordSale = async (params: {
   exchangeRate: number
   paymentsBreakdown: PaymentBreakdownItem[]
   businessId: string
+  branchId?: string | null
 }): Promise<string> => {
   const products = params.products ?? []
-  const locationId = products.length > 0 ? await getDefaultLocation(params.businessId) : null
+  const locationId = products.length > 0 ? await getDefaultLocation(params.businessId, params.branchId) : null
 
   if (products.length > 0 && locationId) {
     const productIds = [...new Set(products.map(p => p.productId))]
-    const { data: stockRows, error: stockError } = await supabase
+    let stockQuery = supabase
       .from('inventory_stock')
       .select('product_id, variant_id, quantity, reserved_qty')
       .eq('business_id', params.businessId)
       .eq('location_id', locationId)
       .in('product_id', productIds)
+
+    if (params.branchId) {
+      stockQuery = stockQuery.eq('branch_id', params.branchId)
+    }
+
+    const { data: stockRows, error: stockError } = await stockQuery
 
     if (stockError) throw stockError
 
@@ -121,8 +128,8 @@ export const deleteTransaction = async (params: {
   if (error) throw error
 }
 
-export const listPendingAppointments = async (businessId: string) => {
-  const { data, error } = await supabase
+export const listPendingAppointments = async (businessId: string, branchId?: string | null) => {
+  let query = supabase
     .from('appointments')
     .select('*, clients(id, full_name, phone), services(id, name, duration_minutes, price), profiles!appointments_employee_id_fkey(id, full_name)')
     .eq('business_id', businessId)
@@ -131,12 +138,18 @@ export const listPendingAppointments = async (businessId: string) => {
     .order('start_time', { ascending: false })
     .limit(50)
 
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await query
+
   if (error) throw error
   return data ?? []
 }
 
-export const listSaleableProducts = async (businessId: string) => {
-  const { data, error } = await supabase
+export const listSaleableProducts = async (businessId: string, branchId?: string | null) => {
+  let productsQuery = supabase
     .from('products')
     .select('*')
     .eq('business_id', businessId)
@@ -144,17 +157,29 @@ export const listSaleableProducts = async (businessId: string) => {
     .eq('is_sellable', true)
     .order('name')
 
+  if (branchId) {
+    productsQuery = productsQuery.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await productsQuery
+
   if (error) throw error
 
   const products = data ?? []
   const productIds = products.map((p: any) => p.id)
   if (productIds.length === 0) return []
 
-  const { data: stockRows, error: stockError } = await supabase
+  let stockQuery = supabase
     .from('inventory_stock')
     .select('product_id, quantity, reserved_qty')
     .eq('business_id', businessId)
     .in('product_id', productIds)
+
+  if (branchId) {
+    stockQuery = stockQuery.eq('branch_id', branchId)
+  }
+
+  const { data: stockRows, error: stockError } = await stockQuery
 
   if (stockError) throw stockError
 

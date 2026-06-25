@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
 import { useCurrency } from './useCurrency'
+import { useBusinessStore } from '../store/business'
 import {
   supplierKeys,
   supplierPaymentKeys,
@@ -19,10 +20,12 @@ import {
 export function useSuppliers(businessId: import('vue').Ref<string | null>) {
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
+  const businessStore = useBusinessStore()
+  const branchId = computed(() => businessStore.currentBranchId)
 
   const { data, isLoading } = useQuery({
-    queryKey: computed(() => supplierKeys.all(businessId.value)),
-    queryFn: () => listSuppliers(businessId.value!),
+    queryKey: computed(() => supplierKeys.all(businessId.value, branchId.value)),
+    queryFn: () => listSuppliers(businessId.value!, branchId.value),
     enabled: computed(() => !!businessId.value),
   })
 
@@ -31,7 +34,7 @@ export function useSuppliers(businessId: import('vue').Ref<string | null>) {
   const saveMutation = useMutation({
     mutationFn: (formData: SupplierFormData & { id?: string }) => {
       if (!businessId.value) throw new Error('No hay negocio activo')
-      return saveSupplier(businessId.value, formData)
+      return saveSupplier(businessId.value, formData, branchId.value)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
@@ -145,18 +148,20 @@ export function useSupplierPayments(businessId: import('vue').Ref<string | null>
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
   const { exchangeRate } = useCurrency()
+  const businessStore = useBusinessStore()
+  const branchId = computed(() => businessStore.currentBranchId)
 
   const { data, isLoading, isError, error: queryError } = useQuery({
-    queryKey: computed(() => supplierPaymentKeys.all(businessId.value)),
-    queryFn: () => listSupplierPayments(businessId.value!),
+    queryKey: computed(() => supplierPaymentKeys.all(businessId.value, branchId.value)),
+    queryFn: () => listSupplierPayments(businessId.value!, branchId.value),
     enabled: computed(() => !!businessId.value),
   })
 
   const payments = computed(() => data.value ?? [])
 
   const { data: suppliersData } = useQuery({
-    queryKey: computed(() => supplierKeys.all(businessId.value)),
-    queryFn: () => listSuppliers(businessId.value!),
+    queryKey: computed(() => supplierKeys.all(businessId.value, branchId.value)),
+    queryFn: () => listSuppliers(businessId.value!, branchId.value),
     enabled: computed(() => !!businessId.value),
   })
 
@@ -167,7 +172,7 @@ export function useSupplierPayments(businessId: import('vue').Ref<string | null>
   const createMutation = useMutation({
     mutationFn: (formData: SupplierPaymentFormData) => {
       if (!businessId.value) throw new Error('No hay negocio activo')
-      return createSupplierPayment(businessId.value, formData, exchangeRate.value)
+      return createSupplierPayment(businessId.value, formData, branchId.value, exchangeRate.value)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value), exact: false })

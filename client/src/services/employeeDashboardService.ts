@@ -4,10 +4,10 @@ import { computeServiceEarnings } from '../business/employeeEarnings'
 import type { EmployeePayment } from '../types/database'
 
 export const dashboardKeys = {
-  appointments: (businessId?: string | null, employeeId?: string | null) => ['employee-appointments', businessId, employeeId] as const,
-  earnings: (businessId?: string | null, employeeId?: string | null) => ['employee-earnings', businessId, employeeId] as const,
-  payments: (businessId?: string | null, employeeId?: string | null) => ['employee-payments', businessId, employeeId] as const,
-  history: (businessId?: string | null, employeeId?: string | null) => ['employee-history', businessId, employeeId] as const,
+  appointments: (businessId?: string | null, employeeId?: string | null, branchId?: string | null) => ['employee-appointments', businessId, employeeId, branchId] as const,
+  earnings: (businessId?: string | null, employeeId?: string | null, branchId?: string | null) => ['employee-earnings', businessId, employeeId, branchId] as const,
+  payments: (businessId?: string | null, employeeId?: string | null, branchId?: string | null) => ['employee-payments', businessId, employeeId, branchId] as const,
+  history: (businessId?: string | null, employeeId?: string | null, branchId?: string | null) => ['employee-history', businessId, employeeId, branchId] as const,
 }
 
 export interface EmployeeAppointmentRecord {
@@ -37,9 +37,10 @@ export interface EmployeeEarningRecord {
 
 export const listEmployeeAppointments = async (
   businessId: string,
-  employeeId: string
+  employeeId: string,
+  branchId?: string | null
 ): Promise<EmployeeAppointmentRecord[]> => {
-  const { data, error } = await supabase
+  let query = supabase
     .from('appointments')
     .select(`
       id,
@@ -55,6 +56,12 @@ export const listEmployeeAppointments = async (
     .in('status', ['confirmed', 'completed', 'cancelled', 'no_show'])
     .order('start_time', { ascending: false })
     .limit(100)
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await query
 
   if (error) throw error
 
@@ -76,7 +83,8 @@ export const listEmployeeAppointments = async (
 
 export const listEmployeeTransactions = async (
   businessId: string,
-  employeeId: string
+  employeeId: string,
+  branchId?: string | null
 ): Promise<EmployeeEarningRecord[]> => {
   // Get employee profile for commission calculation
   const { data: profile } = await supabase
@@ -86,11 +94,17 @@ export const listEmployeeTransactions = async (
     .maybeSingle()
 
   // Step 1: Get appointment IDs where this employee is involved
-  const { data: apptData, error: apptError } = await supabase
+  let apptQuery = supabase
     .from('appointments')
     .select('id, employee_id, assistant_employee_id, client_id, service_id')
     .eq('business_id', businessId)
     .or(`employee_id.eq.${employeeId},assistant_employee_id.eq.${employeeId}`)
+
+  if (branchId) {
+    apptQuery = apptQuery.eq('branch_id', branchId)
+  }
+
+  const { data: apptData, error: apptError } = await apptQuery
 
   if (apptError) throw apptError
 
@@ -125,12 +139,18 @@ export const listEmployeeTransactions = async (
     employee_percentage: number; assistant_amount: number | null; assistant_percentage: number | null
     method: string | null; payments_breakdown: any; appointment_id: string
   }
-  const { data, error } = await supabase
+  let txQuery = supabase
     .from('transactions')
     .select('id, paid_at, total_amount, exchange_rate_used, employee_percentage, assistant_amount, assistant_percentage, method, payments_breakdown, appointment_id')
     .eq('business_id', businessId)
     .in('appointment_id', apptIds)
     .order('paid_at', { ascending: false })
+
+  if (branchId) {
+    txQuery = txQuery.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await txQuery
 
   if (error) throw error
 
@@ -186,14 +206,21 @@ export const listEmployeeTransactions = async (
 
 export const listEmployeePayments = async (
   businessId: string,
-  employeeId: string
+  employeeId: string,
+  branchId?: string | null
 ): Promise<EmployeePayment[]> => {
-  const { data, error } = await supabase
+  let query = supabase
     .from('employee_payments')
     .select('*')
     .eq('business_id', businessId)
     .eq('employee_id', employeeId)
     .order('payment_date', { ascending: false })
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await query
 
   if (error) throw error
   return (data ?? []) as EmployeePayment[]

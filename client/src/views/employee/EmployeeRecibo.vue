@@ -297,6 +297,7 @@ const authStore = useAuthStore()
 const businessStore = useBusinessStore()
 const businessId = computed(() => authStore.businessId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
+const branchId = computed(() => businessStore.currentBranchId)
 const businessName = computed(() => businessStore.business?.name ?? '')
 
 const selectedPeriod = ref<'all' | 'day' | 'week' | 'month'>('all')
@@ -431,8 +432,8 @@ const payInfo = computed(() => {
 const initials = computed(() => getInitials(authStore.profile?.full_name))
 
 const { data: earningsData, isLoading: loadingEarnings } = useQuery({
-  queryKey: dashboardKeys.earnings(businessId.value, employeeId.value),
-  queryFn: () => listEmployeeTransactions(businessId.value!, employeeId.value!),
+  queryKey: dashboardKeys.earnings(businessId.value, employeeId.value, branchId.value),
+  queryFn: () => listEmployeeTransactions(businessId.value!, employeeId.value!, branchId.value),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
 const earnings = computed(() => earningsData.value ?? [])
@@ -486,8 +487,8 @@ const totalEarnedVES = computed(() =>
 )
 
 const { data: paymentsData } = useQuery({
-  queryKey: dashboardKeys.payments(businessId.value, employeeId.value),
-  queryFn: () => listEmployeePayments(businessId.value!, employeeId.value!),
+  queryKey: dashboardKeys.payments(businessId.value, employeeId.value, branchId.value),
+  queryFn: () => listEmployeePayments(businessId.value!, employeeId.value!, branchId.value),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
 const payments = computed(() => paymentsData.value ?? [])

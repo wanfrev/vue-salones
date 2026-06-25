@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { supabase } from '../lib/supabase'
 import { useNotification } from './useNotification'
 import { useCurrency } from './useCurrency'
+import { useBusinessStore } from '../store/business'
 import {
   listEmployeePayments,
   createEmployeePayment,
@@ -32,15 +33,18 @@ export function useEmployeePayments(
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
   const { exchangeRate } = useCurrency()
+  const businessStore = useBusinessStore()
+  const branchId = computed(() => businessStore.currentBranchId)
 
   const { data: paymentsData, isLoading } = useQuery({
     queryKey: computed(() => [
-      ...employeePaymentKeys.all(businessId.value),
+      ...employeePaymentKeys.all(businessId.value, branchId.value),
       periodDates?.value.start ?? null,
       periodDates?.value.end ?? null,
     ] as const),
     queryFn: () => listEmployeePayments(
       businessId.value!,
+      branchId.value,
       periodDates?.value.start,
       periodDates?.value.end,
     ),
@@ -59,7 +63,7 @@ export function useEmployeePayments(
       currency: 'USD' | 'VES'
     }) => {
       if (!businessId.value) throw new Error('No hay negocio activo')
-      return createEmployeePayment(businessId.value, params.employeeId, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value)
+      return createEmployeePayment(businessId.value, params.employeeId, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value, branchId.value)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
@@ -187,7 +191,7 @@ export function useEmployeePayments(
       currency: 'USD' | 'VES'
     }) => {
       if (!businessId.value) throw new Error('No hay negocio activo')
-      return createEmployeeConsumption(businessId.value, params.employeeId, params.amount, params.concept, params.date, params.currency, exchangeRate.value)
+      return createEmployeeConsumption(businessId.value, params.employeeId, params.amount, params.concept, params.date, params.currency, exchangeRate.value, branchId.value)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })

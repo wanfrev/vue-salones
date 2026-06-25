@@ -298,6 +298,7 @@ const businessStore = useBusinessStore()
 
 const t = computed(() => businessStore.terminology)
 const businessId = computed(() => authStore.businessId)
+const branchId = computed(() => businessStore.currentBranchId)
 
 const clientSuggestions = ref<{ id: string; full_name: string; phone: string }[]>([])
 const showClientSuggestions = ref(false)
@@ -320,7 +321,7 @@ const onClientNameInput = () => {
     }
     clientSearchLoading.value = true
     try {
-      clientSuggestions.value = await searchClients(businessId.value, query)
+      clientSuggestions.value = await searchClients(businessId.value, query, branchId.value)
       showClientSuggestions.value = clientSuggestions.value.length > 0
       if (clientSuggestions.value.length === 0) {
         console.log('[CitaFormModal] Sin resultados para:', query)
@@ -596,7 +597,7 @@ watch(
 
       if (cita.clientId && businessId.value) {
         try {
-          const results = await searchClients(businessId.value, cita.clientName)
+          const results = await searchClients(businessId.value, cita.clientName, branchId.value)
           const match = results.find(c => c.id === cita.clientId)
           if (match) phone = match.phone
         } catch { /* ignore */ }

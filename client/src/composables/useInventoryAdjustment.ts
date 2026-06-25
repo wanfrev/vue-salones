@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from './useAuth'
 import { useNotification } from './useNotification'
+import { useBusinessStore } from '../store/business'
 import { adjustInventory, inventarioKeys } from '../services/inventarioService'
 import { posKeys } from '../services/posService'
 import { validateAdjustQuantity } from '../business/stockRules'
@@ -11,7 +12,9 @@ export function useInventoryAdjustment() {
   const { authStore } = useAuth()
   const { success, error: showError } = useNotification()
   const queryClient = useQueryClient()
+  const businessStore = useBusinessStore()
   const businessId = computed(() => authStore.businessId)
+  const branchId = computed(() => businessStore.currentBranchId)
 
   const adjustModalOpen = ref(false)
   const adjustItem = ref<InventarioItem | null>(null)
@@ -20,7 +23,7 @@ export function useInventoryAdjustment() {
 
   const adjustMutation = useMutation({
     mutationFn: (params: { productId: string; quantity: number; notes: string; variantId?: string | null }) =>
-      adjustInventory(businessId.value!, params.productId, params.quantity, params.notes, params.variantId),
+      adjustInventory(businessId.value!, params.productId, params.quantity, params.notes, params.variantId, branchId.value),
     onSuccess: () => {
       queryClient.invalidateQueries({ exact: false, queryKey: inventarioKeys.all(businessId.value) })
       queryClient.invalidateQueries({ exact: false, queryKey: inventarioKeys.movements(businessId.value) })

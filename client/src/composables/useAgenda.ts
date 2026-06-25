@@ -44,14 +44,20 @@ export const useAgenda = () => {
   })
 
   const { data: services } = useQuery({
-    queryKey: computed(() => ['services', businessId.value]),
+    queryKey: computed(() => ['services', businessId.value, currentBranchId.value]),
     queryFn: async (): Promise<Service[]> => {
       if (!businessId.value) return []
-      const { data, error } = await supabase
+      let query = supabase
         .from('services')
         .select('*')
         .eq('business_id', businessId.value)
         .eq('active', true)
+
+      if (currentBranchId.value) {
+        query = query.eq('branch_id', currentBranchId.value)
+      }
+
+      const { data, error } = await query
       if (error) throw error
       return data as Service[]
     },

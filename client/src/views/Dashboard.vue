@@ -273,6 +273,7 @@ useNotification()
 
 const businessId = computed(() => authStore.businessId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
+const branchId = computed(() => businessStore.currentBranchId)
 const businessName = computed(() => businessStore.business?.name ?? '')
 
 type TabId = 'historial' | 'comisiones' | 'recibo'
@@ -297,16 +298,16 @@ const payInfo = computed(() => {
 
 // History
 const { data: historyData, isLoading: loadingHistory } = useQuery({
-  queryKey: dashboardKeys.history(businessId.value, employeeId.value),
-  queryFn: () => listEmployeeAppointments(businessId.value!, employeeId.value!),
+  queryKey: dashboardKeys.history(businessId.value, employeeId.value, branchId.value),
+  queryFn: () => listEmployeeAppointments(businessId.value!, employeeId.value!, branchId.value),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
 const historyAppointments = computed(() => historyData.value ?? [])
 
 // Earnings
 const { data: earningsData, isLoading: loadingEarnings } = useQuery({
-  queryKey: dashboardKeys.earnings(businessId.value, employeeId.value),
-  queryFn: () => listEmployeeTransactions(businessId.value!, employeeId.value!),
+  queryKey: dashboardKeys.earnings(businessId.value, employeeId.value, branchId.value),
+  queryFn: () => listEmployeeTransactions(businessId.value!, employeeId.value!, branchId.value),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
 const earnings = computed(() => earningsData.value ?? [])
@@ -320,8 +321,8 @@ const totalEarned = computed(() =>
 
 // Payments (employee_payments)
 const { data: paymentsData } = useQuery({
-  queryKey: dashboardKeys.payments(businessId.value, employeeId.value),
-  queryFn: () => listEmployeePayments(businessId.value!, employeeId.value!),
+  queryKey: dashboardKeys.payments(businessId.value, employeeId.value, branchId.value),
+  queryFn: () => listEmployeePayments(businessId.value!, employeeId.value!, branchId.value),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
 const payments = computed(() => paymentsData.value ?? [])

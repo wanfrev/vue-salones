@@ -150,12 +150,12 @@ export function createMockDataStore(): MockDataStore {
   ]
 
   const services: Service[] = [
-    { id: '00000000-0000-0000-0000-000000000301', business_id: BIZ, name: 'Corte de cabello', description: 'Corte para dama o caballero', duration_minutes: 45, price: 250, local_percentage: 50, color: '#3B82F6', category: 'cabello', icon: 'scissors', active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000302', business_id: BIZ, name: 'Manicure', description: 'Manicure completo con esmaltado', duration_minutes: 30, price: 180, local_percentage: 40, color: '#EC4899', category: 'uñas', icon: 'hand', active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000303', business_id: BIZ, name: 'Pedicure', description: 'Pedicure completo', duration_minutes: 40, price: 220, local_percentage: 40, color: '#F59E0B', category: 'uñas', icon: 'foot', active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000304', business_id: BIZ, name: 'Tinte completo', description: 'Coloración completa del cabello', duration_minutes: 120, price: 600, local_percentage: 60, color: '#8B5CF6', category: 'color', icon: 'palette', active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000305', business_id: BIZ, name: 'Corte de barba', description: 'Arreglo de barba y bigote', duration_minutes: 30, price: 150, local_percentage: 50, color: '#10B981', category: 'barbería', icon: 'razor', active: true, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000306', business_id: BIZ, name: 'Peinado', description: 'Peinado para ocasión especial', duration_minutes: 60, price: 350, local_percentage: 50, color: '#F472B6', category: 'cabello', icon: 'hair', active: true, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000301', business_id: BIZ, branch_id: null, name: 'Corte de cabello', description: 'Corte para dama o caballero', duration_minutes: 45, price: 250, local_percentage: 50, color: '#3B82F6', category: 'cabello', icon: 'scissors', active: true, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000302', business_id: BIZ, branch_id: null, name: 'Manicure', description: 'Manicure completo con esmaltado', duration_minutes: 30, price: 180, local_percentage: 40, color: '#EC4899', category: 'uñas', icon: 'hand', active: true, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000303', business_id: BIZ, branch_id: null, name: 'Pedicure', description: 'Pedicure completo', duration_minutes: 40, price: 220, local_percentage: 40, color: '#F59E0B', category: 'uñas', icon: 'foot', active: true, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000304', business_id: BIZ, branch_id: null, name: 'Tinte completo', description: 'Coloración completa del cabello', duration_minutes: 120, price: 600, local_percentage: 60, color: '#8B5CF6', category: 'color', icon: 'palette', active: true, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000305', business_id: BIZ, branch_id: null, name: 'Corte de barba', description: 'Arreglo de barba y bigote', duration_minutes: 30, price: 150, local_percentage: 50, color: '#10B981', category: 'barbería', icon: 'razor', active: true, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000306', business_id: BIZ, branch_id: null, name: 'Peinado', description: 'Peinado para ocasión especial', duration_minutes: 60, price: 350, local_percentage: 50, color: '#F472B6', category: 'cabello', icon: 'hair', active: true, created_at: now, updated_at: now },
   ]
 
   const employee_services = [
@@ -169,15 +169,15 @@ export function createMockDataStore(): MockDataStore {
   ]
 
   const clients: Client[] = [
-    { id: '00000000-0000-0000-0000-000000000401', business_id: BIZ, full_name: 'Laura Pérez', phone: '+525551234601', email: 'laura@ejemplo.com', notes: 'Cliente regular', birthday: '1990-05-15', metadata: { hair_type: 'rizado', hair_length: 'largo', chemical_history: 'decoloracion hace 6 meses' }, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000402', business_id: BIZ, full_name: 'Carlos Ruiz', phone: '+525551234602', email: 'carlos@ejemplo.com', notes: null, birthday: '1985-11-20', metadata: { hair_type: 'liso', beard_style: 'corta', fade_preference: 'medio' }, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000403', business_id: BIZ, full_name: 'Diana Torres', phone: '+525551234603', email: null, notes: 'Prefiere sábados', birthday: null, metadata: {}, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000404', business_id: BIZ, full_name: 'Eduardo Vega', phone: '+525551234604', email: 'eduardo@ejemplo.com', notes: null, birthday: '1992-08-10', metadata: { skin_type: 'mixta', massage_preference: 'relajante' }, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000405', business_id: BIZ, full_name: 'Gabriela Núñez', phone: '+525551234605', email: 'gabriela@ejemplo.com', notes: 'Alérgica a cierto tinte', birthday: '1988-03-25', metadata: { hair_type: 'ondulado', hair_length: 'medio', chemical_history: 'tinte permanente' }, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000406', business_id: BIZ, full_name: 'Héctor Mendoza', phone: '+525551234606', email: null, notes: null, birthday: null, metadata: { skin_type: 'sensible', massage_preference: 'descontracturante', allergies: 'aceite de almendras' }, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000407', business_id: BIZ, full_name: 'Isabel Rivas', phone: '+525551234607', email: 'isabel@ejemplo.com', notes: 'Cliente nueva', birthday: '1995-12-05', metadata: {}, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000408', business_id: BIZ, full_name: 'Jorge Salinas', phone: '+525551234608', email: 'jorge@ejemplo.com', notes: 'Paga con tarjeta', birthday: '1982-07-14', metadata: { beard_style: 'larga', hair_type: 'crespo', fade_preference: 'alto', products_used: 'cera' }, created_at: now, updated_at: now },
-    { id: '00000000-0000-0000-0000-000000000409', business_id: BIZ, full_name: 'Firulais (Golden)', phone: '+525551234609', email: null, notes: 'Paciente canino', birthday: '2022-03-10', metadata: { pet_name: 'Firulais', pet_breed: 'Golden Retriever', pet_weight: '28 kg', pet_owner: 'Laura Pérez' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000401', business_id: BIZ, branch_id: null, full_name: 'Laura Pérez', phone: '+525551234601', email: 'laura@ejemplo.com', notes: 'Cliente regular', birthday: '1990-05-15', metadata: { hair_type: 'rizado', hair_length: 'largo', chemical_history: 'decoloracion hace 6 meses' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000402', business_id: BIZ, branch_id: null, full_name: 'Carlos Ruiz', phone: '+525551234602', email: 'carlos@ejemplo.com', notes: null, birthday: '1985-11-20', metadata: { hair_type: 'liso', beard_style: 'corta', fade_preference: 'medio' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000403', business_id: BIZ, branch_id: null, full_name: 'Diana Torres', phone: '+525551234603', email: null, notes: 'Prefiere sábados', birthday: null, metadata: {}, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000404', business_id: BIZ, branch_id: null, full_name: 'Eduardo Vega', phone: '+525551234604', email: 'eduardo@ejemplo.com', notes: null, birthday: '1992-08-10', metadata: { skin_type: 'mixta', massage_preference: 'relajante' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000405', business_id: BIZ, branch_id: null, full_name: 'Gabriela Núñez', phone: '+525551234605', email: 'gabriela@ejemplo.com', notes: 'Alérgica a cierto tinte', birthday: '1988-03-25', metadata: { hair_type: 'ondulado', hair_length: 'medio', chemical_history: 'tinte permanente' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000406', business_id: BIZ, branch_id: null, full_name: 'Héctor Mendoza', phone: '+525551234606', email: null, notes: null, birthday: null, metadata: { skin_type: 'sensible', massage_preference: 'descontracturante', allergies: 'aceite de almendras' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000407', business_id: BIZ, branch_id: null, full_name: 'Isabel Rivas', phone: '+525551234607', email: 'isabel@ejemplo.com', notes: 'Cliente nueva', birthday: '1995-12-05', metadata: {}, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000408', business_id: BIZ, branch_id: null, full_name: 'Jorge Salinas', phone: '+525551234608', email: 'jorge@ejemplo.com', notes: 'Paga con tarjeta', birthday: '1982-07-14', metadata: { beard_style: 'larga', hair_type: 'crespo', fade_preference: 'alto', products_used: 'cera' }, created_at: now, updated_at: now },
+    { id: '00000000-0000-0000-0000-000000000409', business_id: BIZ, branch_id: null, full_name: 'Firulais (Golden)', phone: '+525551234609', email: null, notes: 'Paciente canino', birthday: '2022-03-10', metadata: { pet_name: 'Firulais', pet_breed: 'Golden Retriever', pet_weight: '28 kg', pet_owner: 'Laura Pérez' }, created_at: now, updated_at: now },
   ]
 
   const today = new Date()
@@ -248,23 +248,23 @@ export function createMockDataStore(): MockDataStore {
   ]
 
   const product_categories: ProductCategory[] = [
-    { id: CAT1, business_id: BIZ, parent_id: null, name: 'Shampoos y Tratamientos', description: 'Productos para el cuidado capilar', active: true, metadata: {}, created_at: now, updated_at: now },
-    { id: CAT2, business_id: BIZ, parent_id: null, name: 'Antipulgas y Accesorios', description: 'Accesorios para mascotas', active: true, metadata: {}, created_at: now, updated_at: now },
+    { id: CAT1, business_id: BIZ, branch_id: null, parent_id: null, name: 'Shampoos y Tratamientos', description: 'Productos para el cuidado capilar', active: true, metadata: {}, created_at: now, updated_at: now },
+    { id: CAT2, business_id: BIZ, branch_id: null, parent_id: null, name: 'Antipulgas y Accesorios', description: 'Accesorios para mascotas', active: true, metadata: {}, created_at: now, updated_at: now },
   ]
 
   const products: Product[] = [
-    { id: PROD1, business_id: BIZ, category_id: CAT1, name: 'Shampoo Kerastase', description: 'Shampoo profesional para cabello teñido', sku: 'KER-SHM-001', barcode: '7501234567890', unit: 'botella', unit_cost: 180, unit_price: 350, reorder_point: 5, active: true, is_sellable: true, metadata: {}, created_at: now, updated_at: now },
-    { id: PROD2, business_id: BIZ, category_id: CAT2, name: 'Collar Antipulgas', description: 'Collar antipulgas para perros', sku: 'COL-ANT-001', barcode: '7509876543210', unit: 'unidad', unit_cost: 250, unit_price: 450, reorder_point: 3, active: true, is_sellable: true, metadata: {}, created_at: now, updated_at: now },
+    { id: PROD1, business_id: BIZ, branch_id: null, category_id: CAT1, name: 'Shampoo Kerastase', description: 'Shampoo profesional para cabello teñido', sku: 'KER-SHM-001', barcode: '7501234567890', unit: 'botella', unit_cost: 180, unit_price: 350, reorder_point: 5, active: true, is_sellable: true, metadata: {}, created_at: now, updated_at: now },
+    { id: PROD2, business_id: BIZ, branch_id: null, category_id: CAT2, name: 'Collar Antipulgas', description: 'Collar antipulgas para perros', sku: 'COL-ANT-001', barcode: '7509876543210', unit: 'unidad', unit_cost: 250, unit_price: 450, reorder_point: 3, active: true, is_sellable: true, metadata: {}, created_at: now, updated_at: now },
   ]
 
   const product_variants: ProductVariant[] = [
-    { id: VAR1, product_id: PROD1, name: '250ml', sku: 'KER-SHM-250', unit_cost: 180, unit_price: 350, metadata: {}, active: true, created_at: now, updated_at: now },
-    { id: VAR2, product_id: PROD1, name: '500ml', sku: 'KER-SHM-500', unit_cost: 300, unit_price: 580, metadata: {}, active: true, created_at: now, updated_at: now },
+    { id: VAR1, product_id: PROD1, branch_id: null, name: '250ml', sku: 'KER-SHM-250', unit_cost: 180, unit_price: 350, metadata: {}, active: true, created_at: now, updated_at: now },
+    { id: VAR2, product_id: PROD1, branch_id: null, name: '500ml', sku: 'KER-SHM-500', unit_cost: 300, unit_price: 580, metadata: {}, active: true, created_at: now, updated_at: now },
   ]
 
   const inventory_locations: InventoryLocation[] = [
-    { id: LOC1, business_id: BIZ, name: 'Vitrina Principal', is_default: true, active: true, metadata: {}, created_at: now, updated_at: now },
-    { id: LOC2, business_id: BIZ, name: 'Mostrador Tienda', is_default: false, active: true, metadata: {}, created_at: now, updated_at: now },
+    { id: LOC1, business_id: BIZ, branch_id: null, name: 'Vitrina Principal', is_default: true, active: true, metadata: {}, created_at: now, updated_at: now },
+    { id: LOC2, business_id: BIZ, branch_id: null, name: 'Mostrador Tienda', is_default: false, active: true, metadata: {}, created_at: now, updated_at: now },
   ]
 
   const inventory_stock: InventoryStock[] = [
@@ -284,9 +284,9 @@ export function createMockDataStore(): MockDataStore {
   ]
 
   const employee_payments: EmployeePayment[] = [
-    { id: 'ep-01', business_id: BIZ, employee_id: EMP1, amount: 125, payment_method: 'cash', notes: 'Pago comisión servicios', payment_date: dateOffset(-1).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
-    { id: 'ep-02', business_id: BIZ, employee_id: EMP2, amount: 80, payment_method: 'transfer', notes: 'Anticipo semanal', payment_date: dateOffset(-3).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
-    { id: 'ep-03', business_id: BIZ, employee_id: EMP3, amount: 90, payment_method: 'cash', notes: 'Pago comisión servicios', payment_date: dateOffset(-2).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
+    { id: 'ep-01', business_id: BIZ, branch_id: null, employee_id: EMP1, amount: 125, currency: 'USD', original_amount: 0, exchange_rate_used: 1, payment_method: 'cash', type: 'payment', concept: null, notes: 'Pago comisión servicios', payment_date: dateOffset(-1).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
+    { id: 'ep-02', business_id: BIZ, branch_id: null, employee_id: EMP2, amount: 80, currency: 'USD', original_amount: 0, exchange_rate_used: 1, payment_method: 'transfer', type: 'payment', concept: null, notes: 'Anticipo semanal', payment_date: dateOffset(-3).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
+    { id: 'ep-03', business_id: BIZ, branch_id: null, employee_id: EMP3, amount: 90, currency: 'USD', original_amount: 0, exchange_rate_used: 1, payment_method: 'cash', type: 'payment', concept: null, notes: 'Pago comisión servicios', payment_date: dateOffset(-2).toISOString().slice(0, 10), created_by: ADMIN, created_at: now, updated_at: now },
   ]
 
   return {

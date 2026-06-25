@@ -7,31 +7,49 @@ import type { Client, Appointment, Service } from '../types/database'
 import type { Cliente, ClienteFormData } from '../types/cliente'
 
 export const clientesKeys = {
-  all: (businessId?: string | null) => ['clientes', businessId] as const,
+  all: (businessId?: string | null, branchId?: string | null) => ['clientes', businessId, branchId] as const,
 }
 
-export const listClientes = async (businessId: string): Promise<Cliente[]> => {
-  const { data, error } = await supabase
+export const listClientes = async (businessId: string, branchId?: string | null): Promise<Cliente[]> => {
+  let query = supabase
     .from('clients')
     .select('*')
     .eq('business_id', businessId)
     .order('created_at', { ascending: false })
 
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await query
+
   if (error) throw error
 
   const clients = data as Client[]
 
-  const { data: appointments, error: apptError } = await supabase
+  let apptsQuery = supabase
     .from('appointments')
     .select('client_id, start_time, service_id')
     .eq('business_id', businessId)
 
+  if (branchId) {
+    apptsQuery = apptsQuery.eq('branch_id', branchId)
+  }
+
+  const { data: appointments, error: apptError } = await apptsQuery
+
   if (apptError) throw apptError
 
-  const { data: services, error: svcError } = await supabase
+  let svcsQuery = supabase
     .from('services')
     .select('id, price')
     .eq('business_id', businessId)
+
+  if (branchId) {
+    svcsQuery = svcsQuery.eq('branch_id', branchId)
+  }
+
+  const { data: services, error: svcError } = await svcsQuery
 
   if (svcError) throw svcError
 
@@ -45,14 +63,15 @@ export const listClientes = async (businessId: string): Promise<Cliente[]> => {
 
 export const saveCliente = async (
   businessId: string,
-  data: ClienteFormData & { id?: string }
+  data: ClienteFormData & { id?: string },
+  branchId?: string | null
 ): Promise<Cliente> => {
   const parsed = clienteFormSchema.safeParse(data)
   if (!parsed.success) {
     throw new Error(parsed.error.issues.map(e => e.message).join('. '))
   }
 
-  const payload = mapClienteFormToClientInsert(businessId, parsed.data)
+  const payload = { ...mapClienteFormToClientInsert(businessId, parsed.data), branch_id: branchId ?? null }
 
   const query = data.id
     ? mutate.from('clients').update(payload).eq('id', data.id).select('*').single()
@@ -97,11 +116,12 @@ export const deleteCliente = async (clientId: string): Promise<void> => {
 
 export const searchClients = async (
   businessId: string,
-  query: string
+  query: string,
+  branchId?: string | null
 ): Promise<Pick<Client, 'id' | 'full_name' | 'phone'>[]> => {
   if (!query.trim()) return []
 
-  const { data, error } = await supabase
+  let q = supabase
     .from('clients')
     .select('id, full_name, phone')
     .eq('business_id', businessId)
@@ -109,19 +129,27 @@ export const searchClients = async (
     .order('full_name')
     .limit(10)
 
+  if (branchId) {
+    q = q.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await q
+
   if (error) throw error
   return (data ?? []) as Pick<Client, 'id' | 'full_name' | 'phone'>[]
 }
 
 export const findOrCreateClientByPhone = async (
   businessId: string,
-  input: { fullName: string; phone: string; email?: string | null; notes?: string | null }
+  input: { fullName: string; phone: string; email?: string | null; notes?: string | null },
+  branchId?: string | null
 ): Promise<Client> => {
   const { data, error } = await mutate
     .from('clients')
     .upsert(
       {
         business_id: businessId,
+        branch_id: branchId ?? null,
         full_name: input.fullName.trim(),
         phone: input.phone.trim(),
         email: input.email?.trim() || null,

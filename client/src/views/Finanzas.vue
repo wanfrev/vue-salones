@@ -727,6 +727,7 @@ const rateCtx = useExchangeRate()
 
 // --- Servicios CRUD ---
 const svcBusinessStore = useBusinessStore()
+const branchId = computed(() => svcBusinessStore.currentBranchId)
 const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useNotification()
 const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null)
 const servicioToDelete = ref<Servicio | null>(null)
@@ -739,9 +740,10 @@ const {
   deleteMutation: deleteServicioMutation,
 } = useCrud<Servicio, ServicioFormData>({
   businessId,
-  queryKey: (id) => serviciosKeys.all(id),
-  queryFn: (id) => listServicios(id),
-  saveFn: (id, data) => saveServicio(id, data),
+  branchId,
+  queryKey: (id, brId) => serviciosKeys.all(id, brId),
+  queryFn: (id, brId) => listServicios(id, brId),
+  saveFn: (id, data, brId) => saveServicio(id, data, brId),
   deleteFn: (id) => deleteServicio(id),
   entityName: 'Servicio',
   modalRef: servicioModalRef,

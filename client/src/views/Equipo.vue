@@ -691,6 +691,7 @@ const queryClient = useQueryClient()
 const empleadoModalRef = ref<InstanceType<typeof EmpleadoFormModal> | null>(null)
 
 const businessId = computed(() => authStore.businessId)
+const branchId = computed(() => businessStore.currentBranchId)
 
 // Period for employee payments summary
 const { selectedPeriod, selectedMonth, resetToCurrentMonth } = usePeriodSelection()
@@ -848,7 +849,7 @@ const onEmployeeChange = async () => {
   const balanceFromSummary = buildBalanceFromSummary(employeeId)
   if (balanceFromSummary) { selectedBalance.value = balanceFromSummary; return }
   if (!authStore.businessId) { selectedBalance.value = null; return }
-  try { selectedBalance.value = await getEmployeeBalance(authStore.businessId, employeeId) } catch { selectedBalance.value = null }
+  try { selectedBalance.value = await getEmployeeBalance(authStore.businessId, employeeId, branchId.value) } catch { selectedBalance.value = null }
 }
 
 const openPaymentModal = () => { paymentsCtx.openModal(); selectedBalance.value = null }
@@ -865,7 +866,7 @@ const onEmployeeConsumptionChange = async () => {
   const balanceFromSummary = buildBalanceFromSummary(employeeId)
   if (balanceFromSummary) { consumptionBalance.value = balanceFromSummary; return }
   if (!authStore.businessId) { consumptionBalance.value = null; return }
-  try { consumptionBalance.value = await getEmployeeBalance(authStore.businessId, employeeId) } catch { consumptionBalance.value = null }
+  try { consumptionBalance.value = await getEmployeeBalance(authStore.businessId, employeeId, branchId.value) } catch { consumptionBalance.value = null }
 }
 
 const handleSubmitConsumption = async () => {

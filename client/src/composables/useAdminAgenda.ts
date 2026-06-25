@@ -28,8 +28,8 @@ export function useAdminAgenda(businessId: () => string | null) {
   })
 
   const { data: serviciosData } = useQuery({
-    queryKey: computed(() => serviciosKeys.all(businessId())),
-    queryFn: () => listServicios(businessId()!),
+    queryKey: computed(() => serviciosKeys.all(businessId(), currentBranchId.value)),
+    queryFn: () => listServicios(businessId()!, currentBranchId.value),
     enabled: computed(() => !!businessId()),
   })
 

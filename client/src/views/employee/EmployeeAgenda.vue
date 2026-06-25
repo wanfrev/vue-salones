@@ -106,8 +106,8 @@ const { data: citasData, isLoading } = useQuery({
 const citas = computed<Cita[]>(() => citasData.value ?? [])
 
 const { data: serviciosData } = useQuery({
-  queryKey: computed(() => serviciosKeys.all(businessId.value)),
-  queryFn: () => listServicios(businessId.value!),
+  queryKey: computed(() => serviciosKeys.all(businessId.value, currentBranchId.value)),
+  queryFn: () => listServicios(businessId.value!, currentBranchId.value),
   enabled: computed(() => !!businessId.value),
 })
 

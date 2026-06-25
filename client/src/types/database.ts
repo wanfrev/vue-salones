@@ -78,6 +78,7 @@ export interface EmployeeSchedule {
 export interface Service {
   id: string
   business_id: string
+  branch_id: string | null
   name: string
   description: string | null
   duration_minutes: number
@@ -100,12 +101,14 @@ export interface EmployeeService {
 export interface ClientPreferredService {
   client_id: string
   service_id: string
+  branch_id: string | null
   created_at: string
 }
 
 export interface Client {
   id: string
   business_id: string
+  branch_id: string | null
   full_name: string
   phone: string
   email: string | null
@@ -176,6 +179,9 @@ export interface Expense {
   name: string
   category: string
   amount: number
+  currency: string
+  original_amount: number
+  exchange_rate_used: number
   expense_date: string
   notes: string | null
   created_by: string | null
@@ -225,6 +231,7 @@ export interface ServiceVariant {
 export interface ProductCategory {
   id: string
   business_id: string
+  branch_id: string | null
   parent_id: string | null
   name: string
   description: string | null
@@ -237,6 +244,7 @@ export interface ProductCategory {
 export interface Product {
   id: string
   business_id: string
+  branch_id: string | null
   category_id: string | null
   name: string
   description: string | null
@@ -256,6 +264,7 @@ export interface Product {
 export interface ProductVariant {
   id: string
   product_id: string
+  branch_id: string | null
   name: string
   sku: string | null
   unit_cost: number
@@ -269,6 +278,7 @@ export interface ProductVariant {
 export interface InventoryLocation {
   id: string
   business_id: string
+  branch_id: string | null
   name: string
   is_default: boolean
   active: boolean
@@ -309,9 +319,15 @@ export interface InventoryMovement {
 export interface EmployeePayment {
   id: string
   business_id: string
+  branch_id: string | null
   employee_id: string
   amount: number
+  currency: string
+  original_amount: number
+  exchange_rate_used: number
   payment_method: string
+  type: string
+  concept: string | null
   notes: string | null
   payment_date: string
   created_by: string | null
@@ -322,6 +338,7 @@ export interface EmployeePayment {
 export interface Supplier {
   id: string
   business_id: string
+  branch_id: string | null
   first_name: string
   last_name: string
   phone: string | null
@@ -339,6 +356,7 @@ export interface Supplier {
 export interface SupplierPayment {
   id: string
   business_id: string
+  branch_id: string | null
   supplier_id: string
   amount: number
   payment_method: string

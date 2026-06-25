@@ -4,28 +4,37 @@ import { validateSaleQuantity, movementTypeForAdjust } from '../business/stockRu
 import type { InventoryStock, InventoryMovement } from '../types/database'
 import type { InventarioItem, InventarioMovimiento } from '../types/inventario'
 
-export async function getDefaultLocation(businessId: string): Promise<string> {
-  let { data: loc } = await supabase
+export async function getDefaultLocation(businessId: string, branchId?: string | null): Promise<string> {
+  let query = supabase
     .from('inventory_locations')
     .select('id')
     .eq('business_id', businessId)
     .eq('is_default', true)
-    .maybeSingle()
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
+
+  let { data: loc } = await query.maybeSingle()
 
   if (!loc) {
-    const { data: firstLoc } = await supabase
+    let firstQuery = supabase
       .from('inventory_locations')
       .select('id')
       .eq('business_id', businessId)
-      .limit(1)
-      .maybeSingle()
+
+    if (branchId) {
+      firstQuery = firstQuery.eq('branch_id', branchId)
+    }
+
+    const { data: firstLoc } = await firstQuery.limit(1).maybeSingle()
     loc = firstLoc
   }
 
   if (!loc) {
     const { data: newLoc } = await mutate
       .from('inventory_locations')
-      .insert({ business_id: businessId, name: 'Principal', is_default: true })
+      .insert({ business_id: businessId, branch_id: branchId ?? null, name: 'Principal', is_default: true })
       .select('id')
       .single()
     loc = newLoc
@@ -39,6 +48,7 @@ export async function getStockRecord(
   productId: string,
   locationId: string,
   variantId?: string | null,
+  branchId?: string | null,
 ) {
   let query = supabase
     .from('inventory_stock')
@@ -46,6 +56,10 @@ export async function getStockRecord(
     .eq('business_id', businessId)
     .eq('product_id', productId)
     .eq('location_id', locationId)
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
 
   if (variantId) {
     query = query.eq('variant_id', variantId)
@@ -70,11 +84,13 @@ export async function insertStockRecord(
   locationId: string,
   quantity: number,
   variantId?: string | null,
+  branchId?: string | null,
 ): Promise<void> {
   const { error } = await mutate
     .from('inventory_stock')
     .insert({
       business_id: businessId,
+      branch_id: branchId ?? null,
       location_id: locationId,
       product_id: productId,
       variant_id: variantId ?? null,
@@ -94,6 +110,7 @@ export async function recordMovement(
     notes: string
     unitCost?: number
     exchangeRate?: number
+    branchId?: string | null
   },
 ): Promise<void> {
   const supabaseUser = mutate.auth?.currentUser
@@ -101,6 +118,7 @@ export async function recordMovement(
     .from('inventory_movements')
     .insert({
       business_id: businessId,
+      branch_id: params.branchId ?? null,
       location_id: params.locationId,
       product_id: params.productId,
       variant_id: params.variantId ?? null,
@@ -115,15 +133,21 @@ export async function recordMovement(
 }
 
 export const inventarioKeys = {
-  all: (businessId?: string | null) => ['inventario', businessId] as const,
-  movements: (businessId?: string | null) => ['inventario-movements', businessId] as const,
+  all: (businessId?: string | null, branchId?: string | null) => ['inventario', businessId, branchId] as const,
+  movements: (businessId?: string | null, branchId?: string | null) => ['inventario-movements', businessId, branchId] as const,
 }
 
-export const listInventario = async (businessId: string): Promise<InventarioItem[]> => {
-  const { data: stock, error } = await supabase
+export const listInventario = async (businessId: string, branchId?: string | null): Promise<InventarioItem[]> => {
+  let stockQuery = supabase
     .from('inventory_stock')
     .select('*, products(name, sku, unit_cost, unit_price, reorder_point)')
     .eq('business_id', businessId)
+
+  if (branchId) {
+    stockQuery = stockQuery.eq('branch_id', branchId)
+  }
+
+  const { data: stock, error } = await stockQuery
 
   if (error) throw error
 
@@ -134,11 +158,17 @@ export const listInventario = async (businessId: string): Promise<InventarioItem
   >
 
   if (raw.length === 0) {
-    const { data: products } = await supabase
+    let productsQuery = supabase
       .from('products')
       .select('id, name, sku, unit_cost, unit_price, reorder_point')
       .eq('business_id', businessId)
       .eq('active', true)
+
+    if (branchId) {
+      productsQuery = productsQuery.eq('branch_id', branchId)
+    }
+
+    const { data: products } = await productsQuery
 
     type ProductRow = { id: string; name: string; sku: string | null; unit_cost: number; unit_price: number; reorder_point: number }
     return ((products ?? []) as ProductRow[]).map(p => ({
@@ -226,6 +256,7 @@ export const listInventario = async (businessId: string): Promise<InventarioItem
 
 export const listInventoryMovements = async (
   businessId: string,
+  branchId?: string | null,
   productId?: string
 ): Promise<InventarioMovimiento[]> => {
   let query = supabase
@@ -234,6 +265,10 @@ export const listInventoryMovements = async (
     .eq('business_id', businessId)
     .order('created_at', { ascending: false })
     .limit(50)
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
 
   if (productId) {
     query = query.eq('product_id', productId)
@@ -282,15 +317,16 @@ export const adjustInventory = async (
   productId: string,
   quantity: number,
   notes: string,
-  variantId?: string | null
+  variantId?: string | null,
+  branchId?: string | null,
 ): Promise<void> => {
-  const locationId = await getDefaultLocation(businessId)
-  const existing = await getStockRecord(businessId, productId, locationId, variantId)
+  const locationId = await getDefaultLocation(businessId, branchId)
+  const existing = await getStockRecord(businessId, productId, locationId, variantId, branchId)
 
   if (existing?.data) {
     await updateStockQuantity(existing.data.id, Number(existing.data.quantity) + quantity)
   } else {
-    await insertStockRecord(businessId, productId, locationId, quantity, variantId)
+    await insertStockRecord(businessId, productId, locationId, quantity, variantId, branchId)
   }
 
   await recordMovement(businessId, {
@@ -300,6 +336,7 @@ export const adjustInventory = async (
     movementType: movementTypeForAdjust(quantity),
     quantity,
     notes,
+    branchId,
   })
 }
 
@@ -312,9 +349,10 @@ export const sellProduct = async (
   unitPrice?: number,
   exchangeRate?: number,
   currency?: 'USD' | 'VES',
+  branchId?: string | null,
 ): Promise<void> => {
-  const locationId = await getDefaultLocation(businessId)
-  const existing = await getStockRecord(businessId, productId, locationId, variantId)
+  const locationId = await getDefaultLocation(businessId, branchId)
+  const existing = await getStockRecord(businessId, productId, locationId, variantId, branchId)
 
   if (!existing?.data) throw new Error('No hay stock de este producto')
 
@@ -341,5 +379,6 @@ export const sellProduct = async (
     notes: finalNotes,
     unitCost: unitPrice,
     exchangeRate: rate,
+    branchId,
   })
 }

@@ -6,6 +6,7 @@ import type { CitaFormData } from '../types/cita'
 const mockService: Service = {
   id: 'svc-001',
   business_id: 'biz-1',
+  branch_id: null,
   name: 'Corte de cabello',
   description: null,
   duration_minutes: 45,

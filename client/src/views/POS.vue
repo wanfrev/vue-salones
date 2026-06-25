@@ -205,6 +205,7 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
+import { useBusinessStore } from '../store/business'
 import { listPendingAppointments, listSaleableProducts, posKeys } from '../services/posService'
 import { usePOSCart } from '../composables/usePOSCart'
 import { usePOSPayment } from '../composables/usePOSPayment'
@@ -217,8 +218,10 @@ import POSQuickSell from '../components/pos/POSQuickSell.vue'
 const { authStore } = useAuth()
 const { exchangeRate, formatDual } = useCurrency()
 const { error: showError } = useNotification()
+const businessStore = useBusinessStore()
 const queryClient = useQueryClient()
 const businessId = computed(() => authStore.businessId)
+const branchId = computed(() => businessStore.currentBranchId)
 
 const cartCtx = usePOSCart()
 const paymentCtx = usePOSPayment()
@@ -229,11 +232,11 @@ const selectedAppointment = ref<any>(null)
 const queryError = ref<string | null>(null)
 
 const { data: appointmentsData } = useQuery({
-  queryKey: computed(() => posKeys.pending(businessId.value)),
+  queryKey: computed(() => posKeys.pending(businessId.value, branchId.value)),
   queryFn: async () => {
     try {
       queryError.value = null
-      return await listPendingAppointments(businessId.value!)
+      return await listPendingAppointments(businessId.value!, branchId.value)
     } catch (err) {
       const msg = (err as any)?.message ?? (err as any)?.error_description ?? String(err)
       queryError.value = msg
@@ -244,8 +247,8 @@ const { data: appointmentsData } = useQuery({
   enabled: computed(() => !!businessId.value),
 })
 const { data: productsData } = useQuery({
-  queryKey: computed(() => posKeys.products(businessId.value)),
-  queryFn: () => listSaleableProducts(businessId.value!),
+  queryKey: computed(() => posKeys.products(businessId.value, branchId.value)),
+  queryFn: () => listSaleableProducts(businessId.value!, branchId.value),
   enabled: computed(() => !!businessId.value),
 })
 

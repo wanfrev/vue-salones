@@ -222,6 +222,7 @@ const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null
 const isDeleteModalOpen = ref(false)
 const servicioToDelete = ref<Servicio | null>(null)
 const businessId = computed(() => authStore.businessId)
+const branchId = computed(() => businessStore.currentBranchId)
 
 const {
   items: servicios,
@@ -230,9 +231,10 @@ const {
   deleteMutation: deleteServicioMutation,
 } = useCrud<Servicio, ServicioFormData>({
   businessId,
-  queryKey: (id) => serviciosKeys.all(id),
-  queryFn: (id) => listServicios(id),
-  saveFn: (id, data) => saveServicio(id, data),
+  branchId,
+  queryKey: (id, brId) => serviciosKeys.all(id, brId),
+  queryFn: (id, brId) => listServicios(id, brId),
+  saveFn: (id, data, brId) => saveServicio(id, data, brId),
   deleteFn: (id) => deleteServicio(id),
   entityName: 'Servicio',
   modalRef: servicioModalRef,

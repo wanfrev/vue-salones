@@ -24,6 +24,7 @@ import { useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
+import { useBusinessStore } from '../store/business'
 import { equipoKeys, listEquipo } from '../services/equipoService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { useAppointmentMutations } from '../composables/useAppointmentMutations'
@@ -35,13 +36,15 @@ import type { Cita } from '../types/cita'
 const { authStore } = useAuth()
 const router = useRouter()
 useNotification()
+const businessStore = useBusinessStore()
 
 const citaModalRef = ref<InstanceType<typeof CitaFormModal> | null>(null)
 const businessId = computed(() => authStore.businessId)
+const branchId = computed(() => businessStore.currentBranchId)
 
 const { data: serviciosData } = useQuery({
-  queryKey: computed(() => serviciosKeys.all(businessId.value)),
-  queryFn: () => listServicios(businessId.value!),
+  queryKey: computed(() => serviciosKeys.all(businessId.value, branchId.value)),
+  queryFn: () => listServicios(businessId.value!, branchId.value),
   enabled: computed(() => !!businessId.value),
 })
 

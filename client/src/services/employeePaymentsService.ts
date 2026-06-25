@@ -4,7 +4,7 @@ import { handleDbError } from '../lib/errors'
 import type { EmployeePayment } from '../types/database'
 
 export const employeePaymentKeys = {
-  all: (businessId?: string | null) => ['employee-payments', businessId] as const,
+  all: (businessId?: string | null, branchId?: string | null) => ['employee-payments', businessId, branchId] as const,
 }
 
 export interface EmployeePaymentRecord {
@@ -24,6 +24,7 @@ export interface EmployeePaymentRecord {
 
 export const listEmployeePayments = async (
   businessId: string,
+  branchId?: string | null,
   startDate?: string,
   endDate?: string,
 ): Promise<EmployeePaymentRecord[]> => {
@@ -32,6 +33,10 @@ export const listEmployeePayments = async (
     .select('id, employee_id, amount, payment_method, type, concept, notes, payment_date, currency, original_amount, exchange_rate_used, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
     .eq('business_id', businessId)
     .order('payment_date', { ascending: false })
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
 
   if (startDate) query = query.gte('payment_date', startDate)
   if (endDate) query = query.lte('payment_date', endDate)
@@ -159,6 +164,7 @@ export const createEmployeePayment = async (
   paymentDate: string,
   currency: 'USD' | 'VES' = 'USD',
   exchangeRate?: number,
+  branchId?: string | null,
 ): Promise<void> => {
   if (!businessId) throw new Error('Falta el negocio (businessId)')
   if (!employeeId) throw new Error('Selecciona un empleado')
@@ -181,6 +187,7 @@ export const createEmployeePayment = async (
     .from('employee_payments')
     .insert({
       business_id: businessId,
+      branch_id: branchId ?? null,
       employee_id: employeeId,
       amount: Math.round(usdAmount * 100) / 100,
       payment_method: paymentMethod,
@@ -207,6 +214,7 @@ export const createEmployeeConsumption = async (
   paymentDate: string,
   currency: 'USD' | 'VES' = 'USD',
   exchangeRate?: number,
+  branchId?: string | null,
 ): Promise<void> => {
   if (!businessId) throw new Error('Falta el negocio (businessId)')
   if (!employeeId) throw new Error('Selecciona un empleado')
@@ -230,6 +238,7 @@ export const createEmployeeConsumption = async (
     .from('employee_payments')
     .insert({
       business_id: businessId,
+      branch_id: branchId ?? null,
       employee_id: employeeId,
       amount: Math.round(usdAmount * 100) / 100,
       payment_method: 'consumption',
@@ -263,7 +272,8 @@ export interface EmployeeBalance {
 
 export const getEmployeeBalance = async (
   businessId: string,
-  employeeId: string
+  employeeId: string,
+  branchId?: string | null,
 ): Promise<EmployeeBalance> => {
   const toYmd = (d: Date) => {
     const yyyy = d.getFullYear()
@@ -292,13 +302,19 @@ export const getEmployeeBalance = async (
 
   let variableEarnings = 0
   if (payType !== 'salary') {
-    const { data: txData } = await supabase
+    let txQuery = supabase
       .from('transactions')
       .select('total_amount, appointments!inner(employee_id)')
       .eq('business_id', businessId)
       .eq('appointments.employee_id', employeeId)
       .gte('created_at', `${periodStartIso}T00:00:00.000Z`)
       .lte('created_at', `${periodEndIso}T23:59:59.999Z`)
+
+    if (branchId) {
+      txQuery = txQuery.eq('branch_id', branchId)
+    }
+
+    const { data: txData } = await txQuery
 
     const rawTx = (txData ?? []) as Array<{ total_amount: number }>
     variableEarnings = rawTx.reduce((sum, t) => sum + Number(t.total_amount), 0) * (Math.max(0, payPercentage) / 100)
@@ -307,13 +323,19 @@ export const getEmployeeBalance = async (
   const fixedEarnings = payType === 'salary' || payType === 'mixed' ? Math.max(0, baseSalary) : 0
   const totalEarned = fixedEarnings + variableEarnings
 
-  const { data: paymentsData } = await supabase
+  let paymentsQuery = supabase
     .from('employee_payments')
     .select('amount')
     .eq('business_id', businessId)
     .eq('employee_id', employeeId)
     .gte('payment_date', periodStartIso)
     .lte('payment_date', periodEndIso)
+
+  if (branchId) {
+    paymentsQuery = paymentsQuery.eq('branch_id', branchId)
+  }
+
+  const { data: paymentsData } = await paymentsQuery
 
   const rawP = (paymentsData ?? []) as Array<{ amount: number }>
   const totalPaid = rawP.reduce((sum, p) => sum + Number(p.amount), 0)

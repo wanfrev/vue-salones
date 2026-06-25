@@ -5,13 +5,13 @@ import { supplierFormSchema, supplierPaymentFormSchema } from '../lib/validation
 import type { Supplier, SupplierPayment } from '../types/database'
 
 export const supplierKeys = {
-  all: (businessId?: string | null) => ['suppliers', businessId] as const,
+  all: (businessId?: string | null, branchId?: string | null) => ['suppliers', businessId, branchId] as const,
 }
 
 export const supplierPaymentKeys = {
-  all: (businessId?: string | null) => ['supplier-payments', businessId] as const,
-  filtered: (businessId?: string | null, start?: string, end?: string) =>
-    ['supplier-payments', businessId, start, end] as const,
+  all: (businessId?: string | null, branchId?: string | null) => ['supplier-payments', businessId, branchId] as const,
+  filtered: (businessId?: string | null, branchId?: string | null, start?: string, end?: string) =>
+    ['supplier-payments', businessId, branchId, start, end] as const,
 }
 
 export interface SupplierRow {
@@ -62,13 +62,19 @@ export interface SupplierPaymentFormData {
   notes: string
 }
 
-export const listSuppliers = async (businessId: string): Promise<SupplierRow[]> => {
-  const { data, error } = await supabase
+export const listSuppliers = async (businessId: string, branchId?: string | null): Promise<SupplierRow[]> => {
+  let query = supabase
     .from('suppliers')
     .select('*')
     .eq('business_id', businessId)
     .eq('active', true)
     .order('created_at', { ascending: false })
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await query
 
   if (error) handleDbError(error, 'Error al cargar proveedores')
 
@@ -93,6 +99,7 @@ export const listSuppliers = async (businessId: string): Promise<SupplierRow[]> 
 export const saveSupplier = async (
   businessId: string,
   data: SupplierFormData & { id?: string },
+  branchId?: string | null
 ): Promise<SupplierRow> => {
   const parsed = supplierFormSchema.safeParse(data)
   if (!parsed.success) {
@@ -103,20 +110,23 @@ export const saveSupplier = async (
   const rate = isVES ? await getCurrentExchangeRate(businessId) : 1
   const debtUSD = isVES ? parsed.data.totalDebt / rate : parsed.data.totalDebt
 
+  const basePayload = {
+    first_name: parsed.data.firstName,
+    last_name: parsed.data.lastName,
+    phone: parsed.data.phone || null,
+    company: parsed.data.company || null,
+    total_debt: Math.round(debtUSD * 100) / 100,
+    debt_currency: parsed.data.debtCurrency,
+    debt_original_amount: parsed.data.totalDebt,
+    debt_exchange_rate: rate,
+    notes: parsed.data.notes || null,
+    branch_id: branchId ?? null,
+  }
+
   if (data.id) {
     const { data: updated, error } = await mutate
       .from('suppliers')
-      .update({
-        first_name: parsed.data.firstName,
-        last_name: parsed.data.lastName,
-        phone: parsed.data.phone || null,
-        company: parsed.data.company || null,
-        total_debt: Math.round(debtUSD * 100) / 100,
-        debt_currency: parsed.data.debtCurrency,
-        debt_original_amount: parsed.data.totalDebt,
-        debt_exchange_rate: rate,
-        notes: parsed.data.notes || null,
-      })
+      .update(basePayload)
       .eq('id', data.id)
       .select('*')
       .single()
@@ -145,15 +155,7 @@ export const saveSupplier = async (
     .from('suppliers')
     .insert({
       business_id: businessId,
-      first_name: parsed.data.firstName,
-      last_name: parsed.data.lastName,
-      phone: parsed.data.phone || null,
-      company: parsed.data.company || null,
-      total_debt: Math.round(debtUSD * 100) / 100,
-      debt_currency: parsed.data.debtCurrency,
-      debt_original_amount: parsed.data.totalDebt,
-      debt_exchange_rate: rate,
-      notes: parsed.data.notes || null,
+      ...basePayload,
       active: true,
     })
     .select('*')
@@ -190,6 +192,7 @@ export const deleteSupplier = async (id: string): Promise<void> => {
 
 export const listSupplierPayments = async (
   businessId: string,
+  branchId?: string | null,
   startDate?: string,
   endDate?: string,
 ): Promise<SupplierPaymentRow[]> => {
@@ -198,6 +201,10 @@ export const listSupplierPayments = async (
     .select('id, supplier_id, amount, payment_method, payment_date, notes, suppliers!inner(first_name, last_name)')
     .eq('business_id', businessId)
     .order('payment_date', { ascending: false })
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
 
   if (startDate) query = query.gte('payment_date', startDate)
   if (endDate) query = query.lte('payment_date', endDate)
@@ -254,6 +261,7 @@ export const listSupplierPayments = async (
 export const createSupplierPayment = async (
   businessId: string,
   data: SupplierPaymentFormData,
+  branchId?: string | null,
   exchangeRate?: number,
 ): Promise<void> => {
   const parsed = supplierPaymentFormSchema.safeParse(data)
@@ -280,6 +288,7 @@ export const createSupplierPayment = async (
     .from('supplier_payments')
     .insert({
       business_id: businessId,
+      branch_id: branchId ?? null,
       supplier_id: parsed.data.supplierId,
       amount: Math.round(usdAmount * 100) / 100,
       payment_method: parsed.data.paymentMethod,

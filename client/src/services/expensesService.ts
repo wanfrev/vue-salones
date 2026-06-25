@@ -5,8 +5,9 @@ import { expenseFormSchema } from '../lib/validation'
 import type { Expense } from '../types/database'
 
 export const expensesKeys = {
-  all: (businessId?: string | null) => ['expenses', businessId] as const,
-  filtered: (businessId?: string | null, start?: string, end?: string) => ['expenses', businessId, start, end] as const,
+  all: (businessId?: string | null, branchId?: string | null) => ['expenses', businessId, branchId] as const,
+  filtered: (businessId?: string | null, branchId?: string | null, start?: string, end?: string) =>
+    ['expenses', businessId, branchId, start, end] as const,
 }
 
 export type ExpenseRow = {
@@ -30,14 +31,20 @@ export type ExpenseFormData = {
   notes: string
 }
 
-export const listExpenses = async (businessId: string, startDate: string, endDate: string): Promise<ExpenseRow[]> => {
-  const { data, error } = await supabase
+export const listExpenses = async (businessId: string, startDate: string, endDate: string, branchId?: string | null): Promise<ExpenseRow[]> => {
+  let query = supabase
     .from('expenses')
     .select('id, name, category, amount, expense_date, notes, currency, original_amount, exchange_rate_used')
     .eq('business_id', businessId)
     .gte('expense_date', startDate)
     .lte('expense_date', endDate)
     .order('expense_date', { ascending: false })
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await query
 
   if (error) throw error
   const raw = (data ?? []) as Array<Expense & { currency?: string; original_amount?: number; exchange_rate_used?: number }>
@@ -93,6 +100,7 @@ export const listExpenses = async (businessId: string, startDate: string, endDat
 export const saveExpense = async (
   businessId: string,
   data: ExpenseFormData & { id?: string },
+  branchId?: string | null,
   exchangeRate?: number,
 ): Promise<void> => {
   const parsed = expenseFormSchema.safeParse(data)
@@ -123,7 +131,7 @@ export const saveExpense = async (
       .eq('id', data.id)
     if (error) handleDbError(error, 'Error al actualizar el gasto')
   } else {
-    const { error } = await mutate.from('expenses').insert({ ...payload, business_id: businessId })
+    const { error } = await mutate.from('expenses').insert({ ...payload, business_id: businessId, branch_id: branchId ?? null })
     if (error) handleDbError(error, 'Error al guardar el gasto')
   }
 }

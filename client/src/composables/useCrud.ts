@@ -1,24 +1,26 @@
-import { computed, ref } from 'vue'
+import { computed, ref, type Ref } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
 import { supabase } from '../lib/supabase'
 import { translateError } from '../lib/errors'
 
 export interface UseCrudOptions<TData, TForm, TId = string> {
-  businessId: import('vue').Ref<string | null>
-  queryKey: (businessId: string) => readonly any[]
-  queryFn: (businessId: string) => Promise<TData[]>
-  saveFn: (businessId: string, data: TForm & { id?: TId }) => Promise<TData | void>
+  businessId: Ref<string | null>
+  branchId?: Ref<string | null>
+  queryKey: (businessId: string, branchId?: string | null) => readonly any[]
+  queryFn: (businessId: string, branchId?: string | null) => Promise<TData[]>
+  saveFn: (businessId: string, data: TForm & { id?: TId }, branchId?: string | null) => Promise<TData | void>
   entityName?: string
   deleteFn?: (id: TId) => Promise<void>
   extraInvalidations?: ((businessId: string) => readonly any[])[]
-  modalRef?: import('vue').Ref<{ close: () => void } | null>
+  modalRef?: Ref<{ close: () => void } | null>
   deleteConfirmMessage?: (entity: TData) => string
 }
 
 export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TData, TForm, TId>) {
   const {
     businessId,
+    branchId,
     queryKey,
     queryFn,
     saveFn,
@@ -32,9 +34,11 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
   const { success, error: showError } = useNotification()
   const saveError = ref('')
 
+  const currentBranchId = computed(() => branchId?.value ?? null)
+
   const { data, isLoading } = useQuery({
-    queryKey: computed(() => queryKey(businessId.value ?? '')),
-    queryFn: () => queryFn(businessId.value!),
+    queryKey: computed(() => queryKey(businessId.value ?? '', currentBranchId.value)),
+    queryFn: () => queryFn(businessId.value!, currentBranchId.value),
     enabled: computed(() => !!businessId.value),
   })
 
@@ -51,7 +55,7 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
   const saveMutation = useMutation({
     mutationFn: (formData: TForm & { id?: TId }) => {
       if (!businessId.value) throw new Error('No hay negocio activo')
-      return saveFn(businessId.value, formData)
+      return saveFn(businessId.value, formData, currentBranchId.value)
     },
     onSuccess: () => {
       saveError.value = ''

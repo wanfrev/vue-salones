@@ -6,28 +6,40 @@ import type { UpdateFor } from '../types/helpers'
 import type { Servicio, ServicioFormData } from '../types/servicio'
 
 export const serviciosKeys = {
-  all: (businessId?: string | null) => ['servicios', businessId] as const,
+  all: (businessId?: string | null, branchId?: string | null) => ['servicios', businessId, branchId] as const,
 }
 
-export const listServicios = async (businessId: string): Promise<Servicio[]> => {
-  const { data, error } = await supabase
+export const listServicios = async (businessId: string, branchId?: string | null): Promise<Servicio[]> => {
+  let query = supabase
     .from('services')
     .select('*')
     .eq('business_id', businessId)
     .order('name')
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await query
 
   if (error) throw error
 
   return (data as Service[]).map(service => mapServiceToServicio(service))
 }
 
-export const listActiveDbServices = async (businessId: string): Promise<Service[]> => {
-  const { data, error } = await supabase
+export const listActiveDbServices = async (businessId: string, branchId?: string | null): Promise<Service[]> => {
+  let query = supabase
     .from('services')
     .select('*')
     .eq('business_id', businessId)
     .eq('active', true)
     .order('name')
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
+
+  const { data, error } = await query
 
   if (error) throw error
   return data as Service[]
@@ -35,9 +47,10 @@ export const listActiveDbServices = async (businessId: string): Promise<Service[
 
 export const saveServicio = async (
   businessId: string,
-  data: ServicioFormData & { id?: string }
+  data: ServicioFormData & { id?: string },
+  branchId?: string | null
 ): Promise<Servicio> => {
-  const payload = mapServicioFormToServiceInsert(businessId, data)
+  const payload = { ...mapServicioFormToServiceInsert(businessId, data), branch_id: branchId ?? null }
 
   const query = data.id
     ? mutate.from('services').update(payload).eq('id', data.id).select('*').single()

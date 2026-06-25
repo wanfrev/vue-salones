@@ -103,12 +103,15 @@ import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { formatMethod, formatDate, formatNumber } from '../../lib/formatters'
 import { useAuthStore } from '../../store/auth'
+import { useBusinessStore } from '../../store/business'
 import { useCurrency } from '../../composables/useCurrency'
 import { dashboardKeys, listEmployeeTransactions, listEmployeePayments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 
 const authStore = useAuthStore()
+const businessStore = useBusinessStore()
 const businessId = computed(() => authStore.businessId)
+const branchId = computed(() => businessStore.currentBranchId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
 
 const payInfo = computed(() => {
@@ -121,8 +124,8 @@ const payInfo = computed(() => {
 })
 
 const { data: earningsData, isLoading: loadingEarnings } = useQuery({
-  queryKey: dashboardKeys.earnings(businessId.value, employeeId.value),
-  queryFn: () => listEmployeeTransactions(businessId.value!, employeeId.value!),
+  queryKey: dashboardKeys.earnings(businessId.value, employeeId.value, branchId.value),
+  queryFn: () => listEmployeeTransactions(businessId.value!, employeeId.value!, branchId.value),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
 const earnings = computed(() => earningsData.value ?? [])
@@ -135,8 +138,8 @@ const totalEarned = computed(() =>
 )
 
 const { data: paymentsData } = useQuery({
-  queryKey: dashboardKeys.payments(businessId.value, employeeId.value),
-  queryFn: () => listEmployeePayments(businessId.value!, employeeId.value!),
+  queryKey: dashboardKeys.payments(businessId.value, employeeId.value, branchId.value),
+  queryFn: () => listEmployeePayments(businessId.value!, employeeId.value!, branchId.value),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
 const payments = computed(() => paymentsData.value ?? [])

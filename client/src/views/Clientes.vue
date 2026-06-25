@@ -243,6 +243,7 @@ const businessStore = useBusinessStore()
 const { info } = useNotification()
 
 const businessId = computed(() => authStore.businessId)
+const branchId = computed(() => businessStore.currentBranchId)
 const clienteModalRef = ref<InstanceType<typeof ClienteFormModal> | null>(null)
 const filterDrawerRef = ref<InstanceType<typeof FilterDrawer> | null>(null)
 
@@ -253,9 +254,10 @@ const {
   isSaving,
 } = useCrud<Cliente, ClienteFormData>({
   businessId,
-  queryKey: (id) => clientesKeys.all(id),
-  queryFn: (id) => listClientes(id),
-  saveFn: (id, data) => saveCliente(id, data),
+  branchId,
+  queryKey: (id, brId) => clientesKeys.all(id, brId),
+  queryFn: (id, brId) => listClientes(id, brId),
+  saveFn: (id, data, brId) => saveCliente(id, data, brId),
   deleteFn: (id) => deleteCliente(id),
   entityName: 'Cliente',
   modalRef: clienteModalRef,

@@ -22,10 +22,11 @@ export function useAppointmentMutations(options: {
 
   const invalidate = () => {
     const bid = options.businessId.value
+    const brId = businessStore.currentBranchId
     const keys = [
-      ['appointments', bid] as const,
-      posKeys.pending(bid),
-      clientesKeys.all(bid),
+      ['appointments', bid, brId] as const,
+      posKeys.pending(bid, brId),
+      clientesKeys.all(bid, brId),
       ['cliente', bid] as const,
       ['cliente-historial', bid] as const,
       ['finanzas-transactions', bid] as const,

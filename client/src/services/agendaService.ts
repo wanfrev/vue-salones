@@ -89,11 +89,16 @@ export const saveCita = async (
   }
 
   const serviceId = parsed.data.service
-  const { data: service, error: serviceError } = await supabase
+  let svcQuery = supabase
     .from('services')
     .select('*')
     .eq('id', serviceId)
-    .single()
+
+  if (branchId) {
+    svcQuery = svcQuery.eq('branch_id', branchId)
+  }
+
+  const { data: service, error: serviceError } = await svcQuery.single()
 
   if (serviceError) throw serviceError
 
@@ -105,7 +110,7 @@ export const saveCita = async (
       fullName: data.clientName,
       phone: data.clientPhone || data.clientName,
       notes: data.notes,
-    })
+    }, branchId)
     clientId = client.id
   }
 
@@ -169,10 +174,16 @@ export const saveCita = async (
 
   // Fetch all services for extra rows
   const extraServiceIds = data.extraServices.map(e => e.serviceId)
-  const { data: servicesData, error: servicesError } = await supabase
+  let allSvcsQuery = supabase
     .from('services')
     .select('*')
     .in('id', [serviceId, ...extraServiceIds])
+
+  if (branchId) {
+    allSvcsQuery = allSvcsQuery.eq('branch_id', branchId)
+  }
+
+  const { data: servicesData, error: servicesError } = await allSvcsQuery
 
   if (servicesError) throw servicesError
   const servicesMap = new Map((servicesData as Service[]).map(s => [s.id, s]))

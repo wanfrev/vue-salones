@@ -84,12 +84,15 @@ import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { getStatusLabel, getStatusColor } from '../../lib/formatters'
 import { useAuthStore } from '../../store/auth'
+import { useBusinessStore } from '../../store/business'
 import { dashboardKeys, listEmployeeAppointments } from '../../services/employeeDashboardService'
 import type { EmployeeAppointmentRecord } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
 
 const authStore = useAuthStore()
+const businessStore = useBusinessStore()
 const businessId = computed(() => authStore.businessId)
+const branchId = computed(() => businessStore.currentBranchId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
 
 const payInfo = computed(() => {
@@ -103,8 +106,8 @@ const payInfo = computed(() => {
 })
 
 const { data: historyData, isLoading: loadingHistory } = useQuery({
-  queryKey: dashboardKeys.history(businessId.value, employeeId.value),
-  queryFn: () => listEmployeeAppointments(businessId.value!, employeeId.value!),
+  queryKey: dashboardKeys.history(businessId.value, employeeId.value, branchId.value),
+  queryFn: () => listEmployeeAppointments(businessId.value!, employeeId.value!, branchId.value),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
 })
 

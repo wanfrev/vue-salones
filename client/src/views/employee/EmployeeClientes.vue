@@ -139,12 +139,13 @@ const authStore = useAuthStore()
 const businessStore = useBusinessStore()
 
 const businessId = computed(() => authStore.businessId)
+const branchId = computed(() => businessStore.currentBranchId)
 const t = computed(() => businessStore.terminology)
 const label = computed(() => (t.value.client || 'cliente').toLowerCase())
 
 const { data: clientesData } = useQuery({
-  queryKey: computed(() => clientesKeys.all(businessId.value)),
-  queryFn: () => listClientes(businessId.value!),
+  queryKey: computed(() => clientesKeys.all(businessId.value, branchId.value)),
+  queryFn: () => listClientes(businessId.value!, branchId.value),
   enabled: computed(() => !!businessId.value),
 })
 const clients = computed<Cliente[]>(() => clientesData.value ?? [])

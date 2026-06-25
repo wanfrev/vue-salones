@@ -134,6 +134,7 @@ import { useModal } from '../../composables/useModal'
 import { useNotification } from '../../composables/useNotification'
 import { listProductCategories, createProductCategory, productosKeys } from '../../services/productosService'
 import { useAuthStore } from '../../store/auth'
+import { useBusinessStore } from '../../store/business'
 import { mapCategoryToOption } from '../../mappers/productosMapper'
 import type { Producto, ProductoFormData } from '../../types/producto'
 import ModalBase from '../common/ModalBase.vue'
@@ -156,9 +157,11 @@ const props = withDefaults(defineProps<Props>(), {
 const { isOpen, modalData, close } = useModal(MODAL_ID)
 const { error: showError } = useNotification()
 const authStore = useAuthStore()
+const businessStore = useBusinessStore()
 
 const isEditing = computed(() => !!modalData.value?.producto)
 const businessId = computed(() => authStore.businessId)
+const branchId = computed(() => businessStore.currentBranchId)
 
 const queryClient = useQueryClient?.() || null
 
@@ -166,8 +169,8 @@ const showingCustomCategory = ref(false)
 const newCategoryName = ref('')
 
 const { data: categoriesData } = useQuery({
-  queryKey: computed(() => productosKeys.categories(businessId.value)),
-  queryFn: () => listProductCategories(businessId.value!),
+  queryKey: computed(() => productosKeys.categories(businessId.value, branchId.value)),
+  queryFn: () => listProductCategories(businessId.value!, branchId.value),
   enabled: computed(() => !!businessId.value),
 })
 
@@ -285,10 +288,10 @@ const handleSubmit = async () => {
   let categoryId = formData.value.categoryId
   if (showingCustomCategory.value && newCategoryName.value.trim()) {
     try {
-      const newCat = await createProductCategory(businessId.value!, newCategoryName.value.trim())
+      const newCat = await createProductCategory(businessId.value!, newCategoryName.value.trim(), branchId.value)
       categoryId = newCat.id
       if (queryClient) {
-        await queryClient.invalidateQueries({ queryKey: productosKeys.categories(businessId.value) })
+        await queryClient.invalidateQueries({ queryKey: productosKeys.categories(businessId.value, branchId.value) })
       }
     } catch (err) {
       console.error('Error creating category:', err)

@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useCrud } from './useCrud'
 import { useAuth } from './useAuth'
 import { useCurrency } from './useCurrency'
+import { useBusinessStore } from '../store/business'
 import { listProductos, productosKeys, saveProducto, deleteProducto, deleteProductoPermanently } from '../services/productosService'
 import { posKeys } from '../services/posService'
 import type { Producto, ProductoFormData } from '../types/producto'
@@ -9,15 +10,18 @@ import type { Producto, ProductoFormData } from '../types/producto'
 export function useProductCRUD() {
   const { authStore } = useAuth()
   const { formatUSD, formatVESInline } = useCurrency()
+  const businessStore = useBusinessStore()
   const businessId = computed(() => authStore.businessId)
+  const branchId = computed(() => businessStore.currentBranchId)
 
   const productoModalRef = ref<{ open: (data?: any) => void; close: () => void } | null>(null)
 
   const crud = useCrud<Producto, ProductoFormData>({
     businessId,
-    queryKey: (id) => productosKeys.all(id),
-    queryFn: (id) => listProductos(id),
-    saveFn: (id, data) => saveProducto(id, data),
+    branchId,
+    queryKey: (id, brId) => productosKeys.all(id, brId),
+    queryFn: (id, brId) => listProductos(id, brId),
+    saveFn: (id, data, brId) => saveProducto(id, data, brId),
     deleteFn: (id) => deleteProducto(id),
     entityName: 'Producto',
     modalRef: productoModalRef,

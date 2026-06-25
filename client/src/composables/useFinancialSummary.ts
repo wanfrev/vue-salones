@@ -3,6 +3,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
 import { formatMethod, formatDate } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
+import { useBusinessStore } from '../store/business'
 import { updateTransaction, deleteTransaction } from '../services/posService'
 import { toYmd, resolvePeriod, normalizeBucketKey, formatBucketLabel } from '../lib/periodUtils'
 import { computeServiceEarnings, type EmployeeCompProfile } from '../business/employeeEarnings'
@@ -119,6 +120,8 @@ function useFinancialSummary(
   selectedMonth?: import('vue').Ref<string>,
 ) {
   const queryClient = useQueryClient()
+  const businessStore = useBusinessStore()
+  const branchId = computed(() => businessStore.currentBranchId)
   const periodConfig = computed(() => resolvePeriod(selectedPeriod.value, selectedMonth?.value))
 
   // Keep Finanzas in sync across sessions/devices (e.g. POS on another browser/device).
@@ -179,7 +182,7 @@ function useFinancialSummary(
   const summaryBuckets = computed(() => summaryData.value ?? [])
 
   const transactionsQueryKey = computed(() =>
-    ['finanzas-transactions', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null] as const
+    ['finanzas-transactions', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null, branchId.value] as const
   )
 
   const { data: transactionsData, isLoading: isTransactionsLoading } = useQuery({
@@ -188,7 +191,8 @@ function useFinancialSummary(
       const cfg = periodConfig.value
       const endExclusive = new Date(cfg.end)
       endExclusive.setDate(endExclusive.getDate() + 1)
-      const { data, error } = await supabase
+
+      let query = supabase
         .from('transactions')
         .select(`
           id,
@@ -215,10 +219,15 @@ function useFinancialSummary(
           )
         `)
         .eq('business_id', businessId.value!)
-        // Use created_at as fallback because some payments may not set paid_at
         .gte('created_at', cfg.start.toISOString())
         .lt('created_at', endExclusive.toISOString())
         .order('created_at', { ascending: false })
+
+      if (branchId.value) {
+        query = query.eq('branch_id', branchId.value)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
 
@@ -306,16 +315,22 @@ function useFinancialSummary(
 
   // Employee payments query for same period
   const { data: rawEmployeePayments } = useQuery({
-    queryKey: computed(() => ['finanzas-employee-payments', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null]),
+    queryKey: computed(() => ['finanzas-employee-payments', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null, branchId.value]),
     queryFn: async () => {
       const cfg = periodConfig.value
-      const { data, error } = await supabase
+      let query = supabase
         .from('employee_payments')
         .select('id, amount, payment_method, payment_date, notes, currency, original_amount, exchange_rate_used, employee_profile:profiles!employee_payments_employee_id_fkey(full_name)')
         .eq('business_id', businessId.value!)
         .gte('payment_date', toYmd(cfg.start))
         .lte('payment_date', toYmd(cfg.end))
         .order('payment_date', { ascending: false })
+
+      if (branchId.value) {
+        query = query.eq('branch_id', branchId.value)
+      }
+
+      const { data, error } = await query
       if (error) throw error
       return (data ?? []) as Array<EmployeePayment & { employee_profile?: { full_name: string } | null }>
     },
@@ -324,16 +339,22 @@ function useFinancialSummary(
 
   // Expenses query for same period
   const { data: rawExpenses } = useQuery({
-    queryKey: computed(() => ['finanzas-expenses', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null]),
+    queryKey: computed(() => ['finanzas-expenses', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null, branchId.value]),
     queryFn: async () => {
       const cfg = periodConfig.value
-      const { data, error } = await supabase
+      let query = supabase
         .from('expenses')
         .select('id, name, amount, expense_date, notes, currency, original_amount, exchange_rate_used')
         .eq('business_id', businessId.value!)
         .gte('expense_date', toYmd(cfg.start))
         .lte('expense_date', toYmd(cfg.end))
         .order('expense_date', { ascending: false })
+
+      if (branchId.value) {
+        query = query.eq('branch_id', branchId.value)
+      }
+
+      const { data, error } = await query
       if (error) throw error
       return (data ?? []) as Expense[]
     },
@@ -342,12 +363,12 @@ function useFinancialSummary(
 
   // Product sales (inventory movements with movement_type = 'sale') for the same period
   const { data: rawInventoryMovements } = useQuery({
-    queryKey: computed(() => ['finanzas-product-sales', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null]),
+    queryKey: computed(() => ['finanzas-product-sales', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null, branchId.value]),
     queryFn: async () => {
       const cfg = periodConfig.value
       const endExclusive = new Date(cfg.end)
       endExclusive.setDate(endExclusive.getDate() + 1)
-      const { data, error } = await supabase
+      let query = supabase
         .from('inventory_movements')
         .select('id, product_id, variant_id, movement_type, quantity, unit_cost, exchange_rate_used, reference_type, reference_id, notes, created_at, products ( name )')
         .eq('business_id', businessId.value!)
@@ -355,6 +376,12 @@ function useFinancialSummary(
         .gte('created_at', cfg.start.toISOString())
         .lt('created_at', endExclusive.toISOString())
         .order('created_at', { ascending: false })
+
+      if (branchId.value) {
+        query = query.eq('branch_id', branchId.value)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
       return (data ?? []) as Array<any>
@@ -486,8 +513,8 @@ function useFinancialSummary(
     }
 
     // Expenses (gastos)
-    const expenses = rawExpenses.value ?? []
-    for (const ex of expenses) {
+    const expensesList = rawExpenses.value ?? []
+    for (const ex of expensesList) {
       const exCurrency = ((ex as any).currency === 'VES' ? 'VES' : undefined) as 'USD' | 'VES' | undefined
       const exOriginalAmount = exCurrency === 'VES' ? Number((ex as any).original_amount ?? 0) : undefined
       const exExchangeRate = exCurrency === 'VES' ? Number((ex as any).exchange_rate_used ?? 1) : undefined

@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
 import { useCurrency } from './useCurrency'
+import { useBusinessStore } from '../store/business'
 import { expensesKeys, listExpenses, saveExpense, deleteExpense, type ExpenseFormData, type ExpenseRow } from '../services/expensesService'
 import { resolvePeriodDates } from '../lib/periodUtils'
 
@@ -15,6 +16,8 @@ export function useExpenses(
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
   const { exchangeRate } = useCurrency()
+  const businessStore = useBusinessStore()
+  const branchId = computed(() => businessStore.currentBranchId)
 
   const periodDates = computed(() => {
     if (!selectedPeriod) return { start: '', end: '' }
@@ -22,12 +25,12 @@ export function useExpenses(
   })
 
   const queryKey = computed(() =>
-    expensesKeys.filtered(businessId.value, periodDates.value.start, periodDates.value.end)
+    expensesKeys.filtered(businessId.value, branchId.value, periodDates.value.start, periodDates.value.end)
   )
 
   const { data, isLoading, isError, error: queryError } = useQuery({
     queryKey,
-    queryFn: () => listExpenses(businessId.value!, periodDates.value.start, periodDates.value.end),
+    queryFn: () => listExpenses(businessId.value!, periodDates.value.start, periodDates.value.end, branchId.value),
     enabled: computed(() => !!businessId.value && !!selectedPeriod),
   })
 
@@ -37,7 +40,7 @@ export function useExpenses(
   const saveMutation = useMutation({
     mutationFn: (formData: ExpenseFormData & { id?: string }) => {
       if (!businessId.value) throw new Error('No hay negocio activo')
-      return saveExpense(businessId.value, formData, exchangeRate.value)
+      return saveExpense(businessId.value, formData, branchId.value, exchangeRate.value)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value), exact: false })

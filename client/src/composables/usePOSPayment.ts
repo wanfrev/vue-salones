@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from './useAuth'
 import { useNotification } from './useNotification'
+import { useBusinessStore } from '../store/business'
 import { recordSale, posKeys } from '../services/posService'
 import type { PaymentMethod } from '../types/database'
 import type { POSProductItem, PaymentBreakdownItem } from '../types/pos'
@@ -10,7 +11,9 @@ export function usePOSPayment() {
   const { authStore } = useAuth()
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
+  const businessStore = useBusinessStore()
   const businessId = computed(() => authStore.businessId)
+  const branchId = computed(() => businessStore.currentBranchId)
 
   const paymentMethod = ref<PaymentMethod>('cash')
   const otherCurrency = ref<'USD' | 'VES'>('USD')
@@ -61,7 +64,7 @@ export function usePOSPayment() {
       notes: string
       exchangeRate: number
       paymentsBreakdown: PaymentBreakdownItem[]
-    }) => recordSale({ ...params, businessId: businessId.value! }),
+    }) => recordSale({ ...params, businessId: businessId.value!, branchId: branchId.value }),
     onSuccess: () => {
       queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
       queryClient.invalidateQueries({ exact: false, queryKey: posKeys.products(businessId.value) })
