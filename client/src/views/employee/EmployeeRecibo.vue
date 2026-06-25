@@ -437,12 +437,13 @@ const { data: earningsData, isLoading: loadingEarnings } = useQuery({
 })
 const earnings = computed(() => earningsData.value ?? [])
 
-const filteredEarnings = computed(() =>
-  earnings.value.filter(r => {
+const filteredEarnings = computed(() => {
+  if (selectedPeriod.value === 'all') return earnings.value
+  return earnings.value.filter(r => {
     const d = new Date(r.paidAt)
     return d >= periodStart.value && d <= periodEnd.value
   })
-)
+})
 
 const earningsWithVES = computed(() =>
   filteredEarnings.value.map(row => {
@@ -492,12 +493,13 @@ const { data: paymentsData } = useQuery({
 const payments = computed(() => paymentsData.value ?? [])
 const { formatUSD, formatVES, formatVESEs, exchangeRate } = useCurrency()
 
-const filteredPayments = computed(() =>
-  payments.value.filter(p => {
+const filteredPayments = computed(() => {
+  if (selectedPeriod.value === 'all') return payments.value
+  return payments.value.filter(p => {
     const d = new Date(p.payment_date)
     return d >= periodStart.value && d <= periodEnd.value
   })
-)
+})
 
 const paymentsWithCurrency = computed(() => {
   return filteredPayments.value.map((p: any) => {
