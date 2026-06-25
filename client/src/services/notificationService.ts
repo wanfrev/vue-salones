@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { mutate } from '../lib/typedSupabase'
 
-export type NotificationType = 'reminder' | 'status_change' | 'new_appointment' | 'unpaid_alert'
+export type NotificationType = 'reminder' | 'status_change' | 'new_appointment' | 'unpaid_alert' | 'low_stock'
 
 export interface NotificationRecord {
   id: string

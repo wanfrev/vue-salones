@@ -322,6 +322,7 @@ export interface SupplierBalance {
 export const getSupplierBalance = async (
   businessId: string,
   supplierId: string,
+  branchId?: string | null,
 ): Promise<SupplierBalance> => {
   const { data: supplier, error: supplierError } = await supabase
     .from('suppliers')
@@ -333,11 +334,17 @@ export const getSupplierBalance = async (
 
   const s = supplier as any
 
-  const { data: payments, error: paymentsError } = await supabase
+  let paymentsQuery = supabase
     .from('supplier_payments')
     .select('amount')
     .eq('business_id', businessId)
     .eq('supplier_id', supplierId)
+
+  if (branchId) {
+    paymentsQuery = paymentsQuery.eq('branch_id', branchId)
+  }
+
+  const { data: payments, error: paymentsError } = await paymentsQuery
 
   if (paymentsError) handleDbError(paymentsError, 'Error al cargar abonos')
 

@@ -58,6 +58,22 @@
             </button>
           </template>
 
+          <template v-else-if="notif.type === 'low_stock'">
+            <button
+              @click="handleNavigateToInventory"
+              class="flex items-center gap-1 rounded-lg bg-danger/10 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/20"
+            >
+              <PackageOpen :size="14" />
+              Ver inventario
+            </button>
+            <button
+              @click="handleDismiss(notif.id)"
+              class="rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-bg-secondary hover:text-text-secondary"
+            >
+              Ignorar
+            </button>
+          </template>
+
           <template v-else>
             <button
               @click="handleNavigateToAppointment(notif)"
@@ -80,18 +96,19 @@
 </template>
 
 <script setup lang="ts">
-import { Bell, MessageCircle, Calendar, CheckCircle2, CalendarPlus, AlertTriangle } from 'lucide-vue-next'
+import { Bell, MessageCircle, Calendar, CheckCircle2, CalendarPlus, AlertTriangle, PackageOpen } from 'lucide-vue-next'
 import { useNotifications } from '../../composables/useNotifications'
 
 defineEmits<{ close: [] }>()
 
-const { notifications, unreadCount, handleMarkAllAsRead, handleDismiss, handleSendWhatsApp, handleNavigateToAppointment } = useNotifications()
+const { notifications, unreadCount, handleMarkAllAsRead, handleDismiss, handleSendWhatsApp, handleNavigateToAppointment, handleNavigateToInventory } = useNotifications()
 
 const typeStyle: Record<string, { icon: typeof Bell; bg: string; color: string }> = {
   reminder: { icon: Bell, bg: 'bg-primary/10', color: 'text-primary' },
   status_change: { icon: CheckCircle2, bg: 'bg-success/10', color: 'text-success' },
   new_appointment: { icon: CalendarPlus, bg: 'bg-info/10', color: 'text-info' },
   unpaid_alert: { icon: AlertTriangle, bg: 'bg-warning/10', color: 'text-warning' },
+  low_stock: { icon: PackageOpen, bg: 'bg-danger/10', color: 'text-danger' },
 }
 
 const formatRelativeTime = (dateStr: string): string => {

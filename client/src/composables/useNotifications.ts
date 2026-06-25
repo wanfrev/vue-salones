@@ -137,6 +137,10 @@ export function useNotifications() {
     }
   }
 
+  const handleNavigateToInventory = () => {
+    window.location.hash = '#/inventario'
+  }
+
   return {
     notifications,
     unreadCount,
@@ -146,5 +150,6 @@ export function useNotifications() {
     handleDismiss,
     handleSendWhatsApp,
     handleNavigateToAppointment,
+    handleNavigateToInventory,
   }
 }

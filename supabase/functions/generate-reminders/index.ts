@@ -197,9 +197,79 @@ serve(async (req) => {
       }
     }
 
+    // ============================================================
+    // 3. Low stock alerts: products at or below reorder_point
+    // ============================================================
+    const { data: lowStockProducts, error: lowStockError } = await supabaseAdmin
+      .rpc('get_low_stock_products')
+
+    let lowStockGenerated = 0
+
+    if (lowStockError) {
+      console.error('[generate-reminders] low stock query error:', lowStockError.message)
+    }
+
+    if (lowStockProducts && lowStockProducts.length > 0) {
+      const byBiz = new Map<string, { count: number; names: string[] }>()
+      for (const row of lowStockProducts) {
+        const bizId = row.business_id
+        if (!byBiz.has(bizId)) {
+          byBiz.set(bizId, { count: 0, names: [] })
+        }
+        const entry = byBiz.get(bizId)!
+        entry.count++
+        if (entry.names.length < 5) {
+          entry.names.push(row.name)
+        }
+      }
+
+      for (const [bizId, info] of byBiz.entries()) {
+        await supabaseAdmin
+          .from('notifications')
+          .delete()
+          .eq('business_id', bizId)
+          .eq('type', 'low_stock')
+
+        const { data: admins } = await supabaseAdmin
+          .from('profiles')
+          .select('id')
+          .eq('business_id', bizId)
+          .eq('role', 'admin')
+          .eq('active', true)
+
+        if (admins && admins.length > 0) {
+          const extra = info.count > info.names.length ? ` y ${info.count - info.names.length} más` : ''
+          const message = `${info.count} producto(s) con stock bajo: ${info.names.join(', ')}${extra}`
+
+          const notifications = admins.map((admin: { id: string }) => ({
+            business_id: bizId,
+            appointment_id: null,
+            profile_id: admin.id,
+            type: 'low_stock',
+            title: 'Stock bajo',
+            message,
+            client_name: null,
+            client_phone: null,
+            service_name: null,
+            appointment_time: null,
+            metadata: { product_count: info.count },
+          }))
+
+          const { error: insertError } = await supabaseAdmin
+            .from('notifications')
+            .insert(notifications)
+
+          if (!insertError) {
+            lowStockGenerated += notifications.length
+          }
+        }
+      }
+    }
+
     return new Response(JSON.stringify({
       generated: totalGenerated,
       unpaid_alerts: unpaidGenerated,
+      low_stock_alerts: lowStockGenerated,
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

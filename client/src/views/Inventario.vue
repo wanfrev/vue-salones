@@ -312,6 +312,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { formatDateTime, formatMovementType } from '../lib/formatters'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
+import { useBusinessStore } from '../store/business'
 import { FeatureGate } from '../components/common'
 import { useInventoryAdjustment } from '../composables/useInventoryAdjustment'
 import { inventarioKeys, listInventario, listInventoryMovements } from '../services/inventarioService'
@@ -341,12 +342,14 @@ const activeTab = ref<'stock' | 'movements'>('stock')
 const searchQuery = ref('')
 const movementSearch = ref('')
 const businessId = computed(() => authStore.businessId)
+const businessStore = useBusinessStore()
+const branchId = computed(() => businessStore.currentBranchId)
 const productoModalRef = ref<InstanceType<typeof ProductoFormModal> | null>(null)
 
 // --- Stock ---
 const { data: inventarioData } = useQuery({
-  queryKey: computed(() => inventarioKeys.all(businessId.value)),
-  queryFn: () => listInventario(businessId.value!),
+  queryKey: computed(() => inventarioKeys.all(businessId.value, branchId.value)),
+  queryFn: () => listInventario(businessId.value!, branchId.value),
   enabled: computed(() => !!businessId.value),
 })
 
@@ -360,8 +363,8 @@ const filteredInventario = computed(() => {
 
 // --- Movimientos ---
 const { data: movementsData } = useQuery({
-  queryKey: computed(() => inventarioKeys.movements(businessId.value)),
-  queryFn: () => listInventoryMovements(businessId.value!),
+  queryKey: computed(() => inventarioKeys.movements(businessId.value, branchId.value)),
+  queryFn: () => listInventoryMovements(businessId.value!, branchId.value),
   enabled: computed(() => !!businessId.value),
 })
 
@@ -377,7 +380,7 @@ const filteredMovements = computed(() => {
 
 // --- Producto form modal ---
 const saveProductoMutation = useMutation({
-  mutationFn: (data: ProductoFormData & { id?: string }) => saveProducto(businessId.value!, data),
+  mutationFn: (data: ProductoFormData & { id?: string }) => saveProducto(businessId.value!, data, branchId.value),
   onSuccess: () => {
     queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
     queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })

@@ -158,7 +158,7 @@ function useFinancialSummary(
   )
 
   const summaryQueryKey = computed(() =>
-    ['financial-summary', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null] as const
+    ['financial-summary', businessId.value, selectedPeriod.value, selectedMonth?.value ?? null, branchId.value] as const
   )
 
   const { data: summaryData, isLoading: isSummaryLoading } = useQuery({
@@ -172,6 +172,7 @@ function useFinancialSummary(
         p_period_start: start,
         p_period_end: end,
         p_period: cfg.bucket,
+        p_branch_id: branchId.value,
       })
       if (error) throw error
       return (data ?? []) as SummaryBucket[]
