@@ -21,6 +21,8 @@ as $$
 $$;
 
 -- Actualizar función pública para excluir negocios eliminados lógicamente
+drop function if exists public.public_business_info(text);
+
 create or replace function public.public_business_info(p_slug text)
 returns table (
   id            uuid,
