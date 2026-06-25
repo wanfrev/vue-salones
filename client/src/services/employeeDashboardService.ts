@@ -94,27 +94,37 @@ export const listEmployeeTransactions = async (
 
   if (apptError) throw apptError
 
-  const apptIds = (apptData ?? []).map(a => a.id)
+  type ApptRow = { id: string; employee_id: string; assistant_employee_id: string | null; client_id: string; service_id: string }
+  const appts = (apptData ?? []) as ApptRow[]
+  const apptIds = appts.map(a => a.id)
   if (apptIds.length === 0) return []
 
   // Step 2: Get client + service names for these appointments
-  const clientIds = Array.from(new Set((apptData ?? []).map(a => a.client_id).filter(Boolean)))
-  const serviceIds = Array.from(new Set((apptData ?? []).map(a => a.service_id).filter(Boolean)))
+  const clientIds = Array.from(new Set(appts.map(a => a.client_id).filter(Boolean)))
+  const serviceIds = Array.from(new Set(appts.map(a => a.service_id).filter(Boolean)))
 
+  type NameRow = { id: string; full_name?: string; name?: string }
   const [clientsRes, servicesRes] = await Promise.all([
     clientIds.length > 0
       ? supabase.from('clients').select('id, full_name').in('id', clientIds)
-      : Promise.resolve({ data: [], error: null }),
+      : Promise.resolve({ data: [] as NameRow[], error: null }),
     serviceIds.length > 0
       ? supabase.from('services').select('id, name').in('id', serviceIds)
-      : Promise.resolve({ data: [], error: null }),
+      : Promise.resolve({ data: [] as NameRow[], error: null }),
   ])
 
-  const clientsMap = new Map((clientsRes.data ?? []).map(c => [c.id, c.full_name]))
-  const servicesMap = new Map((servicesRes.data ?? []).map(s => [s.id, s.name]))
-  const apptMap = new Map((apptData ?? []).map(a => [a.id, a]))
+  const clientsMap = new Map<string, string>()
+  for (const c of (clientsRes.data ?? [])) { clientsMap.set(c.id, c.full_name ?? c.id) }
+  const servicesMap = new Map<string, string>()
+  for (const s of (servicesRes.data ?? [])) { servicesMap.set(s.id, s.name ?? s.id) }
+  const apptMap = new Map<string, ApptRow>(appts.map(a => [a.id, a]))
 
   // Step 3: Get transactions for these appointments
+  type TxRow = {
+    id: string; paid_at: string; total_amount: number; exchange_rate_used: number | null
+    employee_percentage: number; assistant_amount: number | null; assistant_percentage: number | null
+    method: string | null; payments_breakdown: any; appointment_id: string
+  }
   const { data, error } = await supabase
     .from('transactions')
     .select('id, paid_at, total_amount, exchange_rate_used, employee_percentage, assistant_amount, assistant_percentage, method, payments_breakdown, appointment_id')
@@ -124,18 +134,7 @@ export const listEmployeeTransactions = async (
 
   if (error) throw error
 
-  const raw = (data ?? []) as Array<{
-    id: string
-    paid_at: string
-    total_amount: number
-    exchange_rate_used: number | null
-    employee_percentage: number
-    assistant_amount: number | null
-    assistant_percentage: number | null
-    method: string | null
-    payments_breakdown: any
-    appointment_id: string
-  }>
+  const raw = (data ?? []) as TxRow[]
 
   return raw.map(row => {
     const totalAmount = Number(row.total_amount)
@@ -173,8 +172,8 @@ export const listEmployeeTransactions = async (
       id: row.id,
       date: formatDate(row.paid_at),
       paidAt: row.paid_at,
-      clientName: appt ? clientsMap.get(appt.client_id) ?? '—' : '—',
-      serviceName: appt ? servicesMap.get(appt.service_id) ?? '—' : '—',
+      clientName: appt ? (clientsMap.get(appt.client_id) ?? '—') : '—',
+      serviceName: appt ? (servicesMap.get(appt.service_id) ?? '—') : '—',
       totalAmount,
       exchangeRateUsed,
       method,
