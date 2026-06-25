@@ -39,7 +39,7 @@
               :model-value="selectedPeriod"
               @update:model-value="onPeriodChange"
             />
-            <div class="flex items-center justify-center gap-2 mt-3">
+            <div v-if="selectedPeriod !== 'all'" class="flex items-center justify-center gap-2 mt-3">
               <button
                 @click="previousPeriod"
                 class="rounded-lg p-1.5 text-text-muted hover:bg-bg-secondary hover:text-text transition-colors"
@@ -299,11 +299,12 @@ const businessId = computed(() => authStore.businessId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
 const businessName = computed(() => businessStore.business?.name ?? '')
 
-const selectedPeriod = ref<'day' | 'week' | 'month'>('month')
+const selectedPeriod = ref<'all' | 'day' | 'week' | 'month'>('all')
 const selectedDate = ref(new Date())
 const showHistory = ref(false)
 
 const periodTabs = [
+  { key: 'all', label: 'Todo' },
   { key: 'day', label: 'Día' },
   { key: 'week', label: 'Semana' },
   { key: 'month', label: 'Mes' },
@@ -329,12 +330,14 @@ function weekStart(d: Date): Date {
 }
 
 const periodStart = computed<Date>(() => {
+  if (selectedPeriod.value === 'all') return new Date(2000, 0, 1)
   if (selectedPeriod.value === 'day') return dayStart(selectedDate.value)
   if (selectedPeriod.value === 'week') return weekStart(selectedDate.value)
   return new Date(selectedDate.value.getFullYear(), selectedDate.value.getMonth(), 1)
 })
 
 const periodEnd = computed<Date>(() => {
+  if (selectedPeriod.value === 'all') return new Date(2099, 11, 31, 23, 59, 59, 999)
   if (selectedPeriod.value === 'day') return dayEnd(selectedDate.value)
   if (selectedPeriod.value === 'week') {
     const end = weekStart(selectedDate.value)
@@ -348,6 +351,7 @@ const periodEnd = computed<Date>(() => {
 })
 
 const periodLabel = computed(() => {
+  if (selectedPeriod.value === 'all') return 'Todos los recibos'
   const d = selectedDate.value
   if (selectedPeriod.value === 'day') {
     return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`
@@ -366,6 +370,7 @@ const periodLabel = computed(() => {
 })
 
 const isCurrentPeriod = computed(() => {
+  if (selectedPeriod.value === 'all') return true
   const now = new Date()
   if (selectedPeriod.value === 'day') {
     return dayStart(selectedDate.value).getTime() >= dayStart(now).getTime()
@@ -379,11 +384,12 @@ const isCurrentPeriod = computed(() => {
 })
 
 function onPeriodChange(value: string) {
-  selectedPeriod.value = value as 'day' | 'week' | 'month'
-  selectedDate.value = new Date()
+  selectedPeriod.value = value as 'all' | 'day' | 'week' | 'month'
+  if (value !== 'all') selectedDate.value = new Date()
 }
 
 function previousPeriod() {
+  if (selectedPeriod.value === 'all') return
   const d = new Date(selectedDate.value)
   if (selectedPeriod.value === 'day') d.setDate(d.getDate() - 1)
   else if (selectedPeriod.value === 'week') d.setDate(d.getDate() - 7)
@@ -392,6 +398,7 @@ function previousPeriod() {
 }
 
 function nextPeriod() {
+  if (selectedPeriod.value === 'all') return
   if (isCurrentPeriod.value) return
   const d = new Date(selectedDate.value)
   if (selectedPeriod.value === 'day') d.setDate(d.getDate() + 1)
