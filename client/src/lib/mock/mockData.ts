@@ -2,11 +2,13 @@ import type {
   Business, Profile, EmployeeSchedule, Service,
   Client, Appointment, Transaction, EmployeePayment,
   ProductCategory, Product, ProductVariant,
-  InventoryLocation, InventoryStock, InventoryMovement
+  InventoryLocation, InventoryStock, InventoryMovement,
+  Branch
 } from '../../types/database'
 
 const BIZ = '00000000-0000-0000-0000-000000000001'
 const BIZ2 = '00000000-0000-0000-0000-000000000002'
+const BRANCH = '00000000-0000-0000-0000-000000000010'
 const ADMIN = '00000000-0000-0000-0000-000000000100'
 const SUPERADMIN = '00000000-0000-0000-0000-000000000101'
 const EMP1 = '00000000-0000-0000-0000-000000000201'
@@ -23,6 +25,7 @@ const LOC2 = '00000000-0000-0000-0000-000000000802'
 
 export interface MockDataStore {
   businesses: Business[]
+  branches: Branch[]
   profiles: Profile[]
   employee_schedules: EmployeeSchedule[]
   services: Service[]
@@ -126,24 +129,24 @@ export function createMockDataStore(): MockDataStore {
   ]
 
   const employee_schedules: EmployeeSchedule[] = [
-    { id: 'sch-1', employee_id: EMP1, weekday: 1, start_time: '09:00', end_time: '18:00', created_at: now },
-    { id: 'sch-2', employee_id: EMP1, weekday: 2, start_time: '09:00', end_time: '18:00', created_at: now },
-    { id: 'sch-3', employee_id: EMP1, weekday: 3, start_time: '09:00', end_time: '18:00', created_at: now },
-    { id: 'sch-4', employee_id: EMP1, weekday: 4, start_time: '09:00', end_time: '18:00', created_at: now },
-    { id: 'sch-5', employee_id: EMP1, weekday: 5, start_time: '09:00', end_time: '18:00', created_at: now },
-    { id: 'sch-6', employee_id: EMP1, weekday: 6, start_time: '09:00', end_time: '15:00', created_at: now },
-    { id: 'sch-7', employee_id: EMP2, weekday: 1, start_time: '10:00', end_time: '19:00', created_at: now },
-    { id: 'sch-8', employee_id: EMP2, weekday: 2, start_time: '10:00', end_time: '19:00', created_at: now },
-    { id: 'sch-9', employee_id: EMP2, weekday: 3, start_time: '10:00', end_time: '19:00', created_at: now },
-    { id: 'sch-10', employee_id: EMP2, weekday: 4, start_time: '10:00', end_time: '19:00', created_at: now },
-    { id: 'sch-11', employee_id: EMP2, weekday: 5, start_time: '10:00', end_time: '19:00', created_at: now },
-    { id: 'sch-12', employee_id: EMP2, weekday: 6, start_time: '09:00', end_time: '14:00', created_at: now },
-    { id: 'sch-13', employee_id: EMP3, weekday: 1, start_time: '09:00', end_time: '17:00', created_at: now },
-    { id: 'sch-14', employee_id: EMP3, weekday: 2, start_time: '09:00', end_time: '17:00', created_at: now },
-    { id: 'sch-15', employee_id: EMP3, weekday: 3, start_time: '09:00', end_time: '17:00', created_at: now },
-    { id: 'sch-16', employee_id: EMP3, weekday: 4, start_time: '09:00', end_time: '17:00', created_at: now },
-    { id: 'sch-17', employee_id: EMP3, weekday: 5, start_time: '09:00', end_time: '17:00', created_at: now },
-    { id: 'sch-18', employee_id: EMP3, weekday: 6, start_time: '10:00', end_time: '16:00', created_at: now },
+    { id: 'sch-1', employee_id: EMP1, branch_id: BRANCH, weekday: 1, start_time: '09:00', end_time: '18:00', created_at: now },
+    { id: 'sch-2', employee_id: EMP1, branch_id: BRANCH, weekday: 2, start_time: '09:00', end_time: '18:00', created_at: now },
+    { id: 'sch-3', employee_id: EMP1, branch_id: BRANCH, weekday: 3, start_time: '09:00', end_time: '18:00', created_at: now },
+    { id: 'sch-4', employee_id: EMP1, branch_id: BRANCH, weekday: 4, start_time: '09:00', end_time: '18:00', created_at: now },
+    { id: 'sch-5', employee_id: EMP1, branch_id: BRANCH, weekday: 5, start_time: '09:00', end_time: '18:00', created_at: now },
+    { id: 'sch-6', employee_id: EMP1, branch_id: BRANCH, weekday: 6, start_time: '09:00', end_time: '15:00', created_at: now },
+    { id: 'sch-7', employee_id: EMP2, branch_id: BRANCH, weekday: 1, start_time: '10:00', end_time: '19:00', created_at: now },
+    { id: 'sch-8', employee_id: EMP2, branch_id: BRANCH, weekday: 2, start_time: '10:00', end_time: '19:00', created_at: now },
+    { id: 'sch-9', employee_id: EMP2, branch_id: BRANCH, weekday: 3, start_time: '10:00', end_time: '19:00', created_at: now },
+    { id: 'sch-10', employee_id: EMP2, branch_id: BRANCH, weekday: 4, start_time: '10:00', end_time: '19:00', created_at: now },
+    { id: 'sch-11', employee_id: EMP2, branch_id: BRANCH, weekday: 5, start_time: '10:00', end_time: '19:00', created_at: now },
+    { id: 'sch-12', employee_id: EMP2, branch_id: BRANCH, weekday: 6, start_time: '09:00', end_time: '14:00', created_at: now },
+    { id: 'sch-13', employee_id: EMP3, branch_id: BRANCH, weekday: 1, start_time: '09:00', end_time: '17:00', created_at: now },
+    { id: 'sch-14', employee_id: EMP3, branch_id: BRANCH, weekday: 2, start_time: '09:00', end_time: '17:00', created_at: now },
+    { id: 'sch-15', employee_id: EMP3, branch_id: BRANCH, weekday: 3, start_time: '09:00', end_time: '17:00', created_at: now },
+    { id: 'sch-16', employee_id: EMP3, branch_id: BRANCH, weekday: 4, start_time: '09:00', end_time: '17:00', created_at: now },
+    { id: 'sch-17', employee_id: EMP3, branch_id: BRANCH, weekday: 5, start_time: '09:00', end_time: '17:00', created_at: now },
+    { id: 'sch-18', employee_id: EMP3, branch_id: BRANCH, weekday: 6, start_time: '10:00', end_time: '16:00', created_at: now },
   ]
 
   const services: Service[] = [
@@ -190,6 +193,7 @@ export function createMockDataStore(): MockDataStore {
     const end = new Date(start.getTime() + svc.duration_minutes * 60000)
     return {
       id, business_id: BIZ,
+      branch_id: BRANCH,
       client_id: cl.id, employee_id: employeeId, service_id: svc.id,
       assistant_employee_id: null, assistant_percentage: null,
       employee_percentage_override: null,
@@ -226,7 +230,7 @@ export function createMockDataStore(): MockDataStore {
 
   const transactions: Transaction[] = [
     {
-      id: 'txn-01', business_id: BIZ, appointment_id: 'apt-04',
+      id: 'txn-01', business_id: BIZ, branch_id: BRANCH, appointment_id: 'apt-04',
       total_amount: 250, local_amount: 125, employee_amount: 125,
       assistant_amount: 0, local_percentage: 50, employee_percentage: 50,
       assistant_percentage: 0,
@@ -234,7 +238,7 @@ export function createMockDataStore(): MockDataStore {
       created_by: ADMIN, notes: null, created_at: now,
     },
     {
-      id: 'txn-02', business_id: BIZ, appointment_id: 'apt-12',
+      id: 'txn-02', business_id: BIZ, branch_id: BRANCH, appointment_id: 'apt-12',
       total_amount: 250, local_amount: 125, employee_amount: 125,
       assistant_amount: 0, local_percentage: 50, employee_percentage: 50,
       assistant_percentage: 0,
@@ -264,15 +268,19 @@ export function createMockDataStore(): MockDataStore {
   ]
 
   const inventory_stock: InventoryStock[] = [
-    { id: 'stk-01', business_id: BIZ, location_id: LOC1, product_id: PROD1, variant_id: VAR1, quantity: 20, reserved_qty: 0, updated_at: now },
-    { id: 'stk-02', business_id: BIZ, location_id: LOC1, product_id: PROD1, variant_id: VAR2, quantity: 10, reserved_qty: 0, updated_at: now },
-    { id: 'stk-03', business_id: BIZ, location_id: LOC2, product_id: PROD2, variant_id: null, quantity: 50, reserved_qty: 0, updated_at: now },
+    { id: 'stk-01', business_id: BIZ, branch_id: BRANCH, location_id: LOC1, product_id: PROD1, variant_id: VAR1, quantity: 20, reserved_qty: 0, updated_at: now },
+    { id: 'stk-02', business_id: BIZ, branch_id: BRANCH, location_id: LOC1, product_id: PROD1, variant_id: VAR2, quantity: 10, reserved_qty: 0, updated_at: now },
+    { id: 'stk-03', business_id: BIZ, branch_id: BRANCH, location_id: LOC2, product_id: PROD2, variant_id: null, quantity: 50, reserved_qty: 0, updated_at: now },
   ]
 
   const inventory_movements: InventoryMovement[] = [
-    { id: 'mov-01', business_id: BIZ, location_id: LOC1, product_id: PROD1, variant_id: VAR1, movement_type: 'purchase', quantity: 20, unit_cost: 180, reference_type: null, reference_id: null, notes: 'Compra inicial', created_by: ADMIN, created_at: now },
-    { id: 'mov-02', business_id: BIZ, location_id: LOC1, product_id: PROD1, variant_id: VAR2, movement_type: 'purchase', quantity: 10, unit_cost: 300, reference_type: null, reference_id: null, notes: 'Compra inicial', created_by: ADMIN, created_at: now },
-    { id: 'mov-03', business_id: BIZ, location_id: LOC2, product_id: PROD2, variant_id: null, movement_type: 'purchase', quantity: 50, unit_cost: 250, reference_type: null, reference_id: null, notes: 'Compra inicial', created_by: ADMIN, created_at: now },
+    { id: 'mov-01', business_id: BIZ, branch_id: BRANCH, location_id: LOC1, product_id: PROD1, variant_id: VAR1, movement_type: 'purchase', quantity: 20, unit_cost: 180, reference_type: null, reference_id: null, notes: 'Compra inicial', created_by: ADMIN, created_at: now },
+    { id: 'mov-02', business_id: BIZ, branch_id: BRANCH, location_id: LOC1, product_id: PROD1, variant_id: VAR2, movement_type: 'purchase', quantity: 10, unit_cost: 300, reference_type: null, reference_id: null, notes: 'Compra inicial', created_by: ADMIN, created_at: now },
+    { id: 'mov-03', business_id: BIZ, branch_id: BRANCH, location_id: LOC2, product_id: PROD2, variant_id: null, movement_type: 'purchase', quantity: 50, unit_cost: 250, reference_type: null, reference_id: null, notes: 'Compra inicial', created_by: ADMIN, created_at: now },
+  ]
+
+  const branches: Branch[] = [
+    { id: BRANCH, business_id: BIZ, name: 'Sucursal Principal', address: 'Av. Principal 123', phone: '+525551234500', is_default: true, active: true, created_at: now, updated_at: now },
   ]
 
   const employee_payments: EmployeePayment[] = [
@@ -290,6 +298,7 @@ export function createMockDataStore(): MockDataStore {
     employee_absences: [],
     product_categories, products, product_variants,
     inventory_locations, inventory_stock, inventory_movements,
+    branches,
     employee_payments,
   }
 }

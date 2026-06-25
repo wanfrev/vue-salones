@@ -28,7 +28,7 @@ function mapAgendaWriteError(error: unknown, action: 'guardar' | 'reagendar'): E
 }
 
 export const agendaKeys = {
-  appointments: (businessId?: string | null) => ['appointments', businessId] as const,
+  appointments: (businessId?: string | null, branchId?: string | null) => ['appointments', businessId, branchId] as const,
 }
 
 const APPOINTMENT_SELECT = '*, clients(id, full_name, phone, email), services(id, name, duration_minutes, price, color), profiles!appointments_employee_id_fkey(id, full_name, avatar_url), assistant_profile:profiles!appointments_assistant_employee_id_fkey(id, full_name, avatar_url)'
@@ -36,13 +36,19 @@ const APPOINTMENT_SELECT = '*, clients(id, full_name, phone, email), services(id
 export const listCitas = async (
   businessId: string,
   dateRange?: { start: Date; end: Date },
-  employeeId?: string | 'all'
+  employeeId?: string | 'all',
+  branchId?: string | null
 ): Promise<Cita[]> => {
   let query = supabase
     .from('appointments')
     .select(APPOINTMENT_SELECT)
     .eq('business_id', businessId)
-    .order('start_time')
+
+  if (branchId) {
+    query = query.eq('branch_id', branchId)
+  }
+
+  query = query.order('start_time')
 
   if (dateRange) {
     query = query
@@ -74,7 +80,8 @@ export const listCitaGroupMembers = async (groupId: string): Promise<Appointment
 export const saveCita = async (
   businessId: string,
   data: CitaFormData & { id?: string; clientPhone?: string },
-  createdBy?: string | null
+  createdBy?: string | null,
+  branchId?: string | null
 ): Promise<Cita> => {
   const parsed = citaFormSchema.safeParse(data)
   if (!parsed.success) {
@@ -109,7 +116,8 @@ export const saveCita = async (
       data,
       service as Service,
       clientId,
-      createdBy
+      createdBy,
+      branchId
     )
 
     const query = data.id
@@ -190,7 +198,8 @@ export const saveCita = async (
     data.notes,
     groupId,
     createdBy,
-    servicesMap.get(data.service) as Service
+    servicesMap.get(data.service) as Service,
+    branchId
   ))
 
   // Extra services
@@ -205,7 +214,8 @@ export const saveCita = async (
       data.notes,
       groupId,
       createdBy,
-      servicesMap.get(extra.serviceId) as Service
+      servicesMap.get(extra.serviceId) as Service,
+      branchId
     ))
   }
 

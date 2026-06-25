@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useQuery, keepPreviousData } from '@tanstack/vue-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/auth'
+import { useBusinessStore } from '../store/business'
 import type { Profile, Service } from '../types/database'
 
 function defaultWeekRange() {
@@ -15,7 +16,9 @@ function defaultWeekRange() {
 
 export const useAgenda = () => {
   const authStore = useAuthStore()
+  const businessStore = useBusinessStore()
   const businessId = computed(() => authStore.businessId)
+  const currentBranchId = computed(() => businessStore.currentBranchId)
 
   const selectedEmployeeId = ref<string | 'all'>('all')
   const dateRange = ref(defaultWeekRange())
@@ -56,13 +59,16 @@ export const useAgenda = () => {
   })
 
   const { data: schedules } = useQuery({
-    queryKey: computed(() => ['schedules', businessId.value, selectedEmployeeId.value]),
+    queryKey: computed(() => ['schedules', businessId.value, selectedEmployeeId.value, currentBranchId.value]),
     queryFn: async (): Promise<any[]> => {
       if (!businessId.value) return []
       let query = supabase
         .from('employee_schedules')
         .select('*, profiles!inner(business_id)')
         .eq('profiles.business_id', businessId.value)
+      if (currentBranchId.value) {
+        query = query.eq('branch_id', currentBranchId.value)
+      }
       if (selectedEmployeeId.value !== 'all') {
         query = query.eq('employee_id', selectedEmployeeId.value)
       }
@@ -74,16 +80,19 @@ export const useAgenda = () => {
   })
 
   const { data: appointments, isLoading: loadingAppointments, refetch: refetchAppointments } = useQuery({
-    queryKey: computed(() => ['appointments', businessId.value, selectedEmployeeId.value, dateRange.value] as const),
+    queryKey: computed(() => ['appointments', businessId.value, selectedEmployeeId.value, currentBranchId.value, dateRange.value] as const),
     queryFn: async ({ queryKey }): Promise<any[]> => {
-      const [, bizId, empId, range] = queryKey
+      const [, bizId, empId, branchId, range] = queryKey
       if (!bizId) return []
       const { start, end } = range as { start: Date; end: Date }
       let query = supabase
         .from('appointments')
         .select('*, clients(id, full_name)')
         .eq('business_id', bizId)
-        .gte('start_time', start.toISOString())
+      if (branchId) {
+        query = query.eq('branch_id', branchId)
+      }
+      query = query.gte('start_time', start.toISOString())
         .lte('start_time', end.toISOString())
       if (empId !== 'all') {
         query = query.or(`employee_id.eq.${empId},assistant_employee_id.eq.${empId}`)

@@ -13,6 +13,7 @@
           <span class="text-sm font-semibold text-text leading-tight">{{ businessName }}</span>
           <span class="text-[10px] text-text-muted uppercase tracking-wide">{{ roleLabel }}</span>
         </div>
+        <BranchSwitcher v-if="businessStore.isMultiBranch" />
       </div>
       <div class="flex items-center gap-2">
         <slot name="header-actions" />
@@ -49,6 +50,7 @@ import lumaLogoDark from '../../assets/Luma blanco.svg'
 import Sidebar from './Sidebar.vue'
 import NotificationBell from '../common/NotificationBell.vue'
 import ThemeToggle from '../common/ThemeToggle.vue'
+import { BranchSwitcher } from '../common'
 
 const { logout, loading } = useAuth()
 const authStore = useAuthStore()

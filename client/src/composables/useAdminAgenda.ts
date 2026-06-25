@@ -4,10 +4,14 @@ import { toISODate } from '../lib/formatters'
 import { listCitas, agendaKeys } from '../services/agendaService'
 import { listServicios, serviciosKeys } from '../services/serviciosService'
 import { listEquipo, equipoKeys } from '../services/equipoService'
+import { useBusinessStore } from '../store/business'
 import type { Cita } from '../types/cita'
 
 export function useAdminAgenda(businessId: () => string | null) {
   const selectedDate = ref<Date>(new Date())
+  const businessStore = useBusinessStore()
+
+  const currentBranchId = computed(() => businessStore.currentBranchId)
 
   const dateRange = computed(() => {
     const start = new Date(selectedDate.value)
@@ -18,8 +22,8 @@ export function useAdminAgenda(businessId: () => string | null) {
   })
 
   const { data: citasData, isLoading } = useQuery({
-    queryKey: computed(() => [...agendaKeys.appointments(businessId()), toISODate(selectedDate.value)]),
-    queryFn: () => listCitas(businessId()!, dateRange.value),
+    queryKey: computed(() => [...agendaKeys.appointments(businessId(), currentBranchId.value), toISODate(selectedDate.value)]),
+    queryFn: () => listCitas(businessId()!, dateRange.value, undefined, currentBranchId.value),
     enabled: computed(() => !!businessId()),
   })
 

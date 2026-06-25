@@ -40,6 +40,8 @@ export interface Business {
   terminology: Terminology
   job_titles: string[]
   service_categories: string[]
+  features: Record<string, boolean> | null
+  multi_branch_enabled: boolean
   active: boolean
   deleted_at: string | null
   created_at: string
@@ -66,6 +68,7 @@ export interface Profile {
 export interface EmployeeSchedule {
   id: string
   employee_id: string
+  branch_id: string | null
   weekday: number
   start_time: string
   end_time: string
@@ -121,6 +124,7 @@ export interface Appointment {
   assistant_employee_id: string | null
   assistant_percentage: number | null
   employee_percentage_override: number | null
+  branch_id: string | null
   service_id: string
   group_id: string | null
   start_time: string
@@ -148,6 +152,7 @@ export interface Transaction {
   id: string
   business_id: string
   appointment_id: string
+  branch_id: string | null
   total_amount: number
   local_amount: number
   employee_amount: number
@@ -167,6 +172,7 @@ export interface Transaction {
 export interface Expense {
   id: string
   business_id: string
+  branch_id: string | null
   name: string
   category: string
   amount: number
@@ -274,6 +280,7 @@ export interface InventoryLocation {
 export interface InventoryStock {
   id: string
   business_id: string
+  branch_id: string | null
   location_id: string
   product_id: string
   variant_id: string | null
@@ -285,6 +292,7 @@ export interface InventoryStock {
 export interface InventoryMovement {
   id: string
   business_id: string
+  branch_id: string | null
   location_id: string
   product_id: string
   variant_id: string | null
@@ -341,6 +349,18 @@ export interface SupplierPayment {
   updated_at: string
 }
 
+export interface Branch {
+  id: string
+  business_id: string
+  name: string
+  address: string | null
+  phone: string | null
+  is_default: boolean
+  active: boolean
+  created_at: string
+  updated_at: string
+}
+
 type TableShape<Row> = {
   Row: Row
   Insert: Partial<Row>
@@ -352,6 +372,7 @@ export interface Database {
   public: {
     Tables: {
       businesses: TableShape<Business>
+      branches: TableShape<Branch>
       profiles: TableShape<Profile>
       employee_schedules: TableShape<EmployeeSchedule>
       services: TableShape<Service>

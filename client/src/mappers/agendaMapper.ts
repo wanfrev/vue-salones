@@ -54,7 +54,8 @@ export const mapCitaFormToAppointmentInsert = (
   data: CitaFormData,
   service: Service,
   clientId: string,
-  createdBy?: string | null
+  createdBy?: string | null,
+  branchId?: string | null
 ) => {
   const startTime = new Date(`${data.date}T${data.time}:00`)
   const endTime = new Date(startTime.getTime() + service.duration_minutes * 60 * 1000)
@@ -66,6 +67,7 @@ export const mapCitaFormToAppointmentInsert = (
 
   return {
     business_id: businessId,
+    branch_id: branchId || null,
     client_id: clientId,
     employee_id: data.employee,
     assistant_employee_id: data.assistantEmployee || null,
@@ -93,7 +95,8 @@ export const mapServiceItemToAppointmentInsert = (
   notes: string,
   groupId: string,
   createdBy?: string | null,
-  service?: Service
+  service?: Service,
+  branchId?: string | null
 ) => {
   const startTime = new Date(`${date}T${time}:00`)
   const duration = service?.duration_minutes ?? item.duration
@@ -106,6 +109,7 @@ export const mapServiceItemToAppointmentInsert = (
 
   return {
     business_id: businessId,
+    branch_id: branchId || null,
     client_id: clientId,
     employee_id: item.employeeId,
     assistant_employee_id: item.assistantEmployeeId || null,

@@ -4,6 +4,7 @@ import { saveCita, updateCitaStatus, updateAppointmentTime, deleteCita } from '.
 import { posKeys } from '../services/posService'
 import { clientesKeys } from '../services/clientesService'
 import { dashboardKeys } from '../services/employeeDashboardService'
+import { useBusinessStore } from '../store/business'
 import { mutate } from '../lib/typedSupabase'
 import { supabase } from '../lib/supabase'
 import { translateError } from '../lib/errors'
@@ -17,6 +18,7 @@ export function useAppointmentMutations(options: {
 }) {
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
+  const businessStore = useBusinessStore()
 
   const invalidate = () => {
     const bid = options.businessId.value
@@ -43,7 +45,7 @@ export function useAppointmentMutations(options: {
 
   const saveCitaMutation = useMutation({
     mutationFn: (data: CitaFormData & { id?: string; clientPhone?: string }) =>
-      saveCita(options.businessId.value!, data, options.createdBy?.value),
+      saveCita(options.businessId.value!, data, options.createdBy?.value, businessStore.currentBranchId),
     onSuccess: () => {
       invalidate()
       options.modalRef?.value?.close()

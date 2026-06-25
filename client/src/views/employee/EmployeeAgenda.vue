@@ -95,9 +95,11 @@ const goToToday = () => {
   selectedDate.value = new Date()
 }
 
+const currentBranchId = computed(() => businessStore.currentBranchId)
+
 const { data: citasData, isLoading } = useQuery({
-  queryKey: computed(() => [...agendaKeys.appointments(businessId.value), 'employee', authStore.profile?.id, toISODate(selectedDate.value)]),
-  queryFn: () => listCitas(businessId.value!, dateRange.value, authStore.profile?.id),
+  queryKey: computed(() => [...agendaKeys.appointments(businessId.value, currentBranchId.value), 'employee', authStore.profile?.id, toISODate(selectedDate.value)]),
+  queryFn: () => listCitas(businessId.value!, dateRange.value, authStore.profile?.id, currentBranchId.value),
   enabled: computed(() => !!businessId.value && !!authStore.profile?.id),
 })
 

@@ -12,6 +12,7 @@
           <img :src="lumaLogo" alt="Luma" class="-ml-1 h-7 w-auto object-contain" />
           <span class="text-[10px] text-text-muted uppercase tracking-wide">Admin</span>
         </div>
+        <BranchSwitcher v-if="businessStore.isMultiBranch" />
       </div>
       <div class="flex items-center gap-2">
         <ThemeToggle />
@@ -45,9 +46,12 @@ import lumaLogoDark from '../../assets/Luma blanco.svg'
 import Sidebar from './Sidebar.vue'
 import NotificationBell from '../common/NotificationBell.vue'
 import ThemeToggle from '../common/ThemeToggle.vue'
+import { BranchSwitcher } from '../common'
+import { useBusinessStore } from '../../store/business'
 
 const { logout, loading } = useAuth()
 const themeStore = useThemeStore()
+const businessStore = useBusinessStore()
 
 const isSidebarOpen = ref(false)
 const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
