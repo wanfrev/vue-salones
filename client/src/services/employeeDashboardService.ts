@@ -78,6 +78,13 @@ export const listEmployeeTransactions = async (
   businessId: string,
   employeeId: string
 ): Promise<EmployeeEarningRecord[]> => {
+  // Get employee profile for commission calculation
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('pay_type, pay_percentage')
+    .eq('id', employeeId)
+    .maybeSingle()
+
   const { data, error } = await supabase
     .from('transactions')
     .select(`
@@ -94,9 +101,7 @@ export const listEmployeeTransactions = async (
         employee_id,
         assistant_employee_id,
         clients ( full_name ),
-        services ( name ),
-        employee_profile:profiles!appointments_employee_id_fkey ( pay_type, pay_percentage ),
-        assistant_profile:profiles!appointments_assistant_employee_id_fkey ( pay_type, pay_percentage )
+        services ( name )
       )
     `)
     .or(`appointments.employee_id.eq.${employeeId},appointments.assistant_employee_id.eq.${employeeId}`)
@@ -116,14 +121,6 @@ export const listEmployeeTransactions = async (
         assistant_employee_id?: string | null
         clients?: { full_name: string | null } | null
         services?: { name: string | null } | null
-        employee_profile?: {
-          pay_type?: 'salary' | 'percentage' | 'mixed' | null
-          pay_percentage?: number | null
-        } | null
-        assistant_profile?: {
-          pay_type?: 'salary' | 'percentage' | 'mixed' | null
-          pay_percentage?: number | null
-        } | null
       } | null
     }
   >
@@ -145,7 +142,7 @@ export const listEmployeeTransactions = async (
       if (hasVES) currency = 'VES'
     }
     const isAssistant = row.appointments?.assistant_employee_id != null &&
-      row.appointments.assistant_employee_id !== row.appointments.employee_id
+      row.appointments.assistant_employee_id === employeeId
 
     const calc = isAssistant
       ? {
@@ -154,7 +151,7 @@ export const listEmployeeTransactions = async (
         }
       : computeServiceEarnings(
           totalAmount,
-          { pay_type: row.appointments?.employee_profile?.pay_type, pay_percentage: row.appointments?.employee_profile?.pay_percentage },
+          { pay_type: profile?.pay_type, pay_percentage: profile?.pay_percentage },
           row.employee_percentage,
         )
 
