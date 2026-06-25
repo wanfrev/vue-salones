@@ -125,6 +125,35 @@
             />
           </div>
 
+          <!-- Employee commission override -->
+          <div
+            v-if="getEmployeeDefaultPercentage(row.employeeId) != null"
+            class="flex items-center gap-2 mt-1"
+          >
+            <span class="text-xs text-text-muted">
+              Comisión: {{ getEmployeeDefaultPercentage(row.employeeId) }}%
+            </span>
+            <label class="flex items-center gap-1 text-xs text-primary cursor-pointer select-none">
+              <input
+                type="checkbox"
+                :checked="hasEmployeeOverride(index)"
+                @change="toggleEmployeeOverride(index)"
+                class="rounded border-border h-3.5 w-3.5"
+              />
+              Personalizar
+            </label>
+            <input
+              v-if="hasEmployeeOverride(index)"
+              :value="getEmployeeOverrideValue(index)"
+              @input="setEmployeeOverride(index, ($event.target as HTMLInputElement).value)"
+              type="number"
+              min="0"
+              max="100"
+              placeholder="%"
+              class="w-16 rounded border border-border bg-bg px-1.5 py-0.5 text-xs text-text"
+            />
+          </div>
+
           <!-- Assistant -->
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2" :class="{ 'mt-3': true }">
             <FormSelect
@@ -252,7 +281,7 @@ const MODAL_ID = 'cita-form-modal'
 
 const props = defineProps<{
   servicios?: { id: string; name: string; price: number; duration: number }[]
-  empleados?: { id: string; name: string }[]
+  empleados?: { id: string; name: string; payType?: string; payPercentage?: number }[]
 }>()
 
 const emit = defineEmits<{
@@ -463,6 +492,47 @@ const getRowError = (index: number, field: string): string | undefined => {
   return (errors.value as any)?.rowErrors?.[index]?.[field]
 }
 
+const getEmployeeDefaultPercentage = (employeeId: string): number | undefined => {
+  if (!employeeId) return undefined
+  const emp = props.empleados?.find(e => e.id === employeeId)
+  if (!emp || emp.payType === 'salary') return undefined
+  return emp.payPercentage ?? 0
+}
+
+const hasEmployeeOverride = (index: number): boolean => {
+  if (index === 0) return formData.value.employeePercentageOverride != null
+  const extra = formData.value.extraServices[index - 1]
+  return extra?.employeePercentageOverride != null
+}
+
+const getEmployeeOverrideValue = (index: number): string => {
+  if (index === 0) return formData.value.employeePercentageOverride != null ? String(formData.value.employeePercentageOverride) : ''
+  const extra = formData.value.extraServices[index - 1]
+  return extra?.employeePercentageOverride != null ? String(extra.employeePercentageOverride) : ''
+}
+
+const setEmployeeOverride = (index: number, value: string) => {
+  const num = value === '' ? undefined : Math.max(0, Math.min(100, Number(value) || 0))
+  if (index === 0) {
+    formData.value.employeePercentageOverride = num
+  } else {
+    const extra = formData.value.extraServices[index - 1]
+    if (extra) extra.employeePercentageOverride = num
+  }
+}
+
+const toggleEmployeeOverride = (index: number) => {
+  if (hasEmployeeOverride(index)) {
+    setEmployeeOverride(index, '')
+  } else {
+    const row = index === 0
+      ? { employeeId: formData.value.employee }
+      : formData.value.extraServices[index - 1]
+    const defaultPct = getEmployeeDefaultPercentage(row?.employeeId ?? '') ?? 0
+    setEmployeeOverride(index, String(defaultPct))
+  }
+}
+
 // When primary service changes, auto-fill price/duration and reset override
 watch(() => formData.value.service, (serviceId) => {
   priceOverride.value = null
@@ -540,6 +610,7 @@ watch(
               employeeId: m.employee_id,
               assistantEmployeeId: m.assistant_employee_id ?? '',
               assistantPercentage: Number(m.assistant_percentage ?? 0),
+              employeePercentageOverride: m.employee_percentage_override ?? undefined,
               duration: m.services?.duration_minutes ?? 30,
               price: Number(m.services?.price ?? 0),
             }))
@@ -554,6 +625,7 @@ watch(
         employee: cita.employeeId || '',
         assistantEmployee: cita.assistantId || '',
         assistantPercentage: cita.assistantPercentage || 0,
+        employeePercentageOverride: cita.employeePercentageOverride,
         duration: cita.duration || 30,
         price: cita.price || 0,
         extraServices: groupMembers,

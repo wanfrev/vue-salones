@@ -72,6 +72,8 @@ const serviciosList = computed(() => (serviciosData.value ?? []).map(service => 
 const empleadosList = computed(() => (empleadosData.value ?? []).map(employee => ({
   id: employee.id,
   name: employee.name,
+  payType: employee.payType,
+  payPercentage: employee.payPercentage,
 })))
 
 const handleSlotSelect = ({ start, employeeId }: { start: Date; employeeId?: string }) => {

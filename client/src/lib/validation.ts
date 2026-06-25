@@ -7,6 +7,7 @@ export const serviceItemSchema = z.object({
   employeeId: z.string().min(1, 'Selecciona un empleado'),
   assistantEmployeeId: z.string().default(''),
   assistantPercentage: z.number().min(0).max(100).default(0),
+  employeePercentageOverride: z.number().min(0).max(100).optional(),
   duration: z.number().positive('La duración debe ser positiva'),
   price: z.number().min(0, 'El precio no puede ser negativo'),
 })
@@ -19,6 +20,7 @@ export const citaFormSchema = z.object({
   employee: z.string().min(1, 'Selecciona un empleado'),
   assistantEmployee: z.string().default(''),
   assistantPercentage: z.number().min(0).max(100).default(0),
+  employeePercentageOverride: z.number().min(0).max(100).optional(),
   duration: z.number().positive('La duración debe ser positiva'),
   price: z.number().min(0, 'El precio no puede ser negativo'),
   extraServices: z.array(serviceItemSchema).default([]),

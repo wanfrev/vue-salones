@@ -76,6 +76,8 @@ export function useAdminAgenda(businessId: () => string | null) {
   const empleadosList = computed(() => (empleadosData.value ?? []).map(employee => ({
     id: employee.id,
     name: employee.name,
+    payType: employee.payType,
+    payPercentage: employee.payPercentage,
   })))
 
   return {

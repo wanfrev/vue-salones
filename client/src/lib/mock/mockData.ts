@@ -192,6 +192,7 @@ export function createMockDataStore(): MockDataStore {
       id, business_id: BIZ,
       client_id: cl.id, employee_id: employeeId, service_id: svc.id,
       assistant_employee_id: null, assistant_percentage: null,
+      employee_percentage_override: null,
       group_id: null,
       start_time: start.toISOString(), end_time: end.toISOString(),
       status: status as Appointment['status'],

@@ -9,6 +9,7 @@ export interface Cita {
   assistantName?: string
   assistantId?: string
   assistantPercentage?: number
+  employeePercentageOverride?: number
   groupId?: string
   date: string
   time: string
@@ -26,6 +27,7 @@ export interface CitaFormServiceItem {
   employeeId: string
   assistantEmployeeId: string
   assistantPercentage: number
+  employeePercentageOverride?: number
   duration: number
   price: number
 }
@@ -38,6 +40,7 @@ export interface CitaFormData {
   employee: string
   assistantEmployee: string
   assistantPercentage: number
+  employeePercentageOverride?: number
   duration: number
   price: number
   extraServices: CitaFormServiceItem[]

@@ -179,6 +179,7 @@ export const saveCita = async (
       employeeId: data.employee,
       assistantEmployeeId: data.assistantEmployee,
       assistantPercentage: data.assistantPercentage,
+      employeePercentageOverride: data.employeePercentageOverride,
       duration: data.duration,
       price: data.price,
     },

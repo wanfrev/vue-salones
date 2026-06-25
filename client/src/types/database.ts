@@ -120,6 +120,7 @@ export interface Appointment {
   employee_id: string
   assistant_employee_id: string | null
   assistant_percentage: number | null
+  employee_percentage_override: number | null
   service_id: string
   group_id: string | null
   start_time: string

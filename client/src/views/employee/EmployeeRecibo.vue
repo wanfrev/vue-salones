@@ -32,11 +32,49 @@
         </div>
 
         <template v-else>
+          <!-- Period Selector -->
+          <div class="mb-5">
+            <SegmentedTabs
+              :tabs="periodTabs"
+              :model-value="selectedPeriod"
+              @update:model-value="onPeriodChange"
+            />
+            <div class="flex items-center justify-center gap-2 mt-3">
+              <button
+                @click="previousPeriod"
+                class="rounded-lg p-1.5 text-text-muted hover:bg-bg-secondary hover:text-text transition-colors"
+                title="Anterior"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <span class="text-sm font-semibold text-text min-w-[140px] text-center">{{ periodLabel }}</span>
+              <button
+                @click="nextPeriod"
+                :disabled="isCurrentPeriod"
+                class="rounded-lg p-1.5 text-text-muted hover:bg-bg-secondary hover:text-text transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Siguiente"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              <button
+                v-if="!isCurrentPeriod"
+                @click="goToToday"
+                class="ml-1 rounded-lg px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+              >
+                Hoy
+              </button>
+            </div>
+          </div>
+
           <!-- Summary Cards -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
             <div class="rounded-lg bg-bg-secondary p-3">
               <p class="text-xs text-text-muted uppercase tracking-wider">Servicios</p>
-              <p class="text-xl font-bold text-text mt-0.5">{{ earnings.length }}</p>
+              <p class="text-xl font-bold text-text mt-0.5">{{ filteredEarnings.length }}</p>
             </div>
             <div class="rounded-lg bg-bg-secondary p-3">
               <p class="text-xs text-text-muted uppercase tracking-wider">Total facturado</p>
@@ -56,7 +94,7 @@
           </div>
 
           <!-- Earnings Breakdown Table -->
-          <div v-if="earningsWithVES.length > 0" class="mb-6">
+          <div v-if="filteredEarningsWithVES.length > 0" class="mb-6">
             <div class="border-b border-border pb-2 mb-3">
               <h3 class="text-sm font-semibold text-text">Desglose de ganancias</h3>
             </div>
@@ -74,7 +112,7 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-border">
-                  <tr v-for="row in earningsWithVES" :key="row.id">
+                  <tr v-for="row in filteredEarningsWithVES" :key="row.id">
                     <td class="py-2 pr-2 text-text-secondary whitespace-nowrap">{{ formatDate(row.paidAt) }}</td>
                     <td class="py-2 pr-2 text-text">{{ row.serviceName }}</td>
                     <td class="py-2 px-2 text-right text-text-secondary">${{ row.totalAmount.toFixed(2) }}</td>
@@ -98,6 +136,10 @@
             </div>
           </div>
 
+          <div v-else class="mb-6 text-center text-sm text-text-muted py-4">
+            No hay servicios en este período.
+          </div>
+
           <!-- Totals -->
           <div class="space-y-2 mb-6">
             <div class="flex justify-between py-2 text-sm">
@@ -118,7 +160,7 @@
               <span class="text-text-muted">Comisión del empleado</span>
               <span class="font-medium text-text">{{ payInfo.percentage }}%</span>
             </div>
-            <div v-if="payInfo && payInfo.type === 'percentage' && earningsWithVES.length > 0" class="flex justify-between py-2 text-sm">
+            <div v-if="payInfo && payInfo.type === 'percentage' && filteredEarningsWithVES.length > 0" class="flex justify-between py-2 text-sm">
               <span class="text-text-muted">Ganancia por comisión</span>
               <div class="text-right">
                 <span class="font-medium text-text">${{ totalVariableEarned }}</span>
@@ -164,9 +206,9 @@
           </div>
 
           <!-- Payments Received -->
-          <div v-if="payments.length > 0" class="border-t border-border pt-4">
-            <p class="text-xs font-semibold uppercase tracking-wider text-text-muted mb-3">Pagos realizados</p>
-            <div v-for="p in paymentsWithCurrency" :key="p.id" class="flex justify-between items-center py-2 border-b border-border last:border-b-0">
+          <div v-if="filteredPayments.length > 0" class="mb-6">
+            <p class="text-xs font-semibold uppercase tracking-wider text-text-muted mb-3">Pagos realizados en este período</p>
+            <div v-for="p in filteredPaymentsWithCurrency" :key="p.id" class="flex justify-between items-center py-2 border-b border-border last:border-b-0">
               <div>
                 <p class="text-sm font-medium text-text">{{ p.displayAmount }}</p>
                 <p class="text-xs text-text-muted">{{ p.displayVES }}</p>
@@ -176,13 +218,56 @@
             </div>
           </div>
 
-          <div v-else class="border-t border-border pt-4 text-center text-sm text-text-muted">
-            No hay pagos registrados aún.
+          <div v-else class="mb-6 text-center text-sm text-text-muted">
+            No hay pagos registrados en este período.
+          </div>
+
+          <!-- Historial de recibos pasados -->
+          <div class="border-t border-border pt-4 mb-4">
+            <button
+              @click="showHistory = !showHistory"
+              class="flex w-full items-center justify-between text-left"
+            >
+              <span class="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                Historial de recibos
+              </span>
+              <svg
+                :class="['h-4 w-4 text-text-muted transition-transform', showHistory ? 'rotate-180' : '']"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            <div v-if="showHistory" class="mt-3 space-y-2">
+              <div v-if="historyMonths.length === 0" class="text-center text-sm text-text-muted py-3">
+                No hay recibos anteriores.
+              </div>
+              <button
+                v-for="month in historyMonths"
+                :key="month.key"
+                @click="goToMonth(month.key)"
+                class="flex w-full items-center justify-between rounded-lg border border-border bg-bg-secondary/50 p-3 text-left transition-colors hover:bg-bg-secondary"
+              >
+                <div>
+                  <p class="text-sm font-semibold text-text">{{ month.label }}</p>
+                  <p class="text-xs text-text-muted">{{ month.serviceCount }} servicios · Facturado ${{ month.billed.toFixed(2) }}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm font-bold" :class="month.pending > 0 ? 'text-danger' : 'text-success'">
+                    ${{ month.earned.toFixed(2) }}
+                  </p>
+                  <p class="text-xs text-text-muted">
+                    {{ month.pending > 0 ? `Pendiente $${month.pending.toFixed(2)}` : 'Pagado' }}
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
 
           <button
             @click="windowPrint"
-            class="no-print mt-6 w-full rounded-lg border border-border bg-surface py-2.5 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:text-text flex items-center justify-center gap-2"
+            class="no-print mt-2 w-full rounded-lg border border-border bg-surface py-2.5 text-sm font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:text-text flex items-center justify-center gap-2"
           >
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -196,7 +281,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuthStore } from '../../store/auth'
 import { useBusinessStore } from '../../store/business'
@@ -204,12 +289,127 @@ import { getInitials, formatMethod, formatDate } from '../../lib/formatters'
 import { useCurrency } from '../../composables/useCurrency'
 import { dashboardKeys, listEmployeeTransactions, listEmployeePayments } from '../../services/employeeDashboardService'
 import AppLayout from '../../components/layout/AppLayout.vue'
+import SegmentedTabs from '../../components/common/SegmentedTabs.vue'
+
+const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 const authStore = useAuthStore()
 const businessStore = useBusinessStore()
 const businessId = computed(() => authStore.businessId)
 const employeeId = computed(() => authStore.profile?.id ?? '')
 const businessName = computed(() => businessStore.business?.name ?? '')
+
+const selectedPeriod = ref<'day' | 'week' | 'month'>('month')
+const selectedDate = ref(new Date())
+const showHistory = ref(false)
+
+const periodTabs = [
+  { key: 'day', label: 'Día' },
+  { key: 'week', label: 'Semana' },
+  { key: 'month', label: 'Mes' },
+]
+
+function dayStart(d: Date): Date {
+  const c = new Date(d)
+  c.setHours(0, 0, 0, 0)
+  return c
+}
+
+function dayEnd(d: Date): Date {
+  const c = new Date(d)
+  c.setHours(23, 59, 59, 999)
+  return c
+}
+
+function weekStart(d: Date): Date {
+  const c = dayStart(d)
+  const day = (c.getDay() + 6) % 7
+  c.setDate(c.getDate() - day)
+  return c
+}
+
+const periodStart = computed<Date>(() => {
+  if (selectedPeriod.value === 'day') return dayStart(selectedDate.value)
+  if (selectedPeriod.value === 'week') return weekStart(selectedDate.value)
+  return new Date(selectedDate.value.getFullYear(), selectedDate.value.getMonth(), 1)
+})
+
+const periodEnd = computed<Date>(() => {
+  if (selectedPeriod.value === 'day') return dayEnd(selectedDate.value)
+  if (selectedPeriod.value === 'week') {
+    const end = weekStart(selectedDate.value)
+    end.setDate(end.getDate() + 6)
+    return dayEnd(end)
+  }
+  const lastDay = new Date(selectedDate.value.getFullYear(), selectedDate.value.getMonth() + 1, 0)
+  const today = new Date()
+  const isCurrentMonth = selectedDate.value.getFullYear() === today.getFullYear() && selectedDate.value.getMonth() === today.getMonth()
+  return isCurrentMonth ? dayEnd(today) : dayEnd(lastDay)
+})
+
+const periodLabel = computed(() => {
+  const d = selectedDate.value
+  if (selectedPeriod.value === 'day') {
+    return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`
+  }
+  if (selectedPeriod.value === 'week') {
+    const ws = weekStart(d)
+    const we = new Date(ws)
+    we.setDate(we.getDate() + 6)
+    const sameMonth = ws.getMonth() === we.getMonth()
+    if (sameMonth) {
+      return `${ws.getDate()}-${we.getDate()} ${MONTHS_ES[ws.getMonth()]} ${ws.getFullYear()}`
+    }
+    return `${ws.getDate()} ${MONTHS_ES[ws.getMonth()]} - ${we.getDate()} ${MONTHS_ES[we.getMonth()]} ${we.getFullYear()}`
+  }
+  return `${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`
+})
+
+const isCurrentPeriod = computed(() => {
+  const now = new Date()
+  if (selectedPeriod.value === 'day') {
+    return dayStart(selectedDate.value).getTime() >= dayStart(now).getTime()
+  }
+  if (selectedPeriod.value === 'week') {
+    const currentWeekStart = weekStart(now)
+    return weekStart(selectedDate.value).getTime() >= currentWeekStart.getTime()
+  }
+  return selectedDate.value.getFullYear() > now.getFullYear() ||
+    (selectedDate.value.getFullYear() === now.getFullYear() && selectedDate.value.getMonth() >= now.getMonth())
+})
+
+function onPeriodChange(value: string) {
+  selectedPeriod.value = value as 'day' | 'week' | 'month'
+  selectedDate.value = new Date()
+}
+
+function previousPeriod() {
+  const d = new Date(selectedDate.value)
+  if (selectedPeriod.value === 'day') d.setDate(d.getDate() - 1)
+  else if (selectedPeriod.value === 'week') d.setDate(d.getDate() - 7)
+  else d.setMonth(d.getMonth() - 1)
+  selectedDate.value = d
+}
+
+function nextPeriod() {
+  if (isCurrentPeriod.value) return
+  const d = new Date(selectedDate.value)
+  if (selectedPeriod.value === 'day') d.setDate(d.getDate() + 1)
+  else if (selectedPeriod.value === 'week') d.setDate(d.getDate() + 7)
+  else d.setMonth(d.getMonth() + 1)
+  selectedDate.value = d
+}
+
+function goToToday() {
+  selectedDate.value = new Date()
+}
+
+function goToMonth(key: string) {
+  const [y, m] = key.split('-').map(Number)
+  selectedPeriod.value = 'month'
+  selectedDate.value = new Date(y, m - 1, 1)
+  showHistory.value = false
+}
 
 const payInfo = computed(() => {
   const profile = authStore.profile
@@ -230,8 +430,15 @@ const { data: earningsData, isLoading: loadingEarnings } = useQuery({
 })
 const earnings = computed(() => earningsData.value ?? [])
 
+const filteredEarnings = computed(() =>
+  earnings.value.filter(r => {
+    const d = new Date(r.paidAt)
+    return d >= periodStart.value && d <= periodEnd.value
+  })
+)
+
 const earningsWithVES = computed(() =>
-  earnings.value.map(row => {
+  filteredEarnings.value.map(row => {
     const rate = exchangeRate.value
     const isVES = row.currency === 'VES'
     const vesTotal = isVES ? row.totalAmount * row.exchangeRateUsed : row.totalAmount * rate
@@ -240,8 +447,10 @@ const earningsWithVES = computed(() =>
   })
 )
 
+const filteredEarningsWithVES = computed(() => earningsWithVES.value)
+
 const totalBilled = computed(() =>
-  earnings.value.reduce((sum, r) => sum + r.totalAmount, 0).toFixed(2)
+  filteredEarnings.value.reduce((sum, r) => sum + r.totalAmount, 0).toFixed(2)
 )
 
 const totalBilledVES = computed(() =>
@@ -249,13 +458,13 @@ const totalBilledVES = computed(() =>
 )
 
 const totalVariableEarned = computed(() =>
-  earnings.value.reduce((sum, r) => sum + r.employeeEarnings, 0).toFixed(2)
+  filteredEarnings.value.reduce((sum, r) => sum + r.employeeEarnings, 0).toFixed(2)
 )
 
 const totalEarned = computed(() => {
   const info = payInfo.value
   let total = 0
-  for (const r of earnings.value) {
+  for (const r of filteredEarnings.value) {
     total += r.employeeEarnings
   }
   if (info && (info.type === 'salary' || info.type === 'mixed')) {
@@ -276,8 +485,15 @@ const { data: paymentsData } = useQuery({
 const payments = computed(() => paymentsData.value ?? [])
 const { formatUSD, formatVES, formatVESEs, exchangeRate } = useCurrency()
 
+const filteredPayments = computed(() =>
+  payments.value.filter(p => {
+    const d = new Date(p.payment_date)
+    return d >= periodStart.value && d <= periodEnd.value
+  })
+)
+
 const paymentsWithCurrency = computed(() => {
-  return (paymentsData.value ?? []).map((p: any) => {
+  return filteredPayments.value.map((p: any) => {
     let currency: 'USD' | 'VES' = p.currency === 'VES' ? 'VES' : 'USD'
     let originalAmount = currency === 'VES' ? Number(p.original_amount ?? 0) : Number(p.amount)
     if (currency === 'USD' && p.notes) {
@@ -305,8 +521,10 @@ const paymentsWithCurrency = computed(() => {
   })
 })
 
+const filteredPaymentsWithCurrency = computed(() => paymentsWithCurrency.value)
+
 const totalPaid = computed(() =>
-  payments.value.reduce((sum, p) => sum + Number(p.amount), 0)
+  filteredPayments.value.reduce((sum, p) => sum + Number(p.amount), 0)
 )
 
 const totalPaidFormatted = computed(() => totalPaid.value.toFixed(2))
@@ -320,6 +538,47 @@ const pendingDebtFormatted = computed(() => pendingDebt.value.toFixed(2))
 const totalPaidVES = computed(() => formatVES(totalPaid.value))
 
 const pendingDebtVES = computed(() => formatVES(pendingDebt.value))
+
+const historyMonths = computed(() => {
+  const now = new Date()
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+  const byMonth = new Map<string, { billed: number; earned: number; paid: number; serviceCount: number }>()
+
+  for (const r of earnings.value) {
+    const d = new Date(r.paidAt)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    if (key === currentMonthKey) continue
+    const entry = byMonth.get(key) || { billed: 0, earned: 0, paid: 0, serviceCount: 0 }
+    entry.billed += r.totalAmount
+    entry.earned += r.employeeEarnings
+    entry.serviceCount++
+    byMonth.set(key, entry)
+  }
+
+  for (const p of payments.value) {
+    const d = new Date(p.payment_date)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    if (key === currentMonthKey) continue
+    const entry = byMonth.get(key)
+    if (entry) entry.paid += Number(p.amount)
+  }
+
+  return Array.from(byMonth.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([key, entry]) => {
+      const [y, m] = key.split('-').map(Number)
+      return {
+        key,
+        label: `${MONTHS_ES[m - 1]} ${y}`,
+        billed: entry.billed,
+        earned: entry.earned,
+        paid: entry.paid,
+        pending: Math.max(0, entry.earned - entry.paid),
+        serviceCount: entry.serviceCount,
+      }
+    })
+})
 
 const windowPrint = () => {
   window.print()
