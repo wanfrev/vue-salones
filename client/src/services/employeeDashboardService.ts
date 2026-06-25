@@ -1,7 +1,7 @@
 import { formatDate, formatTime } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
 import { computeServiceEarnings } from '../business/employeeEarnings'
-import type { Transaction, EmployeePayment } from '../types/database'
+import type { EmployeePayment } from '../types/database'
 
 export const dashboardKeys = {
   appointments: (businessId?: string | null, employeeId?: string | null) => ['employee-appointments', businessId, employeeId] as const,
@@ -85,50 +85,63 @@ export const listEmployeeTransactions = async (
     .eq('id', employeeId)
     .maybeSingle()
 
+  // Step 1: Get appointment IDs where this employee is involved
+  const { data: apptData, error: apptError } = await supabase
+    .from('appointments')
+    .select('id, employee_id, assistant_employee_id, client_id, service_id')
+    .eq('business_id', businessId)
+    .or(`employee_id.eq.${employeeId},assistant_employee_id.eq.${employeeId}`)
+
+  if (apptError) throw apptError
+
+  const apptIds = (apptData ?? []).map(a => a.id)
+  if (apptIds.length === 0) return []
+
+  // Step 2: Get client + service names for these appointments
+  const clientIds = Array.from(new Set((apptData ?? []).map(a => a.client_id).filter(Boolean)))
+  const serviceIds = Array.from(new Set((apptData ?? []).map(a => a.service_id).filter(Boolean)))
+
+  const [clientsRes, servicesRes] = await Promise.all([
+    clientIds.length > 0
+      ? supabase.from('clients').select('id, full_name').in('id', clientIds)
+      : Promise.resolve({ data: [], error: null }),
+    serviceIds.length > 0
+      ? supabase.from('services').select('id, name').in('id', serviceIds)
+      : Promise.resolve({ data: [], error: null }),
+  ])
+
+  const clientsMap = new Map((clientsRes.data ?? []).map(c => [c.id, c.full_name]))
+  const servicesMap = new Map((servicesRes.data ?? []).map(s => [s.id, s.name]))
+  const apptMap = new Map((apptData ?? []).map(a => [a.id, a]))
+
+  // Step 3: Get transactions for these appointments
   const { data, error } = await supabase
     .from('transactions')
-    .select(`
-      id,
-      paid_at,
-      total_amount,
-      exchange_rate_used,
-      employee_percentage,
-      assistant_amount,
-      assistant_percentage,
-      method,
-      payments_breakdown,
-      appointments!inner (
-        employee_id,
-        assistant_employee_id,
-        clients ( full_name ),
-        services ( name )
-      )
-    `)
-    .or(`appointments.employee_id.eq.${employeeId},appointments.assistant_employee_id.eq.${employeeId}`)
+    .select('id, paid_at, total_amount, exchange_rate_used, employee_percentage, assistant_amount, assistant_percentage, method, payments_breakdown, appointment_id')
     .eq('business_id', businessId)
+    .in('appointment_id', apptIds)
     .order('paid_at', { ascending: false })
 
   if (error) throw error
 
-  const raw = (data ?? []) as Array<
-    Transaction & {
-      assistant_amount?: number | null
-      assistant_percentage?: number | null
-      method?: string
-      payments_breakdown?: any
-      appointments?: {
-        employee_id?: string
-        assistant_employee_id?: string | null
-        clients?: { full_name: string | null } | null
-        services?: { name: string | null } | null
-      } | null
-    }
-  >
+  const raw = (data ?? []) as Array<{
+    id: string
+    paid_at: string
+    total_amount: number
+    exchange_rate_used: number | null
+    employee_percentage: number
+    assistant_amount: number | null
+    assistant_percentage: number | null
+    method: string | null
+    payments_breakdown: any
+    appointment_id: string
+  }>
 
   return raw.map(row => {
     const totalAmount = Number(row.total_amount)
     const exchangeRateUsed = Number(row.exchange_rate_used ?? 1)
     const method = row.method ?? 'cash'
+    const appt = apptMap.get(row.appointment_id)
 
     const isMixed = method === 'mixed'
     const isVESMethod = ['cash_ves', 'transfer', 'pago_movil'].includes(method)
@@ -141,8 +154,9 @@ export const listEmployeeTransactions = async (
       const hasVES = breakdown.some((b: any) => b.currency === 'VES')
       if (hasVES) currency = 'VES'
     }
-    const isAssistant = row.appointments?.assistant_employee_id != null &&
-      row.appointments.assistant_employee_id === employeeId
+
+    const isAssistant = appt?.assistant_employee_id != null &&
+      appt.assistant_employee_id === employeeId
 
     const calc = isAssistant
       ? {
@@ -159,8 +173,8 @@ export const listEmployeeTransactions = async (
       id: row.id,
       date: formatDate(row.paid_at),
       paidAt: row.paid_at,
-      clientName: row.appointments?.clients?.full_name ?? '—',
-      serviceName: row.appointments?.services?.name ?? '—',
+      clientName: appt ? clientsMap.get(appt.client_id) ?? '—' : '—',
+      serviceName: appt ? servicesMap.get(appt.service_id) ?? '—' : '—',
       totalAmount,
       exchangeRateUsed,
       method,
