@@ -28,16 +28,21 @@ export const useAgenda = () => {
   }
 
   const { data: employees, isLoading: loadingEmployees } = useQuery({
-    queryKey: computed(() => ['employees', businessId.value]),
+    queryKey: computed(() => ['employees', businessId.value, currentBranchId.value]),
     queryFn: async (): Promise<Profile[]> => {
       if (!businessId.value) return []
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, employee_schedules(*)')
         .eq('business_id', businessId.value)
         .eq('role', 'empleado')
         .eq('active', true)
       if (error) throw error
+      if (currentBranchId.value) {
+        return (data as Profile[]).filter(p =>
+          (p as any).employee_schedules?.some((s: any) => s.branch_id === currentBranchId.value)
+        )
+      }
       return data as Profile[]
     },
     enabled: computed(() => !!businessId.value),

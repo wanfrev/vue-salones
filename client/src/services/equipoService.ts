@@ -7,10 +7,10 @@ import type { EmployeeProfile } from '../mappers/equipoMapper'
 import type { Empleado, EmpleadoFormData } from '../types/empleado'
 
 export const equipoKeys = {
-  all: (businessId?: string | null) => ['equipo', businessId] as const,
+  all: (businessId?: string | null, branchId?: string | null) => ['equipo', businessId, branchId] as const,
 }
 
-export const listEquipo = async (businessId: string): Promise<Empleado[]> => {
+export const listEquipo = async (businessId: string, branchId?: string | null): Promise<Empleado[]> => {
   const { data, error } = await supabase
     .from('profiles')
     .select('*, employee_schedules(*)')
@@ -20,12 +20,21 @@ export const listEquipo = async (businessId: string): Promise<Empleado[]> => {
 
   if (error) throw error
 
-  return (data as EmployeeProfile[]).map(profile => mapProfileToEmpleado(profile))
+  let profiles = (data as EmployeeProfile[])
+
+  if (branchId) {
+    profiles = profiles.filter(p =>
+      p.employee_schedules?.some(s => s.branch_id === branchId)
+    )
+  }
+
+  return profiles.map(profile => mapProfileToEmpleado(profile))
 }
 
 export const saveEmpleado = async (
   data: EmpleadoFormData & { id?: string },
-  businessId?: string
+  businessId?: string,
+  branchId?: string | null
 ): Promise<void> => {
   if (!data.id) {
     const profileUpdate = mapEmpleadoFormToProfileUpdate(data)
@@ -45,7 +54,7 @@ export const saveEmpleado = async (
       },
     })
 
-    const scheduleBlocks = mapEmpleadoFormToScheduleBlocks(user.id, data)
+    const scheduleBlocks = mapEmpleadoFormToScheduleBlocks(user.id, { ...data, branchId })
     const { error: scheduleError } = await mutate
       .from('employee_schedules')
       .insert(scheduleBlocks)
@@ -72,7 +81,7 @@ export const saveEmpleado = async (
 
   if (deleteScheduleError) throw deleteScheduleError
 
-  const scheduleBlocks = mapEmpleadoFormToScheduleBlocks(data.id, data)
+  const scheduleBlocks = mapEmpleadoFormToScheduleBlocks(data.id, { ...data, branchId })
   const { error: scheduleError } = await mutate
     .from('employee_schedules')
     .insert(scheduleBlocks)

@@ -714,17 +714,18 @@ const {
   isSaving,
 } = useCrud<Empleado, EmpleadoFormData>({
   businessId,
-  queryKey: (id) => equipoKeys.all(id),
-  queryFn: (id) => listEquipo(id),
-  saveFn: (id, data) => saveEmpleado(data, id),
+  branchId,
+  queryKey: (id, brId) => equipoKeys.all(id, brId),
+  queryFn: (id, brId) => listEquipo(id, brId),
+  saveFn: (id, data, brId) => saveEmpleado(data, id, brId),
   deleteFn: (id) => deleteEmpleado(id),
   entityName: 'Empleado',
   modalRef: empleadoModalRef,
   extraInvalidations: [
-    () => ['appointments'],
-    () => ['dashboard-services'],
-    () => ['dashboard-payments'],
-    () => ['dashboard-history'],
+    (id) => ['appointments', id, branchId.value],
+    (id) => ['dashboard-services', id],
+    (id) => ['dashboard-payments', id],
+    (id) => ['dashboard-history', id],
   ],
 })
 
