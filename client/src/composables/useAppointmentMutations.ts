@@ -20,7 +20,7 @@ export function useAppointmentMutations(options: {
   const { success, error: showError } = useNotification()
   const businessStore = useBusinessStore()
 
-  const invalidate = () => {
+  const invalidate = async () => {
     const bid = options.businessId.value
     const brId = businessStore.currentBranchId
     const keys = [
@@ -40,15 +40,15 @@ export function useAppointmentMutations(options: {
       dashboardKeys.history(bid),
     ]
     for (const key of keys) {
-      queryClient.invalidateQueries({ queryKey: key, exact: false })
+      await queryClient.invalidateQueries({ queryKey: key, exact: false })
     }
   }
 
   const saveCitaMutation = useMutation({
     mutationFn: (data: CitaFormData & { id?: string; clientPhone?: string }) =>
       saveCita(options.businessId.value!, data, options.createdBy?.value, businessStore.currentBranchId),
-    onSuccess: () => {
-      invalidate()
+    onSuccess: async () => {
+      await invalidate()
       options.modalRef?.value?.close()
       options.modalRef?.value?.onSaveComplete?.()
       success('Cita guardada correctamente')
@@ -62,8 +62,8 @@ export function useAppointmentMutations(options: {
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: 'pending' | 'confirmed' | 'cancelled' | 'paid' }) =>
       updateCitaStatus(id, status),
-    onSuccess: () => {
-      invalidate()
+    onSuccess: async () => {
+      await invalidate()
     },
     onError: (err) => {
       showError(translateError(err))
@@ -84,15 +84,15 @@ export function useAppointmentMutations(options: {
       }
       showError(translateError(err))
     },
-    onSettled: () => {
-      invalidate()
+    onSettled: async () => {
+      await invalidate()
     },
   })
 
   const deleteCitaMutation = useMutation({
     mutationFn: (id: string) => deleteCita(id),
-    onSuccess: () => {
-      invalidate()
+    onSuccess: async () => {
+      await invalidate()
       options.modalRef?.value?.close()
       options.modalRef?.value?.onSaveComplete?.()
       success('Cita eliminada correctamente')
@@ -135,7 +135,7 @@ export function useAppointmentMutations(options: {
         .from('appointments')
         .update({ employee_id: employeeId })
         .eq('id', id)
-      invalidate()
+      await invalidate()
     }
     success('Cita reagendada correctamente')
   }

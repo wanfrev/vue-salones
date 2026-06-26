@@ -381,10 +381,10 @@ const filteredMovements = computed(() => {
 // --- Producto form modal ---
 const saveProductoMutation = useMutation({
   mutationFn: (data: ProductoFormData & { id?: string }) => saveProducto(businessId.value!, data, branchId.value),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
-    queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
-    queryClient.invalidateQueries({ queryKey: posKeys.products(businessId.value) })
+  onSuccess: async () => {
+    await queryClient.invalidateQueries({ queryKey: productosKeys.all(businessId.value) })
+    await queryClient.invalidateQueries({ queryKey: inventarioKeys.all(businessId.value) })
+    await queryClient.invalidateQueries({ queryKey: posKeys.products(businessId.value) })
     productoModalRef.value?.close()
     success('Producto guardado correctamente')
   },

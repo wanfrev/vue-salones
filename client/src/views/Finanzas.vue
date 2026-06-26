@@ -677,7 +677,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { usePeriodSelection } from '../composables/usePeriodSelection'
@@ -692,7 +691,6 @@ import KpiCards from '../components/finanzas/KpiCards.vue'
 import SupplierPaymentsSection from '../components/finanzas/SupplierPaymentsSection.vue'
 import ExpenseFormModal from '../components/finanzas/ExpenseFormModal.vue'
 import CurrencyBreakdown, { type CurrencyBreakdownData } from '../components/finanzas/CurrencyBreakdown.vue'
-import { expensesKeys } from '../services/expensesService'
 import { formatMethod } from '../lib/formatters'
 
 import { useCrud } from '../composables/useCrud'
@@ -712,7 +710,6 @@ const { authStore } = useAuth()
 
 const { formatUSD, formatVESInline, formatVESEs } = useCurrency()
 const router = useRouter()
-const queryClient = useQueryClient()
 
 const { selectedPeriod, selectedMonth, resetToCurrentMonth, periods } = usePeriodSelection()
 
@@ -931,17 +928,9 @@ const goToAllRecords = (tipo: 'gastos' | 'pagos' | 'transacciones' | 'cobros' | 
   })
 }
 
-const invalidateAll = () => {
-  queryClient.invalidateQueries({ exact: false, queryKey: expensesKeys.all(businessId.value) })
-  queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary', businessId.value] })
-  queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions', businessId.value] })
-  queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-expenses', businessId.value] })
-}
-
 const handleExpenseSave = async () => {
   try {
     await expensesCtx.handleSave()
-    invalidateAll()
   } catch {
     // Error handled by composable's onError + saveError
   }

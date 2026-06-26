@@ -65,11 +65,11 @@ export function useEmployeePayments(
       if (!businessId.value) throw new Error('No hay negocio activo')
       return createEmployeePayment(businessId.value, params.employeeId, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value, branchId.value)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
       success('Pago registrado correctamente')
       closeModal()
     },
@@ -152,11 +152,11 @@ export function useEmployeePayments(
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteEmployeePayment(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
       success('Pago eliminado correctamente')
     },
     onError: (err) => {
@@ -193,11 +193,11 @@ export function useEmployeePayments(
       if (!businessId.value) throw new Error('No hay negocio activo')
       return createEmployeeConsumption(businessId.value, params.employeeId, params.amount, params.concept, params.date, params.currency, exchangeRate.value, branchId.value)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
       success('Consumo registrado correctamente')
       closeConsumptionModal()
     },
@@ -259,11 +259,11 @@ export function useEmployeePayments(
     }) => {
       return updateEmployeePayment(params.id, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
       success('Pago actualizado correctamente')
       closeModal()
     },

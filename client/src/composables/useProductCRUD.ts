@@ -98,7 +98,7 @@ export function useProductCRUD() {
       await deleteProductoPermanently(productoToDeletePermanently.value.id)
       productoToDeletePermanently.value = null
       isPermanentDeleteModalOpen.value = false
-      crud.invalidateAll()
+      await crud.invalidateAll()
     } finally {
       isPermanentDeleting.value = false
     }

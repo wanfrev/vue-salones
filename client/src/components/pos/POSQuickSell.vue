@@ -303,13 +303,13 @@ const saleCurrency = computed<'USD' | 'VES'>(() => {
 const sellMutation = useMutation({
   mutationFn: () =>
     sellProduct(props.businessId, selected.value!.id, quantity.value, notes.value, null, unitPrice.value, exchangeRate.value, saleCurrency.value),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: inventarioKeys.all(props.businessId) })
-    queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(props.businessId) })
-    queryClient.invalidateQueries({ queryKey: posKeys.products(props.businessId) })
-    queryClient.invalidateQueries({ queryKey: ['finanzas-product-sales'] })
-    queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
-    queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
+  onSuccess: async () => {
+    await queryClient.invalidateQueries({ queryKey: inventarioKeys.all(props.businessId) })
+    await queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(props.businessId) })
+    await queryClient.invalidateQueries({ queryKey: posKeys.products(props.businessId) })
+    await queryClient.invalidateQueries({ queryKey: ['finanzas-product-sales'] })
+    await queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
+    await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
     success('Venta registrada correctamente')
     cancelSelection()
   },

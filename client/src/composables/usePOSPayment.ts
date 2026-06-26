@@ -65,14 +65,14 @@ export function usePOSPayment() {
       exchangeRate: number
       paymentsBreakdown: PaymentBreakdownItem[]
     }) => recordSale({ ...params, businessId: businessId.value!, branchId: branchId.value }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: posKeys.products(businessId.value) })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['inventario'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: posKeys.products(businessId.value) })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['inventario'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
     },
   })
 
