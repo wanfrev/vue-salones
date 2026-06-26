@@ -1,6 +1,7 @@
 import { ref, computed, type Ref } from 'vue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { useNotification } from './useNotification'
+import { useBusinessStore } from '../store/business'
 import {
   branchesKeys,
   listBranches,
@@ -13,6 +14,7 @@ import {
 export function useBranches(businessId: Ref<string | null>) {
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
+  const businessStore = useBusinessStore()
 
   const { data, isLoading } = useQuery({
     queryKey: computed(() => branchesKeys.all(businessId.value)),
@@ -65,8 +67,11 @@ export function useBranches(businessId: Ref<string | null>) {
       if (!businessId.value) throw new Error('No hay negocio activo')
       return saveBranch(businessId.value, params)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: branchesKeys.all(businessId.value), exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: branchesKeys.all(businessId.value), exact: false })
+      if (businessId.value) {
+        await businessStore.loadBranches(businessId.value)
+      }
       success('Sucursal guardada correctamente')
       closeModal()
     },
@@ -77,8 +82,11 @@ export function useBranches(businessId: Ref<string | null>) {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteBranch(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: branchesKeys.all(businessId.value), exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: branchesKeys.all(businessId.value), exact: false })
+      if (businessId.value) {
+        await businessStore.loadBranches(businessId.value)
+      }
       success('Sucursal eliminada')
     },
     onError: (err) => {

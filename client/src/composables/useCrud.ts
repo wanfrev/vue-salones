@@ -44,11 +44,11 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
 
   const items = computed<TData[]>(() => data.value ?? [])
 
-  const invalidateAll = () => {
+  const invalidateAll = async () => {
     if (!businessId.value) return
-    queryClient.invalidateQueries({ exact: false, queryKey: queryKey(businessId.value) })
+    await queryClient.invalidateQueries({ exact: false, queryKey: queryKey(businessId.value, currentBranchId.value) })
     for (const extra of extraInvalidations) {
-      queryClient.invalidateQueries({ exact: false, queryKey: extra(businessId.value) })
+      await queryClient.invalidateQueries({ exact: false, queryKey: extra(businessId.value) })
     }
   }
 
@@ -57,9 +57,9 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
       if (!businessId.value) throw new Error('No hay negocio activo')
       return saveFn(businessId.value, formData, currentBranchId.value)
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       saveError.value = ''
-      invalidateAll()
+      await invalidateAll()
       modalRef?.value?.close()
       success(`${entityName} guardado correctamente`)
     },
@@ -72,8 +72,8 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
   const deleteMutation = deleteFn
     ? useMutation({
         mutationFn: (id: TId) => deleteFn(id),
-        onSuccess: () => {
-          invalidateAll()
+        onSuccess: async () => {
+          await invalidateAll()
           modalRef?.value?.close()
           success(`${entityName} eliminado correctamente`)
         },

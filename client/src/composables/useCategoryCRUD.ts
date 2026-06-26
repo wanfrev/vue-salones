@@ -54,11 +54,11 @@ export function useCategoryCRUD<T extends { category: string }>(params: UseCateg
     return services.value.filter(s => s.category === activeCategory.value)
   })
 
-  function invalidateCategoryQueries(bid: string) {
-    queryClient.invalidateQueries({ queryKey: serviciosKeys.all(bid) })
+  async function invalidateCategoryQueries(bid: string) {
+    await queryClient.invalidateQueries({ queryKey: serviciosKeys.all(bid) })
     if (extraInvalidations) {
       for (const keyFn of extraInvalidations) {
-        queryClient.invalidateQueries({ queryKey: keyFn() as string[] })
+        await queryClient.invalidateQueries({ queryKey: keyFn() as string[] })
       }
     }
   }
@@ -85,7 +85,7 @@ export function useCategoryCRUD<T extends { category: string }>(params: UseCateg
       isUpdatingCategory.value = true
       const updated = await renameBusinessCategory(bid, cur, next)
       businessStore.updateBusiness({ service_categories: updated })
-      invalidateCategoryQueries(bid)
+      await invalidateCategoryQueries(bid)
       activeCategory.value = next
       closeRenameCategoryModal()
       success('Categoría actualizada')
@@ -124,7 +124,7 @@ export function useCategoryCRUD<T extends { category: string }>(params: UseCateg
       isUpdatingCategory.value = true
       const updated = await deleteBusinessCategory(bid, cat, repl)
       businessStore.updateBusiness({ service_categories: updated })
-      invalidateCategoryQueries(bid)
+      await invalidateCategoryQueries(bid)
       if (activeCategory.value === cat) activeCategory.value = repl
       closeDeleteCategoryModal()
       success('Categoría eliminada')
