@@ -126,6 +126,8 @@
           :hint="isEditing ? 'Dejar vacío para mantener la actual' : 'Mínimo 6 caracteres'"
           prefix-icon="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
           :error="errors.password"
+          show-password-toggle
+          autocomplete="new-password"
         />
       </div>
 
@@ -251,7 +253,8 @@ const isFormValid = computed(() => {
   const nameValid = formData.value.name.trim().length >= 2
   const roleValid = formData.value.role !== ''
   const emailValid = formData.value.email.trim().length >= 5
-  const passwordValid = isEditing.value || formData.value.password.length >= 6
+  const pwd = formData.value.password
+  const passwordValid = pwd.length === 0 ? isEditing.value : pwd.length >= 6
   return nameValid && roleValid && emailValid && passwordValid
 })
 
@@ -321,10 +324,14 @@ const validateForm = (): boolean => {
     errors.value.email = 'El email no es válido'
   }
 
-  if (!isEditing.value) {
-    if (formData.value.password.length < 6) {
+  const pwdLength = formData.value.password.length
+
+  if (pwdLength === 0) {
+    if (!isEditing.value) {
       errors.value.password = 'La contraseña debe tener al menos 6 caracteres'
     }
+  } else if (pwdLength < 6) {
+    errors.value.password = 'La contraseña debe tener al menos 6 caracteres'
   }
 
   return Object.keys(errors.value).length === 0

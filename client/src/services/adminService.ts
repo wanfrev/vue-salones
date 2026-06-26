@@ -48,12 +48,32 @@ export type CreateUserResult = {
 }
 
 export const createAuthUser = async (input: CreateUserInput): Promise<CreateUserResult> => {
-  const { data, error } = await invokeWithSessionRefresh('create', {
-    email: input.email.trim().toLowerCase(),
-    password: input.password,
-    user_metadata: input.user_metadata,
-  })
+  const email = input.email.trim().toLowerCase()
 
+  // Pre-check: verify email is not already in use
+  const { data: existingProfile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle()
+
+  if (existingProfile) {
+    throw new Error('Ya existe un usuario registrado con este correo electrónico.')
+  }
+
+  let invokeResult: { data: any; error: any }
+  try {
+    invokeResult = await invokeWithSessionRefresh('create', {
+      email,
+      password: input.password,
+      user_metadata: input.user_metadata,
+    })
+  } catch (thrown) {
+    const message = await resolveFunctionErrorMessage(thrown, 'No fue posible crear el usuario.')
+    throw new Error(message)
+  }
+
+  const { data, error } = invokeResult
   if (error) {
     const message = await resolveFunctionErrorMessage(error, 'No fue posible crear el usuario.')
     throw new Error(message)

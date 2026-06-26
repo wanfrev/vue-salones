@@ -34,16 +34,36 @@ export const listBusinesses = async (): Promise<Business[]> => {
 }
 
 export const createBusinessWithOwner = async (input: CreateBusinessInput): Promise<CreateBusinessResult> => {
-  const { data, error } = await mutate.functions.invoke('superadmin-invite', {
-    body: {
-      action: 'create',
-      businessName: input.businessName.trim(),
-      ownerEmail: input.ownerEmail.trim(),
-      ownerPassword: input.ownerPassword,
-      nicheType: input.nicheType?.trim() || null,
-    },
-  })
+  const email = input.ownerEmail.trim().toLowerCase()
 
+  // Pre-check: verify email is not already in use
+  const { data: existingProfile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle()
+
+  if (existingProfile) {
+    throw new Error('Ya existe un usuario registrado con este correo electrónico.')
+  }
+
+  let invokeResult: { data: any; error: any }
+  try {
+    invokeResult = await mutate.functions.invoke('superadmin-invite', {
+      body: {
+        action: 'create',
+        businessName: input.businessName.trim(),
+        ownerEmail: email,
+        ownerPassword: input.ownerPassword,
+        nicheType: input.nicheType?.trim() || null,
+      },
+    })
+  } catch (thrown) {
+    const message = await resolveFunctionErrorMessage(thrown, 'No fue posible crear el negocio.')
+    throw new Error(message)
+  }
+
+  const { data, error } = invokeResult
   if (error) {
     const message = await resolveFunctionErrorMessage(error, 'No fue posible crear el negocio.')
     throw new Error(message)

@@ -12,7 +12,7 @@
       </div>
       <input
         :id="inputId"
-        :type="type"
+        :type="inputType"
         :value="modelValue"
         @input="handleInput"
         @blur="$emit('blur', $event)"
@@ -21,17 +21,27 @@
         :required="required"
         :disabled="disabled"
         :readonly="readonly"
+        :autocomplete="autocomplete"
         :class="[
           'w-full rounded-xl border bg-surface text-text outline-none transition-theme',
           'focus:border-primary focus:ring-2 focus:ring-primary/20',
           'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-secondary',
           error ? 'border-danger focus:border-danger focus:ring-danger/20' : 'border-border hover:border-border-strong',
           prefixIcon ? 'pl-10' : 'pl-4',
-          suffixIcon ? 'pr-10' : 'pr-4',
+          suffixIcon || showPasswordToggle ? 'pr-10' : 'pr-4',
           sizeClasses[size],
         ]"
       />
-      <div v-if="suffixIcon" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted">
+      <button
+        v-if="showPasswordToggle && type === 'password'"
+        type="button"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium transition-colors text-primary hover:opacity-80"
+        :aria-label="passwordVisible ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+        @click="passwordVisible = !passwordVisible"
+      >
+        {{ passwordVisible ? 'Ocultar' : 'Ver' }}
+      </button>
+      <div v-else-if="suffixIcon" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted">
         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="suffixIcon" />
         </svg>
@@ -43,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 let idCounter = 0
 
@@ -64,6 +74,8 @@ interface Props {
   suffixIcon?: string
   size?: InputSize
   id?: string
+  autocomplete?: string
+  showPasswordToggle?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -78,6 +90,15 @@ const emit = defineEmits<{
 }>()
 
 const inputId = computed(() => props.id || `form-input-${++idCounter}`)
+
+const passwordVisible = ref(false)
+
+const inputType = computed(() => {
+  if (props.type === 'password' && props.showPasswordToggle && passwordVisible.value) {
+    return 'text'
+  }
+  return props.type
+})
 
 const sizeClasses: Record<InputSize, string> = {
   sm: 'py-1.5 text-sm',
