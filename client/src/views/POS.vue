@@ -312,7 +312,6 @@ const handleProcessPayment = async () => {
     cartCtx.clearCart()
     paymentCtx.reset()
     isPaymentModalOpen.value = false
-    queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
   }
 }
 </script>

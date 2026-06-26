@@ -24,10 +24,10 @@ export function useInventoryAdjustment() {
   const adjustMutation = useMutation({
     mutationFn: (params: { productId: string; quantity: number; notes: string; variantId?: string | null }) =>
       adjustInventory(businessId.value!, params.productId, params.quantity, params.notes, params.variantId, branchId.value),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ exact: false, queryKey: inventarioKeys.all(businessId.value) })
-      queryClient.invalidateQueries({ exact: false, queryKey: inventarioKeys.movements(businessId.value) })
-      queryClient.invalidateQueries({ exact: false, queryKey: posKeys.products(businessId.value) })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ exact: false, queryKey: inventarioKeys.all(businessId.value) })
+      await queryClient.invalidateQueries({ exact: false, queryKey: inventarioKeys.movements(businessId.value) })
+      await queryClient.invalidateQueries({ exact: false, queryKey: posKeys.products(businessId.value) })
       closeAdjustModal()
       success('Stock ajustado correctamente')
     },

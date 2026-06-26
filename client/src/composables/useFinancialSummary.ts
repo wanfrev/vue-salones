@@ -693,12 +693,12 @@ function useFinancialSummary(
       exchangeRate?: number
       paymentsBreakdown?: PaymentBreakdownItem[]
     }) => updateTransaction(params),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-employee-payments'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-employee-payments'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
       notify('Cobro actualizado correctamente')
     },
     onError: (err: unknown) => {
@@ -708,14 +708,14 @@ function useFinancialSummary(
 
   const deleteTransactionMutation = useMutation({
     mutationFn: (params: { transactionId: string }) => deleteTransaction(params),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-employee-payments'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['inventario'] })
-      queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales'] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-employee-payments'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['inventario'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales'] })
       notify('Cobro eliminado correctamente')
     },
     onError: (err: unknown) => {

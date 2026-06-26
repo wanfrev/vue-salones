@@ -42,11 +42,11 @@ export function useExpenses(
       if (!businessId.value) throw new Error('No hay negocio activo')
       return saveExpense(businessId.value, formData, branchId.value, exchangeRate.value)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value), exact: false })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value], exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value], exact: false })
       success('Gasto guardado correctamente')
       closeModal()
     },
@@ -57,11 +57,11 @@ export function useExpenses(
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteExpense(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value), exact: false })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value], exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value], exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value], exact: false })
       success('Gasto eliminado correctamente')
     },
     onError: (err: unknown) => {
