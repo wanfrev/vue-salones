@@ -36,8 +36,8 @@ export function useSuppliers(businessId: import('vue').Ref<string | null>) {
       if (!businessId.value) throw new Error('No hay negocio activo')
       return saveSupplier(businessId.value, formData, branchId.value)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
       success('Proveedor guardado correctamente')
       closeModal()
     },
@@ -48,8 +48,8 @@ export function useSuppliers(businessId: import('vue').Ref<string | null>) {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteSupplier(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
       success('Proveedor eliminado correctamente')
     },
     onError: (err) => {
@@ -174,10 +174,10 @@ export function useSupplierPayments(businessId: import('vue').Ref<string | null>
       if (!businessId.value) throw new Error('No hay negocio activo')
       return createSupplierPayment(businessId.value, formData, branchId.value, exchangeRate.value)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value), exact: false })
-      queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
       success('Abono registrado correctamente')
       closeModal()
     },
@@ -188,10 +188,10 @@ export function useSupplierPayments(businessId: import('vue').Ref<string | null>
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteSupplierPayment(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value), exact: false })
-      queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
-      queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
       success('Abono eliminado correctamente')
     },
     onError: (err) => {
