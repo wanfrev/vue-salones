@@ -58,9 +58,10 @@ export const mapEmpleadoFormToProfileUpdate = (data: EmpleadoFormData) => ({
   base_salary: data.payType === 'percentage' ? 0 : Number(data.baseSalary),
 })
 
-export const mapEmpleadoFormToScheduleBlocks = (employeeId: string, data: EmpleadoFormData) => {
+export const mapEmpleadoFormToScheduleBlocks = (employeeId: string, data: EmpleadoFormData & { branchId?: string | null }) => {
   return [1, 2, 3, 4, 5, 6].map(weekday => ({
     employee_id: employeeId,
+    branch_id: data.branchId || null,
     weekday,
     start_time: data.scheduleStart,
     end_time: data.scheduleEnd,

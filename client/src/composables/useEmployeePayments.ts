@@ -98,7 +98,7 @@ export function useEmployeePayments(
     }
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, full_name')
+      .select('id, full_name, employee_schedules(branch_id)')
       .eq('business_id', businessId.value)
       .eq('role', 'empleado')
       .eq('active', true)
@@ -108,7 +108,13 @@ export function useEmployeePayments(
       showError('Error al cargar empleados')
       return
     }
-    employeeList.value = (data ?? []).map((p: any) => ({
+    let rows = (data ?? []) as any[]
+    if (branchId.value) {
+      rows = rows.filter((p: any) =>
+        p.employee_schedules?.some((s: any) => s.branch_id === branchId.value)
+      )
+    }
+    employeeList.value = rows.map((p: any) => ({
       id: p.id, name: p.full_name,
     }))
   }
