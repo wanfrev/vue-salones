@@ -46,6 +46,7 @@ export async function resolveFunctionErrorMessage(error: unknown, fallback: stri
 
   const maybeError = error as {
     message?: string
+    name?: string
     context?: { json?: () => Promise<any>; text?: () => Promise<string> }
   }
 
@@ -56,19 +57,44 @@ export async function resolveFunctionErrorMessage(error: unknown, fallback: stri
       if (payload?.message && typeof payload.message === 'string') return payload.message
     }
   } catch {
-    // ignore
+    // body may have been consumed; try text instead
   }
 
   try {
     if (maybeError.context?.text) {
       const raw = await maybeError.context.text()
-      if (raw?.trim()) return raw
+      if (raw?.trim()) {
+        try {
+          const parsed = JSON.parse(raw)
+          if (parsed?.error && typeof parsed.error === 'string') return parsed.error
+          if (parsed?.message && typeof parsed.message === 'string') return parsed.message
+        } catch {
+          // not JSON; use raw text
+        }
+        return raw
+      }
     }
   } catch {
     // ignore
   }
 
-  if (maybeError.message && maybeError.message.trim()) return maybeError.message
+  // The Supabase client may set error.message to the raw JSON body string.
+  // Try to extract meaningful message from it.
+  if (maybeError.message && maybeError.message.trim()) {
+    const msg = maybeError.message.trim()
+    try {
+      const parsed = JSON.parse(msg)
+      if (parsed?.error && typeof parsed.error === 'string') return parsed.error
+      if (parsed?.message && typeof parsed.message === 'string') return parsed.message
+    } catch {
+      // not JSON
+    }
+    // Filter out generic/garbage messages
+    if (!/^(Failed to send a request to the Edge Function)$/i.test(msg)) {
+      return msg
+    }
+  }
+
   return fallback
 }
 
