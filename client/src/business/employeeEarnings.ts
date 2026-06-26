@@ -15,7 +15,7 @@ export function computeServiceEarnings(
     return { percentage: 0, earnings: 0 }
   }
 
-  const configuredPercentage = Number(profile?.pay_percentage ?? fallbackPercentage ?? 0)
+  const configuredPercentage = Number(fallbackPercentage ?? profile?.pay_percentage ?? 0)
   const normalizedPercentage = Math.max(0, configuredPercentage)
 
   return {
