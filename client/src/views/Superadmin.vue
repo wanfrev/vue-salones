@@ -254,6 +254,17 @@ const handleSubmit = async () => {
     return
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(form.value.ownerEmail.trim())) {
+    formError.value = 'El formato del email no es válido.'
+    return
+  }
+
+  if (form.value.ownerPassword.trim().length < 6) {
+    formError.value = 'La contraseña debe tener al menos 6 caracteres.'
+    return
+  }
+
   await createBusiness({
     businessName: form.value.businessName,
     ownerEmail: form.value.ownerEmail,

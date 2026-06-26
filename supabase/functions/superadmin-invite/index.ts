@@ -81,6 +81,31 @@ serve(async (req) => {
         })
       }
 
+      if (ownerPassword.length < 6) {
+        return new Response(JSON.stringify({ error: 'Password must be at least 6 characters.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Create the auth user FIRST so duplicate email is caught before any DB writes
+      const { data: ownerData, error: ownerError } = await supabaseAdmin.auth.admin.createUser({
+        email: ownerEmail,
+        password: ownerPassword,
+        email_confirm: true,
+        user_metadata: {
+          full_name: `Admin ${businessName}`,
+          role: 'admin',
+        },
+      })
+
+      if (ownerError || !ownerData?.user?.id) {
+        return new Response(JSON.stringify({ error: ownerError?.message || 'Unable to create user.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
       const baseSlug = slugify(businessName)
       let slug = baseSlug
       let suffix = 1
@@ -107,30 +132,22 @@ serve(async (req) => {
         .single()
 
       if (businessError || !business) {
+        // Rollback: delete the auth user we just created
+        await supabaseAdmin.auth.admin.deleteUser(ownerData.user.id)
         return new Response(JSON.stringify({ error: businessError?.message || 'Unable to create business.' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
 
-      const { data: ownerData, error: ownerError } = await supabaseAdmin.auth.admin.createUser({
-        email: ownerEmail,
-        password: ownerPassword,
-        email_confirm: true,
+      // Update user metadata with the business_id now that business is created
+      await supabaseAdmin.auth.admin.updateUserById(ownerData.user.id, {
         user_metadata: {
           full_name: `Admin ${businessName}`,
           business_id: business.id,
           role: 'admin',
         },
       })
-
-      if (ownerError || !ownerData?.user?.id) {
-        await supabaseAdmin.from('businesses').delete().eq('id', business.id)
-        return new Response(JSON.stringify({ error: ownerError?.message || 'Unable to create user.' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
 
       return new Response(JSON.stringify({ business, invitedUserId: ownerData.user.id }), {
         status: 200,

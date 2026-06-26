@@ -16,7 +16,7 @@
 
     <div
       v-if="isOpen"
-      class="absolute right-0 top-full mt-1 w-56 rounded-xl border border-border bg-surface shadow-lg z-50 overflow-hidden"
+      class="absolute left-0 top-full mt-1 w-56 rounded-xl border border-border bg-surface shadow-lg z-50 overflow-hidden"
     >
       <div class="px-3 py-2 border-b border-border">
         <p class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Sucursales</p>
