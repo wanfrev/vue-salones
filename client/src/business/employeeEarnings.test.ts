@@ -22,6 +22,13 @@ describe('computeServiceEarnings', () => {
     expect(result.earnings).toBe(50)
   })
 
+  it('fallbackPercentage takes precedence over profile pay_percentage', () => {
+    const profile: EmployeeCompProfile = { pay_type: 'percentage', pay_percentage: 50 }
+    const result = computeServiceEarnings(100, profile, 70)
+    expect(result.percentage).toBe(70)
+    expect(result.earnings).toBe(70)
+  })
+
   it('uses profile percentage for mixed-type employees', () => {
     const profile: EmployeeCompProfile = { pay_type: 'mixed', pay_percentage: 40, base_salary: 10 }
     const result = computeServiceEarnings(100, profile)
