@@ -113,3 +113,21 @@ from public.appointments a
 where t.appointment_id = a.id
   and t.branch_id is null
   and a.branch_id is not null;
+
+-- 3. Backfill: fix employee_percentage on old transactions where it was wrongly
+--    set to 100 - service.local_percentage instead of the employee's pay_percentage.
+--    Only affects non-overridden appointments where the values actually differ.
+update public.transactions t
+set
+  employee_percentage = p.pay_percentage,
+  local_percentage    = 100 - p.pay_percentage - t.assistant_percentage,
+  employee_amount     = round(t.total_amount * p.pay_percentage / 100, 2),
+  local_amount        = round(t.total_amount
+                        - round(t.total_amount * p.pay_percentage / 100, 2)
+                        - t.assistant_amount, 2)
+from public.appointments a
+join public.profiles p on p.id = a.employee_id
+where t.appointment_id = a.id
+  and a.employee_percentage_override is null
+  and t.employee_percentage != p.pay_percentage
+  and p.pay_percentage > 0;

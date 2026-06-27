@@ -502,7 +502,10 @@ const getEmployeeDefaultPercentage = (employeeId: string): number | undefined =>
 }
 
 const hasEmployeeOverride = (index: number): boolean => {
-  return activeEmployeeOverrides.has(index)
+  if (activeEmployeeOverrides.has(index)) return true
+  if (index === 0) return formData.value.employeePercentageOverride != null
+  const extra = formData.value.extraServices[index - 1]
+  return extra?.employeePercentageOverride != null
 }
 
 const getEmployeeOverrideValue = (index: number): string => {
