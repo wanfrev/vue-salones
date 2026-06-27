@@ -25,6 +25,7 @@ as $$
 declare
   v_appt               public.appointments;
   v_service            public.services;
+  v_employee_profile   public.profiles;
   v_effective_price    numeric(12, 2);
   v_local_pct          numeric(5, 2);
   v_employee_pct       numeric(5, 2);
@@ -51,11 +52,18 @@ begin
 
   select * into v_service from public.services where id = v_appt.service_id;
 
+  -- Get the employee's profile to read their configured pay_percentage
+  select * into v_employee_profile from public.profiles where id = v_appt.employee_id;
+
   v_effective_price := coalesce(v_appt.price_override, v_service.price);
 
-  -- Use per-appointment override if set, otherwise fallback to service-level split
+  -- Priority: appointment override > employee's pay_percentage > service-level split
   v_assistant_pct   := coalesce(v_appt.assistant_percentage, 0);
-  v_employee_pct    := coalesce(v_appt.employee_percentage_override, 100 - v_service.local_percentage);
+  v_employee_pct    := coalesce(
+    v_appt.employee_percentage_override,
+    v_employee_profile.pay_percentage,
+    100 - v_service.local_percentage
+  );
   v_local_pct       := 100 - v_employee_pct - v_assistant_pct;
 
   v_assistant_amount := round(p_amount * v_assistant_pct / 100, 2);
