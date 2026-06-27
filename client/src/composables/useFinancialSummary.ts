@@ -716,6 +716,9 @@ function useFinancialSummary(
       await queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['inventario'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales'] })
+      // Force refetch to override stale persistent cache
+      await queryClient.refetchQueries({ exact: false, queryKey: ['finanzas-transactions'] })
+      await queryClient.refetchQueries({ exact: false, queryKey: ['financial-summary'] })
       notify('Cobro eliminado correctamente')
     },
     onError: (err: unknown) => {
