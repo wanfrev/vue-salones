@@ -1,13 +1,12 @@
 -- =============================================================================
--- Fix record_payment: set branch_id from appointment on transaction insert
---
--- Bug: record_payment() was inserting transactions with branch_id = NULL
--- because branch_id was not included in the INSERT column list. For businesses
--- with multi_branch enabled, all new transactions were invisible in Finanzas
--- and employee earnings (frontend filters .eq('branch_id', uuid) excludes NULL).
+-- Fix record_payment: set branch_id + use employee's pay_percentage
 -- =============================================================================
 
--- 1. Update record_payment to set branch_id
+-- 0. Drop old overloads so there's only one version
+drop function if exists public.record_payment(uuid, numeric, payment_method, text);
+drop function if exists public.record_payment(uuid, numeric, payment_method);
+
+-- 1. Update record_payment to set branch_id and use employee pay_percentage
 create or replace function public.record_payment(
   p_appointment_id uuid,
   p_amount         numeric,
