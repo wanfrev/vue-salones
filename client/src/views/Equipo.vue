@@ -283,6 +283,7 @@
             <thead>
               <tr class="border-b border-border-subtle">
                 <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">{{ businessStore.terminology.employee || 'Empleado' }}</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Cliente</th>
                 <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">{{ businessStore.terminology.service || 'Servicio' }}</th>
                 <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Costo</th>
                 <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">% {{ businessStore.terminology.employee || 'Empleado' }}</th>
@@ -292,6 +293,7 @@
             <tbody class="divide-y divide-border-subtle">
               <tr v-for="payment in summaryCtx.employeePayments.value" :key="payment.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
                 <td class="px-3 py-3 font-medium text-text">{{ payment.employee }}</td>
+                <td class="px-3 py-3 text-text-secondary">{{ payment.client }}</td>
                 <td class="px-3 py-3 text-text-secondary">{{ payment.service }}</td>
                 <td class="px-3 py-3 text-right hidden sm:table-cell">
                   <div class="text-text">{{ formatUSD(payment.amount) }}</div>

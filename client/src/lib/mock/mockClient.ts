@@ -474,6 +474,9 @@ export function createMockClient() {
       const appointment = store.appointments.find((a: any) => a.id === args.p_appointment_id)
       if (!appointment) return { data: null, error: { message: 'Appointment not found' } }
 
+      const service = store.services.find((s: any) => s.id === appointment.service_id)
+      const employeeProfile = store.profiles.find((p: any) => p.id === appointment.employee_id)
+
       const exchangeRate = args.p_exchange_rate ?? 36.50
       let paymentsBreakdown = []
       try {
@@ -485,15 +488,28 @@ export function createMockClient() {
       const business = store.businesses.find((b: any) => b.id === BIZ)
       if (business) business.ves_exchange_rate = exchangeRate
 
+      const assistantPct = Number(appointment.assistant_percentage ?? 0)
+      const employeePct = Number(
+        appointment.employee_percentage_override
+        ?? employeeProfile?.pay_percentage
+        ?? (100 - Number(service?.local_percentage ?? 50))
+      )
+      const localPct = Math.max(0, 100 - employeePct - assistantPct)
+      const assistantAmount = Number((Number(args.p_amount) * (assistantPct / 100)).toFixed(2))
+      const employeeAmount = Number((Number(args.p_amount) * (employeePct / 100)).toFixed(2))
+      const localAmount = Number((Number(args.p_amount) - assistantAmount - employeeAmount).toFixed(2))
+
       store.transactions.push({
         id: txnId,
         business_id: BIZ,
         appointment_id: args.p_appointment_id,
         total_amount: args.p_amount,
-        local_amount: args.p_amount * 0.5,
-        employee_amount: args.p_amount * 0.5,
-        local_percentage: 50,
-        employee_percentage: 50,
+        local_amount: localAmount,
+        employee_amount: employeeAmount,
+        assistant_amount: assistantAmount,
+        local_percentage: localPct,
+        employee_percentage: employeePct,
+        assistant_percentage: assistantPct,
         method: args.p_method || 'cash',
         exchange_rate_used: exchangeRate,
         payments_breakdown: paymentsBreakdown,

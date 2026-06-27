@@ -73,6 +73,7 @@ export type ProductSaleDetail = {
 type PaymentRow = {
   id: string
   employee: string
+  client: string
   service: string
   amount: number
   percentage: number
@@ -213,6 +214,7 @@ function useFinancialSummary(
             employee_id,
             assistant_employee_id,
             assistant_percentage,
+            employee_percentage_override,
             clients ( full_name ),
             services ( name ),
             employee_profile:profiles!appointments_employee_id_fkey ( full_name, pay_type, pay_percentage, base_salary ),
@@ -241,6 +243,7 @@ function useFinancialSummary(
             employee_id: string | null
             assistant_employee_id: string | null
             assistant_percentage: number | null
+            employee_percentage_override: number | null
             clients?: { full_name: string | null } | null
             services?: { name: string | null } | null
             employee_profile?: {
@@ -539,17 +542,27 @@ function useFinancialSummary(
 
   const transactions = computed(() => unifiedTransactions.value)
 
+  const getEffectiveEmployeePercentage = (row: {
+    employee_percentage: number | null
+    appointments?: { employee_percentage_override: number | null } | null
+  }): number | null => {
+    const overridePct = row.appointments?.employee_percentage_override
+    if (overridePct != null) return Number(overridePct)
+    return row.employee_percentage != null ? Number(row.employee_percentage) : null
+  }
+
   const employeePayments = computed<PaymentRow[]>(() => {
     const rows: PaymentRow[] = []
     for (const row of rawTransactions.value) {
       const mainCalc = computeServiceEarnings(
         Number(row.total_amount ?? 0),
         row.appointments?.employee_profile,
-        row.employee_percentage,
+        getEffectiveEmployeePercentage(row),
       )
       rows.push({
         id: row.id,
         employee: row.appointments?.employee_profile?.full_name ?? '—',
+        client: row.appointments?.clients?.full_name ?? '—',
         service: row.appointments?.services?.name ?? '—',
         amount: row.total_amount,
         percentage: mainCalc.percentage,
@@ -565,6 +578,7 @@ function useFinancialSummary(
         rows.push({
           id: `${row.id}-asst`,
           employee: assistantName + ' (asistente)',
+          client: row.appointments?.clients?.full_name ?? '—',
           service: row.appointments?.services?.name ?? '—',
           amount: row.total_amount,
           percentage: assistantPct,
@@ -610,7 +624,7 @@ function useFinancialSummary(
         const calc = computeServiceEarnings(
           Number(tx.total_amount ?? 0),
           mainProfile,
-          tx.employee_percentage,
+          getEffectiveEmployeePercentage(tx),
         )
         map.get(mainId)!.commissionTotal += calc.earnings
       }
