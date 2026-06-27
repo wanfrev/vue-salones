@@ -78,7 +78,7 @@ const roleLabel = computed(() => {
   return ''
 })
 
-function refresh() {
-  queryClient.invalidateQueries()
+async function refresh() {
+  await queryClient.invalidateQueries()
 }
 </script>

@@ -63,7 +63,7 @@ const queryClient = useQueryClient()
 const isSidebarOpen = ref(false)
 const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLight))
 
-function refresh() {
-  queryClient.invalidateQueries()
+async function refresh() {
+  await queryClient.invalidateQueries()
 }
 </script>
