@@ -694,14 +694,13 @@ function useFinancialSummary(
       paymentsBreakdown?: PaymentBreakdownItem[]
     }) => updateTransaction(params),
     onSuccess: async () => {
-      queryClient.removeQueries({ exact: false, queryKey: ['finanzas-transactions'] })
-      queryClient.removeQueries({ exact: false, queryKey: ['financial-summary'] })
-      queryClient.removeQueries({ exact: false, queryKey: ['finanzas-employee-payments'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-employee-payments'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['inventario'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales'] })
       notify('Cobro actualizado correctamente')
     },
     onError: (err: unknown) => {
@@ -712,11 +711,6 @@ function useFinancialSummary(
   const deleteTransactionMutation = useMutation({
     mutationFn: (params: { transactionId: string }) => deleteTransaction(params),
     onSuccess: async () => {
-      // Remove from cache first so persistent storage can't serve stale data
-      queryClient.removeQueries({ exact: false, queryKey: ['finanzas-transactions'] })
-      queryClient.removeQueries({ exact: false, queryKey: ['financial-summary'] })
-      queryClient.removeQueries({ exact: false, queryKey: ['finanzas-employee-payments'] })
-      // Then invalidate to trigger fresh refetch
       await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-employee-payments'] })
