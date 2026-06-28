@@ -147,8 +147,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       await supabase.auth.signOut()
     } catch {
-      // Even if the API call fails (network), we clear local state
-      // so the user is not stuck in a broken session
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {})
     } finally {
       if (authUnsubscribe) {
         authUnsubscribe()

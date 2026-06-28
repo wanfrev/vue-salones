@@ -29,8 +29,8 @@ export function useNotifications() {
   const notifications = computed(() => unreadNotifications.value ?? [])
   const unreadCount = computed(() => notifications.value.length)
 
-  const invalidate = () => {
-    queryClient.invalidateQueries({ exact: false, queryKey: ['notifications'] })
+  const invalidate = async () => {
+    await queryClient.invalidateQueries({ exact: false, queryKey: ['notifications'] })
   }
 
   // Real-time channel: listen for new notifications
@@ -84,8 +84,8 @@ export function useNotifications() {
 
   const markAsReadMutation = useMutation({
     mutationFn: (id: string) => markNotificationAsRead(id),
-    onSuccess: () => {
-      invalidate()
+    onSuccess: async () => {
+      await invalidate()
     },
     onError: (err) => {
       showError(err instanceof Error ? err.message : 'Error al marcar notificación')
@@ -94,8 +94,8 @@ export function useNotifications() {
 
   const markAllAsReadMutation = useMutation({
     mutationFn: () => markAllNotificationsAsRead(profileId.value!),
-    onSuccess: () => {
-      invalidate()
+    onSuccess: async () => {
+      await invalidate()
     },
     onError: (err) => {
       showError(err instanceof Error ? err.message : 'Error al marcar todas leídas')
@@ -104,8 +104,8 @@ export function useNotifications() {
 
   const dismissMutation = useMutation({
     mutationFn: (id: string) => dismissNotification(id),
-    onSuccess: () => {
-      invalidate()
+    onSuccess: async () => {
+      await invalidate()
     },
     onError: (err) => {
       showError(err instanceof Error ? err.message : 'Error al eliminar notificación')

@@ -1,9 +1,5 @@
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/vue-query'
-import { persistQueryClient } from '@tanstack/query-persist-client-core'
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { supabase } from './lib/supabase'
-
-const oneDayMs = 24 * 60 * 60 * 1000
 
 const isAuthError = (err: unknown): boolean => {
   if (!err) return false
@@ -20,7 +16,6 @@ export const queryClient = new QueryClient({
       if (isAuthError(err)) {
         supabase.auth.signOut().catch(() => {})
         queryClient.clear()
-        localStorage.removeItem('salones.query-cache')
         if (typeof window !== 'undefined' && window.location.pathname !== '/') {
           window.location.assign('/')
         }
@@ -32,7 +27,6 @@ export const queryClient = new QueryClient({
       if (isAuthError(err)) {
         supabase.auth.signOut().catch(() => {})
         queryClient.clear()
-        localStorage.removeItem('salones.query-cache')
         if (typeof window !== 'undefined' && window.location.pathname !== '/') {
           window.location.assign('/')
         }
@@ -41,8 +35,8 @@ export const queryClient = new QueryClient({
   }),
   defaultOptions: {
     queries: {
-      staleTime: 30 * 1000,
-      gcTime: oneDayMs,
+      staleTime: 2 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: true,
       refetchOnReconnect: true,
@@ -54,17 +48,3 @@ export const queryClient = new QueryClient({
     },
   },
 })
-
-if (typeof window !== 'undefined' && window.localStorage) {
-  const persister = createSyncStoragePersister({
-    storage: window.localStorage,
-    key: 'salones.query-cache',
-    throttleTime: 1000,
-  })
-
-  persistQueryClient({
-    queryClient,
-    persister,
-    maxAge: oneDayMs,
-  })
-}
