@@ -70,6 +70,7 @@ export function usePOSPayment() {
       await queryClient.invalidateQueries({ exact: false, queryKey: posKeys.products(businessId.value, branchId.value) })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['inventario'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
+      await queryClient.invalidateQueries({ exact: false, queryKey: ['servicios'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-transactions'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['financial-summary'] })
