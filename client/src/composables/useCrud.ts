@@ -12,7 +12,7 @@ export interface UseCrudOptions<TData, TForm, TId = string> {
   saveFn: (businessId: string, data: TForm & { id?: TId }, branchId?: string | null) => Promise<TData | void>
   entityName?: string
   deleteFn?: (id: TId) => Promise<void>
-  extraInvalidations?: ((businessId: string) => readonly any[])[]
+  extraInvalidations?: ((businessId: string, branchId?: string | null) => readonly any[])[]
   modalRef?: Ref<{ close: () => void } | null>
   deleteConfirmMessage?: (entity: TData) => string
 }
@@ -48,7 +48,7 @@ export function useCrud<TData, TForm, TId = string>(options: UseCrudOptions<TDat
     if (!businessId.value) return
     await queryClient.invalidateQueries({ exact: false, queryKey: queryKey(businessId.value, currentBranchId.value) })
     for (const extra of extraInvalidations) {
-      await queryClient.invalidateQueries({ exact: false, queryKey: extra(businessId.value) })
+      await queryClient.invalidateQueries({ exact: false, queryKey: extra(businessId.value, currentBranchId.value) })
     }
   }
 

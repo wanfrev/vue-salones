@@ -26,8 +26,8 @@ export function useProductCRUD() {
     entityName: 'Producto',
     modalRef: productoModalRef,
     extraInvalidations: [
-      (id) => ['inventario', id],
-      (id) => posKeys.products(id),
+      (id, brId) => ['inventario', id, brId],
+      (id, brId) => posKeys.products(id, brId),
     ],
   })
 
