@@ -96,7 +96,7 @@ export const listEmployeeTransactions = async (
   // Step 1: Get appointment IDs where this employee is involved
   let apptQuery = supabase
     .from('appointments')
-    .select('id, employee_id, assistant_employee_id, client_id, service_id')
+    .select('id, employee_id, assistant_employee_id, client_id, service_id, employee_percentage_override')
     .eq('business_id', businessId)
     .or(`employee_id.eq.${employeeId},assistant_employee_id.eq.${employeeId}`)
 
@@ -108,7 +108,14 @@ export const listEmployeeTransactions = async (
 
   if (apptError) throw apptError
 
-  type ApptRow = { id: string; employee_id: string; assistant_employee_id: string | null; client_id: string; service_id: string }
+  type ApptRow = {
+    id: string
+    employee_id: string
+    assistant_employee_id: string | null
+    client_id: string
+    service_id: string
+    employee_percentage_override: number | null
+  }
   const appts = (apptData ?? []) as ApptRow[]
   const apptIds = appts.map(a => a.id)
   if (apptIds.length === 0) return []
@@ -185,7 +192,7 @@ export const listEmployeeTransactions = async (
       : computeServiceEarnings(
           totalAmount,
           { pay_type: profile?.pay_type, pay_percentage: profile?.pay_percentage },
-          row.employee_percentage,
+          appt?.employee_percentage_override ?? row.employee_percentage,
         )
 
     return {
