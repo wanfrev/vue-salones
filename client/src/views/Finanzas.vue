@@ -489,6 +489,18 @@
     <SupplierPaymentsSection :ctx="supplierPaymentsCtx" />
   </div>
 
+  <!-- Employee Payments & Debt -->
+  <div class="mb-4">
+    <EmployeePaymentsSection
+      :employee-payments="summaryCtx.employeePayments.value"
+      :employee-earnings-by-employee="summaryCtx.employeeEarningsByEmployee.value"
+      :payments-made="employeePaymentsCtx.paymentsMade.value"
+      :terminology="terminology"
+      :business-id="businessId"
+      @view-all="goToAllRecords('pagos')"
+    />
+  </div>
+
   <!-- Expense Modal (Teleported) -->
   <ExpenseFormModal
     :is-open="expensesCtx.showExpenseModal.value"
@@ -678,9 +690,11 @@ import { useFinancialSummary } from '../composables/useFinancialSummary'
 import { useExpenses } from '../composables/useExpenses'
 import { useExchangeRate } from '../composables/useExchangeRate'
 import { useSupplierPayments } from '../composables/useSuppliers'
+import { useEmployeePayments } from '../composables/useEmployeePayments'
 import ExchangeRateCard from '../components/finanzas/ExchangeRateCard.vue'
 import KpiCards from '../components/finanzas/KpiCards.vue'
 import SupplierPaymentsSection from '../components/finanzas/SupplierPaymentsSection.vue'
+import EmployeePaymentsSection from '../components/finanzas/EmployeePaymentsSection.vue'
 import ExpenseFormModal from '../components/finanzas/ExpenseFormModal.vue'
 import CurrencyBreakdown, { type CurrencyBreakdownData } from '../components/finanzas/CurrencyBreakdown.vue'
 import RecentTransactionsCard from '../components/finanzas/RecentTransactionsCard.vue'
@@ -711,6 +725,7 @@ const businessId = computed(() => authStore.businessId)
 const expensesCtx = useExpenses(businessId, selectedPeriod, selectedMonth)
 const expenses = expensesCtx.expenses
 const supplierPaymentsCtx = useSupplierPayments(businessId)
+const employeePaymentsCtx = useEmployeePayments(businessId)
 
 const summaryCtx = useFinancialSummary(businessId, selectedPeriod, expenses, selectedMonth)
 const rateCtx = useExchangeRate()
@@ -718,6 +733,7 @@ const rateCtx = useExchangeRate()
 // --- Servicios CRUD ---
 const svcBusinessStore = useBusinessStore()
 const branchId = computed(() => svcBusinessStore.currentBranchId)
+const terminology = svcBusinessStore.terminology
 const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useNotification()
 const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null)
 const servicioToDelete = ref<Servicio | null>(null)
