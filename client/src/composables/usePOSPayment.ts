@@ -67,7 +67,7 @@ export function usePOSPayment() {
     }) => recordSale({ ...params, businessId: businessId.value!, branchId: branchId.value }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
-      await queryClient.invalidateQueries({ exact: false, queryKey: posKeys.products(businessId.value) })
+      await queryClient.invalidateQueries({ exact: false, queryKey: posKeys.products(businessId.value, branchId.value) })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['inventario'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['appointments'] })
       await queryClient.invalidateQueries({ exact: false, queryKey: ['finanzas-product-sales'] })

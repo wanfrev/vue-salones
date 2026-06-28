@@ -213,6 +213,7 @@ import { useCurrency } from '../../composables/useCurrency'
 import { useNotification } from '../../composables/useNotification'
 import { posKeys } from '../../services/posService'
 import { sellProduct, inventarioKeys } from '../../services/inventarioService'
+import { useBusinessStore } from '../../store/business'
 import type { PaymentMethod } from '../../types/database'
 import type { PaymentBreakdownItem } from '../../types/pos'
 
@@ -224,6 +225,8 @@ const props = defineProps<{
 const { formatDual, exchangeRate } = useCurrency()
 const { success, error: showError } = useNotification()
 const queryClient = useQueryClient()
+const businessStore = useBusinessStore()
+const branchId = computed(() => businessStore.currentBranchId)
 
 const search = ref('')
 const selected = ref<any>(null)
@@ -301,12 +304,25 @@ const saleCurrency = computed<'USD' | 'VES'>(() => {
 })
 
 const sellMutation = useMutation({
-  mutationFn: () =>
-    sellProduct(props.businessId, selected.value!.id, quantity.value, notes.value, null, unitPrice.value, exchangeRate.value, saleCurrency.value),
+  mutationFn: () => {
+    const breakdown = paymentMethod.value === 'mixed'
+      ? paymentsBreakdown.value.map(s => ({
+          method: s.method,
+          amount: s.currency === 'VES' ? (s.inputAmount || 0) / exchangeRate.value : (s.inputAmount || 0),
+          currency: s.currency,
+          inputAmount: s.inputAmount || 0,
+        }))
+      : undefined
+    return sellProduct(
+      props.businessId, selected.value!.id, quantity.value, notes.value,
+      null, unitPrice.value, exchangeRate.value, saleCurrency.value,
+      branchId.value, paymentMethod.value, breakdown,
+    )
+  },
   onSuccess: async () => {
-    await queryClient.invalidateQueries({ queryKey: inventarioKeys.all(props.businessId) })
-    await queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(props.businessId) })
-    await queryClient.invalidateQueries({ queryKey: posKeys.products(props.businessId) })
+    await queryClient.invalidateQueries({ queryKey: inventarioKeys.all(props.businessId, branchId.value) })
+    await queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(props.businessId, branchId.value) })
+    await queryClient.invalidateQueries({ queryKey: posKeys.products(props.businessId, branchId.value) })
     await queryClient.invalidateQueries({ queryKey: ['finanzas-product-sales'] })
     await queryClient.invalidateQueries({ queryKey: ['financial-summary'] })
     await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'] })
