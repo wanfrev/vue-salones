@@ -11,15 +11,6 @@
         <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">{{ businessStore.terminology.service || 'Servicio' }}s</h1>
       </div>
       <div class="flex items-center gap-2">
-        <button
-          @click="handleNewServicio"
-          class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
-        >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          <span>Nuevo {{ businessStore.terminology.service || 'Servicio' }}</span>
-        </button>
         <div class="relative">
           <button
             @click="showCatMenu = !showCatMenu"
@@ -51,6 +42,15 @@
           </div>
           <div v-if="showCatMenu" class="fixed inset-0 z-40" @click="showCatMenu = false" />
         </div>
+        <button
+          @click="handleNewServicio"
+          class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          <span>Nuevo {{ businessStore.terminology.service || 'Servicio' }}</span>
+        </button>
       </div>
     </div>
   </header>
