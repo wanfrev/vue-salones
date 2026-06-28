@@ -237,7 +237,7 @@ watch(
       }
     } else {
       const ctx = modalData.value?.context
-      const defaultSellable = ctx?.defaultSellable ?? true
+      const defaultSellable = ctx?.defaultSellable ?? false
       formData.value = { ...defaultFormData, isSellable: defaultSellable }
     }
     errors.value = {}
