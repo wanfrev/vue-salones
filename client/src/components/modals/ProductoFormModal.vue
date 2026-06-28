@@ -204,7 +204,7 @@ const defaultFormData: ProductoFormData = {
   unitPrice: 0,
   reorderPoint: 0,
   active: 'Activo',
-  isSellable: true,
+  isSellable: false,
   initialStock: 0,
 }
 
