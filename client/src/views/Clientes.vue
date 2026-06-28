@@ -171,11 +171,12 @@
     </div>
   </div>
 
-    <div class="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-2.5">
-      <div class="text-sm text-text-muted">
+    <div class="flex items-center justify-between rounded-lg border border-border bg-surface px-3 sm:px-4 py-2.5">
+      <div class="text-xs sm:text-sm text-text-muted">
         {{ paginationStart }}-{{ paginationEnd }} de {{ filteredClients.length }}
       </div>
-      <div class="flex gap-1">
+      <!-- Desktop: full pagination -->
+      <div class="hidden sm:flex gap-1">
         <button
           @click="previousPage"
           :disabled="!hasPreviousPage"
@@ -201,6 +202,26 @@
           :class="hasNextPage ? 'text-text-secondary hover:bg-bg-secondary' : 'text-text-muted cursor-not-allowed opacity-40'"
         >
           Siguiente
+        </button>
+      </div>
+      <!-- Mobile: compact arrows + page indicator -->
+      <div class="flex sm:hidden items-center gap-1">
+        <button
+          @click="previousPage"
+          :disabled="!hasPreviousPage"
+          class="rounded-md p-1.5 transition-theme"
+          :class="hasPreviousPage ? 'text-text-secondary hover:bg-bg-secondary' : 'text-text-muted cursor-not-allowed opacity-40'"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span class="text-xs font-medium text-text px-1">{{ currentPage }} / {{ totalPages }}</span>
+        <button
+          @click="nextPage"
+          :disabled="!hasNextPage"
+          class="rounded-md p-1.5 transition-theme"
+          :class="hasNextPage ? 'text-text-secondary hover:bg-bg-secondary' : 'text-text-muted cursor-not-allowed opacity-40'"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </button>
       </div>
     </div>
@@ -284,6 +305,7 @@ const {
   previousPage,
   paginationStart,
   paginationEnd,
+  totalPages,
   handleApplyFilters,
   handleClearFilters,
   getFilterDrawerDefaults,
