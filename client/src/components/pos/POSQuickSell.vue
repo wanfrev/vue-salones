@@ -304,21 +304,12 @@ const saleCurrency = computed<'USD' | 'VES'>(() => {
 })
 
 const sellMutation = useMutation({
-  mutationFn: () => {
-    const breakdown = paymentMethod.value === 'mixed'
-      ? paymentsBreakdown.value.map(s => ({
-          method: s.method,
-          amount: s.currency === 'VES' ? (s.inputAmount || 0) / exchangeRate.value : (s.inputAmount || 0),
-          currency: s.currency,
-          inputAmount: s.inputAmount || 0,
-        }))
-      : undefined
-    return sellProduct(
+  mutationFn: () =>
+    sellProduct(
       props.businessId, selected.value!.id, quantity.value, notes.value,
       null, unitPrice.value, exchangeRate.value, saleCurrency.value,
-      branchId.value, paymentMethod.value, breakdown,
-    )
-  },
+      branchId.value,
+    ),
   onSuccess: async () => {
     await queryClient.invalidateQueries({ queryKey: inventarioKeys.all(props.businessId, branchId.value) })
     await queryClient.invalidateQueries({ queryKey: inventarioKeys.movements(props.businessId, branchId.value) })

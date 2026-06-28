@@ -350,8 +350,6 @@ export const sellProduct = async (
   exchangeRate?: number,
   currency?: 'USD' | 'VES',
   branchId?: string | null,
-  method?: string,
-  paymentsBreakdown?: any[],
 ): Promise<void> => {
   const locationId = await getDefaultLocation(businessId, branchId)
   const existing = await getStockRecord(businessId, productId, locationId, variantId, branchId)
@@ -383,33 +381,4 @@ export const sellProduct = async (
     exchangeRate: rate,
     branchId,
   })
-
-  const totalAmount = (unitPrice ?? 0) * quantity
-  const actualAmount = currency === 'VES' ? totalAmount / rate : totalAmount
-  const supabaseUser = mutate.auth?.currentUser
-
-  const { error: txError } = await mutate
-    .from('transactions')
-    .insert({
-      business_id: businessId,
-      branch_id: branchId ?? null,
-      appointment_id: null,
-      type: 'ingreso',
-      description: finalNotes,
-      total_amount: actualAmount,
-      currency: currency ?? 'USD',
-      original_amount: currency === 'VES' ? totalAmount : null,
-      exchange_rate_used: currency === 'VES' ? rate : null,
-      method: method ?? 'cash',
-      payments_breakdown: paymentsBreakdown ?? null,
-      local_amount: 0,
-      employee_amount: 0,
-      assistant_amount: 0,
-      local_percentage: 0,
-      employee_percentage: 0,
-      assistant_percentage: 0,
-      notes: notes || null,
-      created_by: supabaseUser?.id ?? null,
-    })
-  if (txError) throw txError
 }
