@@ -1,7 +1,6 @@
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../store/auth'
-import router from '../router'
 
 export const useAuth = () => {
   const authStore = useAuthStore()
@@ -28,7 +27,9 @@ export const useAuth = () => {
     } catch {
       // local state cleared in signOut
     } finally {
-      router.replace('/')
+      if (typeof window !== 'undefined') {
+        window.location.assign('/')
+      }
     }
   }
 
