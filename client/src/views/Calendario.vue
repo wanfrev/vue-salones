@@ -82,7 +82,8 @@ const empleadosList = computed(() => (empleadosData.value ?? []).map(employee =>
 const handleSlotSelect = ({ start, employeeId }: { start: Date; employeeId?: string }) => {
   const date = toISODate(start)
   const time = dateToHHmm(start)
-  citaModalRef.value?.open({ id: '', clientName: '', service: '', employee: employeeId || '', date, time, duration: 30, price: 0, status: 'pending' })
+  const empName = employeeId ? empleadosData.value?.find(e => e.id === employeeId)?.name ?? '' : ''
+  citaModalRef.value?.open({ id: '', clientName: '', service: '', employee: empName, employeeId: employeeId || '', date, time, duration: 30, price: 0, status: 'pending' })
 }
 
 const handleEventClick = (event: { id: string; title: string; start: Date; end: Date; citaData?: Cita }) => {
