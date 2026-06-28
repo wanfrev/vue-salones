@@ -81,15 +81,23 @@
           />
         </div>
 
-        <FormInput
-          v-model.number="formData.baseSalary"
-          label="Sueldo base"
-          type="number"
-          min="0"
-          placeholder="0"
-          :disabled="formData.payType === 'percentage'"
-          :error="errors.baseSalary"
-        />
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FormInput
+            v-model.number="formData.baseSalary"
+            label="Sueldo base"
+            type="number"
+            min="0"
+            placeholder="0"
+            :disabled="formData.payType === 'percentage'"
+            :error="errors.baseSalary"
+          />
+          <FormSelect
+            v-model="formData.salaryFrequency"
+            label="Frecuencia"
+            :options="salaryFrequencyOptions"
+            :disabled="formData.payType === 'percentage'"
+          />
+        </div>
       </div>
 
       <!-- Contacto -->
@@ -244,7 +252,14 @@ const defaultFormData: EmpleadoFormData = {
   payType: 'percentage',
   payPercentage: 50,
   baseSalary: 0,
+  salaryFrequency: 'monthly',
 }
+
+const salaryFrequencyOptions = [
+  { value: 'weekly', label: 'Semanal' },
+  { value: 'biweekly', label: 'Quincenal' },
+  { value: 'monthly', label: 'Mensual' },
+]
 
 const formData = ref<EmpleadoFormData>({ ...defaultFormData })
 const errors = ref<Partial<Record<keyof EmpleadoFormData, string>>>({})
@@ -279,6 +294,7 @@ watch(
         payType: empleado.payType || 'percentage',
         payPercentage: empleado.payPercentage || 0,
         baseSalary: empleado.baseSalary || 0,
+        salaryFrequency: empleado.salaryFrequency || 'monthly',
       }
     } else {
       // Always reset when opening "Nuevo" to avoid stale values from previous attempts.

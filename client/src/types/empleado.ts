@@ -16,6 +16,7 @@ export interface Empleado {
   payType: 'salary' | 'percentage' | 'mixed'
   payPercentage?: number
   baseSalary?: number
+  salaryFrequency?: 'weekly' | 'biweekly' | 'monthly'
   payTypeLabel: string
   payValueLabel: string
 }
@@ -33,4 +34,5 @@ export interface EmpleadoFormData {
   payType: 'salary' | 'percentage' | 'mixed'
   payPercentage: number
   baseSalary: number
+  salaryFrequency: 'weekly' | 'biweekly' | 'monthly'
 }

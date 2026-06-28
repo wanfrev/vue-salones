@@ -37,6 +37,7 @@ export type CreateUserInput = {
     pay_type?: string
     pay_percentage?: number
     base_salary?: number
+    salary_frequency?: string
   }
 }
 

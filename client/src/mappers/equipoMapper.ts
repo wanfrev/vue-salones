@@ -3,6 +3,7 @@ import type { Empleado, EmpleadoFormData } from '../types/empleado'
 
 export type EmployeeProfile = Profile & {
   employee_schedules?: EmployeeSchedule[]
+  salary_frequency?: 'weekly' | 'biweekly' | 'monthly'
 }
 
 export const mapProfileToEmpleado = (
@@ -18,10 +19,12 @@ export const mapProfileToEmpleado = (
     : payType === 'mixed'
       ? 'Sueldo + %'
       : 'Porcentaje'
+  const salaryFrequency = profile.salary_frequency || 'monthly'
+  const freqLabel = salaryFrequency === 'weekly' ? '/sem' : salaryFrequency === 'biweekly' ? '/quinc' : '/mes'
   const payValueLabel = payType === 'salary'
-    ? `$${baseSalary.toLocaleString()}`
+    ? `$${baseSalary.toLocaleString()}${freqLabel}`
     : payType === 'mixed'
-      ? `$${baseSalary.toLocaleString()} + ${payPercentage}%`
+      ? `$${baseSalary.toLocaleString()}${freqLabel} + ${payPercentage}%`
       : `${payPercentage}%`
 
   return {
@@ -44,6 +47,7 @@ export const mapProfileToEmpleado = (
     payType,
     payPercentage,
     baseSalary,
+    salaryFrequency: profile.salary_frequency ?? 'monthly' as 'weekly' | 'biweekly' | 'monthly',
     payTypeLabel,
     payValueLabel,
   }
@@ -56,6 +60,7 @@ export const mapEmpleadoFormToProfileUpdate = (data: EmpleadoFormData) => ({
   pay_type: data.payType,
   pay_percentage: data.payType === 'salary' ? 0 : Number(data.payPercentage),
   base_salary: data.payType === 'percentage' ? 0 : Number(data.baseSalary),
+  salary_frequency: data.salaryFrequency,
 })
 
 export const mapEmpleadoFormToScheduleBlocks = (employeeId: string, data: EmpleadoFormData & { branchId?: string | null }) => {

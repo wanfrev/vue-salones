@@ -61,6 +61,7 @@ export interface Profile {
   pay_type?: 'salary' | 'percentage' | 'mixed'
   pay_percentage?: number | null
   base_salary?: number | null
+  salary_frequency?: 'weekly' | 'biweekly' | 'monthly' | null
   created_at: string
   updated_at: string
 }
