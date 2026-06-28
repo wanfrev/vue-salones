@@ -49,6 +49,7 @@ export function useAppointmentMutations(options: {
       saveCita(options.businessId.value!, data, options.createdBy?.value, businessStore.currentBranchId),
     onSuccess: async () => {
       await invalidate()
+      await queryClient.refetchQueries({ exact: false, queryKey: ['appointments'] })
       options.modalRef?.value?.close()
       options.modalRef?.value?.onSaveComplete?.()
       success('Cita guardada correctamente')
@@ -93,6 +94,7 @@ export function useAppointmentMutations(options: {
     mutationFn: (id: string) => deleteCita(id),
     onSuccess: async () => {
       await invalidate()
+      await queryClient.refetchQueries({ exact: false, queryKey: ['appointments'] })
       options.modalRef?.value?.close()
       options.modalRef?.value?.onSaveComplete?.()
       success('Cita eliminada correctamente')
@@ -136,6 +138,7 @@ export function useAppointmentMutations(options: {
         .update({ employee_id: employeeId })
         .eq('id', id)
       await invalidate()
+      await queryClient.refetchQueries({ exact: false, queryKey: ['appointments'] })
     }
     success('Cita reagendada correctamente')
   }
