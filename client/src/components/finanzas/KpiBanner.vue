@@ -33,6 +33,18 @@ const variantBg: Record<string, string> = {
   warning: 'bg-gradient-to-r from-warning/[0.04] to-transparent',
   primary: 'bg-gradient-to-r from-primary/[0.04] to-transparent',
 }
-const variantIconBg: Record<string, string> = { success: 'bg-success/10 border-success/10', danger: 'bg-danger/10 border-danger/10', warning: 'bg-warning/10 border-warning/10', primary: 'bg-primary/10 border-primary/10' }
-const variantIconText: Record<string, string> = { success: 'text-success', danger: 'text-danger', warning: 'text-warning', primary: 'text-primary' }
+
+const variantIconBg: Record<string, string> = {
+  success: 'bg-success/10 border-success/10',
+  danger: 'bg-danger/10 border-danger/10',
+  warning: 'bg-warning/10 border-warning/10',
+  primary: 'bg-primary/10 border-primary/10',
+}
+
+const variantIconText: Record<string, string> = {
+  success: 'text-success',
+  danger: 'text-danger',
+  warning: 'text-warning',
+  primary: 'text-primary',
+}
 </script>
