@@ -37,7 +37,7 @@ export function useSuppliers(businessId: import('vue').Ref<string | null>) {
       return saveSupplier(businessId.value, formData, branchId.value)
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value, branchId.value), exact: false })
       success('Proveedor guardado correctamente')
       closeModal()
     },
@@ -49,7 +49,7 @@ export function useSuppliers(businessId: import('vue').Ref<string | null>) {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteSupplier(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value, branchId.value), exact: false })
       success('Proveedor eliminado correctamente')
     },
     onError: (err) => {
@@ -175,8 +175,8 @@ export function useSupplierPayments(businessId: import('vue').Ref<string | null>
       return createSupplierPayment(businessId.value, formData, branchId.value, exchangeRate.value)
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value), exact: false })
-      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value, branchId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value, branchId.value), exact: false })
       await queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
       success('Abono registrado correctamente')
       closeModal()
@@ -189,8 +189,8 @@ export function useSupplierPayments(businessId: import('vue').Ref<string | null>
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteSupplierPayment(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value), exact: false })
-      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: supplierPaymentKeys.all(businessId.value, branchId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: supplierKeys.all(businessId.value, branchId.value), exact: false })
       await queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
       success('Abono eliminado correctamente')
     },
