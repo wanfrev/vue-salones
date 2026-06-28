@@ -6,22 +6,22 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="service.icon" />
         </svg>
       </div>
-      <div class="flex gap-1">
+      <div class="hidden sm:flex gap-1.5">
         <button
           @click="$emit('edit', service)"
-          class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
+          class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-primary/10 hover:text-primary"
           title="Editar servicio"
         >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
           </svg>
         </button>
         <button
           @click="$emit('delete', service)"
-          class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-danger"
+          class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-danger/10 hover:text-danger"
           title="Eliminar servicio"
         >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
         </button>
@@ -53,6 +53,22 @@
         <span class="text-text-muted">{{ service.citasMes }} {{ appointmentLabel }}s este mes</span>
         <span class="font-semibold text-success tabular-nums">{{ formatUSD(service.ingresos) }} ingresos</span>
       </div>
+    </div>
+
+    <!-- Mobile action bar -->
+    <div class="sm:hidden mt-3 flex gap-2">
+      <button
+        @click="$emit('edit', service)"
+        class="flex-1 rounded-lg border border-primary/30 bg-primary/5 py-2.5 text-sm font-semibold text-primary transition-theme hover:bg-primary/10 active:bg-primary/20"
+      >
+        Editar
+      </button>
+      <button
+        @click="$emit('delete', service)"
+        class="rounded-lg border border-danger/20 bg-danger/5 px-4 py-2.5 text-sm font-semibold text-danger transition-theme hover:bg-danger/10 active:bg-danger/20"
+      >
+        Eliminar
+      </button>
     </div>
   </div>
 </template>

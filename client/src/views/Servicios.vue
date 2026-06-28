@@ -10,15 +10,48 @@
         </div>
         <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">{{ businessStore.terminology.service || 'Servicio' }}s</h1>
       </div>
-      <button
-        @click="handleNewServicio"
-        class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
-      >
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-        <span>Nuevo {{ businessStore.terminology.service || 'Servicio' }}</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          @click="handleNewServicio"
+          class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          <span>Nuevo {{ businessStore.terminology.service || 'Servicio' }}</span>
+        </button>
+        <div class="relative">
+          <button
+            @click="showCatMenu = !showCatMenu"
+            class="flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm font-medium text-text-secondary shadow-sm transition-theme hover:bg-bg-secondary hover:text-text"
+            title="Gestionar categorías"
+          >
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </button>
+          <div v-if="showCatMenu" class="absolute left-0 top-full mt-1 w-56 rounded-xl border border-border bg-surface shadow-lg z-50 overflow-hidden">
+            <div class="px-3 py-2 border-b border-border-subtle">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Gestionar categorías</p>
+            </div>
+            <div class="max-h-60 overflow-y-auto py-1">
+              <button
+                v-for="cat in categories.filter(c => c.id !== 'all')"
+                :key="cat.id"
+                class="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm transition-colors hover:bg-bg-secondary"
+                @click="activeCategory = cat.id"
+              >
+                <span class="truncate font-medium text-text">{{ cat.name }}</span>
+                <span class="flex items-center gap-1 shrink-0 ml-2">
+                  <span class="rounded px-1.5 py-0.5 text-[10px] font-semibold text-primary bg-primary/10 cursor-pointer hover:bg-primary/20" @click.stop="openRenameCategoryModal(cat.id); showCatMenu = false">Editar</span>
+                  <span v-if="categories.length > 2" class="rounded px-1.5 py-0.5 text-[10px] font-semibold text-danger bg-danger/10 cursor-pointer hover:bg-danger/20" @click.stop="openDeleteCategoryModal(cat.id); showCatMenu = false">Eliminar</span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div v-if="showCatMenu" class="fixed inset-0 z-40" @click="showCatMenu = false" />
+        </div>
+      </div>
     </div>
   </header>
 
@@ -53,46 +86,19 @@
 
   <!-- Category Tabs -->
   <div class="mb-5 flex overflow-x-auto rounded-xl border border-border bg-surface p-1 shadow-sm scrollbar-hide">
-    <div
+    <button
       v-for="cat in categories"
       :key="cat.id"
       :class="[
-        'group/category flex flex-1 items-center gap-1 rounded-lg px-1 py-1 transition-theme',
+        'flex-1 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-center transition-theme',
         activeCategory === cat.id
           ? 'bg-primary text-text-inverse shadow-sm shadow-primary/20'
           : 'text-text-secondary hover:bg-bg-secondary'
       ]"
+      @click="activeCategory = cat.id"
     >
-      <button
-        @click="activeCategory = cat.id"
-        class="min-w-0 flex-1 whitespace-nowrap rounded-md px-2 py-1 text-sm font-medium text-center"
-      >
-        {{ cat.name }}
-      </button>
-
-      <div v-if="cat.id !== 'all'" class="flex items-center gap-0.5">
-        <button
-          @click.stop="openRenameCategoryModal(cat.id)"
-          type="button"
-          class="rounded-md p-1 transition-theme hover:bg-black/10"
-          title="Editar categoría"
-        >
-          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-          </svg>
-        </button>
-        <button
-          @click.stop="openDeleteCategoryModal(cat.id)"
-          type="button"
-          class="rounded-md p-1 transition-theme hover:bg-black/10"
-          title="Eliminar categoría"
-        >
-          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
-      </div>
-    </div>
+      {{ cat.name }}
+    </button>
   </div>
 
   <!-- Services Grid -->
@@ -221,6 +227,7 @@ const { success, error: showError, warning } = useNotification()
 const servicioModalRef = ref<InstanceType<typeof ServicioFormModal> | null>(null)
 const isDeleteModalOpen = ref(false)
 const servicioToDelete = ref<Servicio | null>(null)
+const showCatMenu = ref(false)
 const businessId = computed(() => authStore.businessId)
 const branchId = computed(() => businessStore.currentBranchId)
 
