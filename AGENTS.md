@@ -364,12 +364,13 @@ Tres funciones en `supabase/functions/`:
 ### Framework
 - **vitest** con `happy-dom`, globals habilitados
 - Tests junto a los archivos: `validation.ts` → `validation.test.ts`
-- 81 tests actuales, 5 archivos
+- 97 tests actuales, 7 archivos
 
 ### Qué testear
 - **Validación Zod** (formularios) — SIEMPRE
 - **Mappers DB ↔ View** — SIEMPRE
 - **Funciones de `business/`** (cálculos puros) — SIEMPRE
+- **`lib/` utilities** (resolveFunctionErrorMessage, formatters, etc.) — SIEMPRE
 - **Composables de TanStack Query** — solo si la lógica es no trivial
 - **Componentes Vue** — solo lógica crítica de presentación
 - **Flujos end-to-end** — mínimo, solo el core (crear cita → cobrar → recibo)
@@ -379,6 +380,12 @@ Tres funciones en `supabase/functions/`:
 npm run test          # una vez
 npm run test:watch    # watch mode
 ```
+
+### Regla de oro para fixes
+1. **Escribir el test PRIMERO** que reproduzca el bug (debe fallar)
+2. **Aplicar el fix mínimo**
+3. **Confirmar que el test pasa** y los existentes no se rompen
+4. **Correr `npm run build`** para verificar que compila
 
 ### Antes de cualquier cambio en producción
 1. Correr `npm run test` — todos pasan
@@ -435,12 +442,21 @@ git diff
 
 ## 15. Decisiones arquitectónicas recientes (memorándum)
 
+- **2026-06-27**: `staleTime: 30s` en TanStack Query (antes 5min). El cache persistente en localStorage interfería con `invalidateQueries()` tras mutaciones, causando que crear/editar/eliminar no se reflejara sin recargar la página. Con 30s, las mutaciones fuerzan refetch inmediato y el cache solo sirve para navegación entre pestañas.
+- **2026-06-27**: `delete_transaction` y `update_transaction` cambiados a `security definer`. Eran `security invoker` y el DELETE/UPDATE interno pasaba por RLS; si la política RLS faltaba, Postgres silenciosamente no borraba nada.
+- **2026-06-27**: `record_payment` ahora lee `profiles.pay_percentage` del empleado. Antes usaba `100 - service.local_percentage` (siempre 50%), ignorando la comisión configurada por empleado.
+- **2026-06-27**: `record_payment` incluye `branch_id` en el INSERT de transacciones. Las transacciones sin `branch_id` eran invisibles en Finanzas para negocios multi-branch.
+- **2026-06-27**: Drop de constraints viejos en `transactions`. La migración de assistant intentó dropear constraints por nombres incorrectos, dejando zombies que impedían cobrar citas con asistente.
+- **2026-06-27**: Filtro de empleados por sucursal vía `employee_schedules.branch_id`. Los empleados sin filtro aparecían en todas las sucursales.
+- **2026-06-27**: `resolveFunctionErrorMessage` mejorado para parsear JSON desde `error.message` y `context.text()` como fallback.
+- **2026-06-27**: Todas las mutaciones usan `async onSuccess` + `await queryClient.invalidateQueries()`. Antes era fire-and-forget.
+- **2026-06-27**: GitHub Actions CI configurado (`.github/workflows/ci.yml`) — corre tests + build en cada push a main/staging.
+- **2026-06-27**: 97 tests (employeeEarnings, agendaMapper, formatters, currencyNotes, validation, errors, agendaMapper.assistant).
 - **2026-06-24**: Columna `features` JSONB en `businesses` para feature flags por negocio. Superadmin puede activar/desactivar POS, Inventario, Productos, Proveedores, Multi-sucursal.
 - **2026-06-24**: Tabla `branches` con `branch_id` en tablas operativas. Gated por `businesses.features.multi_branch`. Default branch auto-creado via trigger.
 - **2026-06-23**: Columnas nativas de moneda (`currency`, `original_amount`, `exchange_rate_used`) en `expenses` y `employee_payments`. Eliminado el anti-patrón `[VES:...]` en notes.
 - **2026-06-23**: `production_hardening.sql` — notifications policy restringido, set search_path en security definer, default role cambiado a 'empleado'.
 - **2026-06-23**: Refactor de Finanzas.vue (1162→1013), Servicios.vue (486→305), Equipo.vue (924→889). 5 componentes genéricos nuevos (EmptyState, StatCard, SectionCard, SegmentedTabs, DualAmount). 3 composables nuevos (useBusinessTerminology, useCategoryCRUD, usePeriodSelection).
-- **2026-06-23**: 81 tests (employeeEarnings, formatters, currencyNotes, validation, agendaMapper).
 
 ---
 
@@ -454,21 +470,28 @@ git diff
 6. **Mocks**: incluir TODAS las columnas que el código accede, o el mock devolverá `undefined` en runtime aunque typecheck pase.
 7. **Tests primero** en lógica crítica: validación, mappers, cálculos. El bug de las funciones de notificación se habría detectado con un test de creación de cita.
 8. **Build en CI/CD**: nunca commitear sin correr `npm run build` + `npm run test`.
+9. **`NULL != uuid` en SQL**: RLS y check constraints con valores NULL pueden causar fallos silenciosos. Siempre usar `coalesce` o `is not distinct from`.
+10. **Funciones `security invoker` con DML interno**: el DELETE/UPDATE pasa por RLS. Si la política RLS no existe o no matchea, Postgres silenciosamente afecta 0 filas y no lanza error. Usar `security definer` con `is_admin_of()` interno para operaciones críticas.
+11. **Nunca cambiar `security invoker` a `security definer` sin revisar**: asegurarse que el `search_path` está seteado y que el cheque de autorización interno existe.
+12. **`queryClient.invalidateQueries()` con `persistQueryClient`**: el cache en localStorage puede servir datos viejos después de invalidar. Solución: `staleTime` bajo (30s), `removeQueries` antes de `invalidateQueries` para deletes, y `await` en todo `onSuccess`.
+13. **Fire-and-forget `invalidateQueries`**: nunca llamar sin `await` en `onSuccess` de mutaciones. La UI se actualiza antes de que los datos frescos lleguen.
+14. **Pinia stores vs TanStack Query cache**: si un componente lee de Pinia (`businessStore.branches`) y otro de TanStack Query, hay que refrescar AMBOS tras una mutación. El `BranchSwitcher` no se actualizaba porque solo se invalidaba el query cache, no la store.
 
 ---
 
 ## 17. Checklist antes de mergear
 
 ```
-[ ] npm run test pasa
+[ ] npm run test pasa (97 tests)
 [ ] npm run build pasa
 [ ] vue-tsc sin errores
 [ ] Si tocaste una migración: probada con `supabase db reset` localmente
 [ ] Si tocaste una función SQL: leíste el CREATE TABLE actual primero
+[ ] Si tocaste una función SQL operativa (record_payment, delete_transaction, etc.): es `security definer` con `is_admin_of()` interno, NO `security invoker`
 [ ] Si tocaste Edge Function: probada con `supabase functions serve`
-[ ] Si agregaste un composable: usado en lugar de duplicar lógica
-[ ] Si agregaste un componente reusable: puesto en `components/common/`
-[ ] Si tocaste moneda: usaste columnas nativas, NO el patrón [VES:...] en notes
+[ ] Si tocaste TanStack Query: `onSuccess` usa `async` + `await invalidateQueries()`, NO fire-and-forget
+[ ] Si tocaste `record_payment`: incluye `branch_id` en el INSERT y lee `pay_percentage` del empleado
+[ ] Si tocaste la cache (`staleTime`, `persistQueryClient`): probaste que crear/editar/eliminar se refleja sin recargar
 [ ] Si tocaste feature flags: actualizado el whitelist en `superadminService.updateBusiness` Y en `superadmin-invite` Edge Function
 [ ] Si tocaste el sidebar: actualizado tanto el link como el filtro en `Sidebar.vue`
 [ ] Si tocaste una vista: NO excede 400 líneas (si excede, extraer componente)
