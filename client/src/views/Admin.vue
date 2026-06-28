@@ -99,14 +99,21 @@
           <div class="flex items-center gap-2">
             <input
               type="date"
-              :value="toISODate(selectedDate)"
-              @change="selectedDate = new Date(($event.target as HTMLInputElement).value + 'T12:00:00')"
+              :value="filterDate ?? ''"
+              @change="setFilterDate(($event.target as HTMLInputElement).value || null)"
               class="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/15"
             />
             <button
-              v-if="!isToday"
+              @click="showAll"
+              class="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium transition-theme"
+              :class="!filterDate ? 'bg-primary/10 border-primary/30 text-primary' : 'text-text-secondary hover:bg-bg-secondary hover:border-border-strong'"
+            >
+              Todas
+            </button>
+            <button
               @click="goToToday"
-              class="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary transition-theme hover:bg-bg-secondary hover:border-border-strong"
+              class="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium transition-theme"
+              :class="isToday ? 'bg-primary/10 border-primary/30 text-primary' : 'text-text-secondary hover:bg-bg-secondary hover:border-border-strong'"
             >
               Hoy
             </button>
@@ -139,7 +146,6 @@ import { useAuth } from '../composables/useAuth'
 import { useAdminAgenda } from '../composables/useAdminAgenda'
 import { useBusinessStore } from '../store/business'
 import { useAppointmentMutations } from '../composables/useAppointmentMutations'
-import { toISODate } from '../lib/formatters'
 import { CitaFormModal } from '../components/modals'
 import AgendaListView from '../components/agenda/AgendaListView.vue'
 import type { Cita } from '../types/cita'
@@ -152,7 +158,7 @@ const editingCita = ref<Cita | null>(null)
 const businessId = computed(() => authStore.businessId)
 
 const {
-  selectedDate,
+  filterDate,
   citas,
   isLoading,
   stats,
@@ -161,6 +167,8 @@ const {
   todayLabel,
   isToday,
   goToToday,
+  showAll,
+  setFilterDate,
 } = useAdminAgenda(() => authStore.businessId)
 
 const {

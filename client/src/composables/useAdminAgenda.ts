@@ -9,21 +9,14 @@ import type { Cita } from '../types/cita'
 
 export function useAdminAgenda(businessId: () => string | null) {
   const selectedDate = ref<Date>(new Date())
+  const filterDate = ref<string | null>(null)
   const businessStore = useBusinessStore()
 
   const currentBranchId = computed(() => businessStore.currentBranchId)
 
-  const dateRange = computed(() => {
-    const start = new Date(selectedDate.value)
-    start.setHours(0, 0, 0, 0)
-    const end = new Date(start)
-    end.setDate(end.getDate() + 1)
-    return { start, end }
-  })
-
   const { data: citasData, isLoading } = useQuery({
-    queryKey: computed(() => [...agendaKeys.appointments(businessId(), currentBranchId.value), toISODate(selectedDate.value)]),
-    queryFn: () => listCitas(businessId()!, dateRange.value, undefined, currentBranchId.value),
+    queryKey: computed(() => agendaKeys.appointments(businessId(), currentBranchId.value)),
+    queryFn: () => listCitas(businessId()!, undefined, undefined, currentBranchId.value),
     enabled: computed(() => !!businessId()),
   })
 
@@ -39,31 +32,53 @@ export function useAdminAgenda(businessId: () => string | null) {
     enabled: computed(() => !!businessId()),
   })
 
-  const citas = computed<Cita[]>(() => citasData.value ?? [])
+  const todayIso = computed(() => toISODate(new Date()))
+
+  const citas = computed<Cita[]>(() => {
+    const all = citasData.value ?? []
+    if (!filterDate.value) return all
+    return all.filter(c => c.date === filterDate.value)
+  })
 
   const goToToday = () => {
     selectedDate.value = new Date()
+    filterDate.value = todayIso.value
+  }
+
+  const showAll = () => {
+    filterDate.value = null
+  }
+
+  const setFilterDate = (date: Date | string | null) => {
+    if (!date) {
+      filterDate.value = null
+      return
+    }
+    const d = typeof date === 'string' ? new Date(date + 'T12:00:00') : date
+    filterDate.value = toISODate(d)
+    selectedDate.value = d
   }
 
   const todayLabel = computed(() => {
-    const d = selectedDate.value
+    if (!filterDate.value) return 'Todas'
+    const d = new Date(filterDate.value + 'T12:00:00')
     const dd = String(d.getDate()).padStart(2, '0')
     const mm = String(d.getMonth() + 1).padStart(2, '0')
     const yy = String(d.getFullYear()).slice(-2)
     return `${dd}-${mm}-${yy}`
   })
 
-  const isToday = computed(() => toISODate(selectedDate.value) === toISODate(new Date()))
+  const isToday = computed(() => filterDate.value === todayIso.value)
 
   const stats = computed(() => {
-    const filterDate = toISODate(selectedDate.value)
-    const citasHoy = citas.value.filter(c => c.date === filterDate)
+    const filterIso = filterDate.value ?? todayIso.value
+    const citasDelDia = (citasData.value ?? []).filter(c => c.date === filterIso)
 
     return {
-      citasHoy: citasHoy.length,
-      pendientes: citasHoy.filter(c => c.status === 'pending').length,
-      confirmadas: citasHoy.filter(c => c.status === 'confirmed').length,
-      estimadoHoy: citasHoy
+      citasHoy: citasDelDia.length,
+      pendientes: citasDelDia.filter(c => c.status === 'pending').length,
+      confirmadas: citasDelDia.filter(c => c.status === 'confirmed').length,
+      estimadoHoy: citasDelDia
         .filter(c => c.status !== 'cancelled')
         .reduce((sum, c) => sum + c.price, 0)
         .toLocaleString(),
@@ -86,6 +101,7 @@ export function useAdminAgenda(businessId: () => string | null) {
 
   return {
     selectedDate,
+    filterDate,
     citas,
     isLoading,
     stats,
@@ -94,5 +110,8 @@ export function useAdminAgenda(businessId: () => string | null) {
     todayLabel,
     isToday,
     goToToday,
+    showAll,
+    setFilterDate,
+    todayIso,
   }
 }

@@ -29,6 +29,7 @@
           <thead>
             <tr class="border-b border-border bg-bg-secondary/50">
               <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-text-muted">Cliente</th>
+              <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-text-muted">Fecha</th>
               <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-text-muted">Hora</th>
               <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-text-muted">Servicio</th>
               <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-text-muted">Empleado</th>
@@ -52,6 +53,9 @@
                     <p v-if="cita.notes" class="text-xs text-text-muted truncate max-w-[160px]">{{ cita.notes }}</p>
                   </div>
                 </div>
+              </td>
+              <td class="px-4 py-3">
+                <span class="text-sm font-medium text-text">{{ formatDateLabel(cita.date) }}</span>
               </td>
               <td class="px-4 py-3">
                 <span class="text-sm font-medium tabular-nums text-text">{{ cita.time }}</span>
@@ -114,6 +118,7 @@
                 <p class="font-semibold text-text truncate">{{ cita.clientName }}</p>
                 <p class="text-xs text-text-muted">{{ cita.service }}</p>
                 <p v-if="cita.employee" class="text-xs text-text-muted">{{ cita.employee }}</p>
+                <p class="text-xs text-text-muted font-medium mt-0.5">{{ formatDateLabel(cita.date) }}</p>
               </div>
             </div>
             <div class="text-right shrink-0">
@@ -161,6 +166,16 @@
 <script setup lang="ts">
 import { getInitials, getStatusColor } from '../../lib/formatters'
 import type { Cita } from '../../types/cita'
+
+const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+
+function formatDateLabel(dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00')
+  if (isNaN(d.getTime())) return dateStr
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  return `${DAY_NAMES[d.getDay()]} ${dd}/${mm}`
+}
 
 defineProps<{
   citas: Cita[]
