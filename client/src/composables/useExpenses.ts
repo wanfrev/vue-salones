@@ -43,7 +43,7 @@ export function useExpenses(
       return saveExpense(businessId.value, formData, branchId.value, exchangeRate.value)
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value, branchId.value), exact: false })
       await queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value], exact: false })
@@ -58,7 +58,7 @@ export function useExpenses(
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteExpense(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: expensesKeys.all(businessId.value, branchId.value), exact: false })
       await queryClient.invalidateQueries({ queryKey: ['financial-summary', businessId.value], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions', businessId.value], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-expenses', businessId.value], exact: false })
