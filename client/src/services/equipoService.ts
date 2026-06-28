@@ -51,6 +51,7 @@ export const saveEmpleado = async (
         pay_type: profileUpdate.pay_type,
         pay_percentage: profileUpdate.pay_percentage,
         base_salary: profileUpdate.base_salary,
+        salary_frequency: profileUpdate.salary_frequency,
       },
     })
 
