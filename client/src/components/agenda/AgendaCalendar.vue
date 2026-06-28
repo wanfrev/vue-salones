@@ -209,7 +209,7 @@ const emit = defineEmits<{
   checkout: [appointmentId: string]
 }>()
 
-const { selectedEmployeeId, setDateRange, employees, loadingEmployees, services, appointments, refetchAppointments } = useAgenda()
+const { selectedEmployeeId, setDateRange, employees, loadingEmployees, services, appointments } = useAgenda()
 
 // ---- Constants ----
 const START_HOUR = 7
@@ -300,7 +300,6 @@ watch([selectedDate, viewMode], ([d, mode]) => {
   else if (mode === 'week') { start = new Date(base); start.setDate(base.getDate() - base.getDay()); start.setHours(0, 0, 0, 0); end = new Date(start); end.setDate(start.getDate() + 7) }
   else { start = new Date(d + 'T00:00:00'); end = new Date(start); end.setDate(end.getDate() + 1) }
   setDateRange(start, end)
-  nextTick(() => refetchAppointments())
 }, { immediate: true })
 
 // ---- Grid Columns (day & week) ----

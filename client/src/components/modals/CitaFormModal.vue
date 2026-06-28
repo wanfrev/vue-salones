@@ -404,7 +404,7 @@ const defaultFormData = (): CitaFormData & { extraServices: CitaFormServiceItem[
     extraServices: [],
     date: today,
     time: minutesToHHmm(nextSlot),
-    status: 'confirmed',
+    status: 'pending',
     notes: '',
   }
 }
@@ -637,7 +637,7 @@ watch(
         extraServices: groupMembers,
         date: cita.date || toISODate(new Date()),
         time: cita.time || '09:00',
-        status: cita.status || 'confirmed',
+        status: cita.status || 'pending',
         notes: cita.notes || '',
       }
     } else {

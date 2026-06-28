@@ -24,7 +24,7 @@ export function useAppointmentMutations(options: {
     const bid = options.businessId.value
     const brId = businessStore.currentBranchId
     const keys = [
-      ['appointments', bid] as const,
+      ['appointments'] as const,
       posKeys.pending(bid, brId),
       clientesKeys.all(bid, brId),
       ['cliente', bid] as const,
@@ -37,11 +37,10 @@ export function useAppointmentMutations(options: {
       dashboardKeys.history(bid),
       dashboardKeys.appointments(bid),
       dashboardKeys.earnings(bid),
-      dashboardKeys.history(bid),
     ]
-    for (const key of keys) {
-      await queryClient.invalidateQueries({ queryKey: key, exact: false })
-    }
+    await Promise.all(keys.map(key =>
+      queryClient.invalidateQueries({ queryKey: key, exact: false })
+    ))
   }
 
   const saveCitaMutation = useMutation({
@@ -49,7 +48,7 @@ export function useAppointmentMutations(options: {
       saveCita(options.businessId.value!, data, options.createdBy?.value, businessStore.currentBranchId),
     onSuccess: async () => {
       await invalidate()
-      await queryClient.refetchQueries({ exact: false, queryKey: ['appointments'] })
+      await queryClient.refetchQueries({ exact: false, queryKey: ['appointments'], type: 'all' })
       options.modalRef?.value?.close()
       options.modalRef?.value?.onSaveComplete?.()
       success('Cita guardada correctamente')
@@ -94,7 +93,7 @@ export function useAppointmentMutations(options: {
     mutationFn: (id: string) => deleteCita(id),
     onSuccess: async () => {
       await invalidate()
-      await queryClient.refetchQueries({ exact: false, queryKey: ['appointments'] })
+      await queryClient.refetchQueries({ exact: false, queryKey: ['appointments'], type: 'all' })
       options.modalRef?.value?.close()
       options.modalRef?.value?.onSaveComplete?.()
       success('Cita eliminada correctamente')
@@ -138,7 +137,7 @@ export function useAppointmentMutations(options: {
         .update({ employee_id: employeeId })
         .eq('id', id)
       await invalidate()
-      await queryClient.refetchQueries({ exact: false, queryKey: ['appointments'] })
+      await queryClient.refetchQueries({ exact: false, queryKey: ['appointments'], type: 'all' })
     }
     success('Cita reagendada correctamente')
   }

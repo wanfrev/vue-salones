@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, keepPreviousData } from '@tanstack/vue-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/auth'
 import { useBusinessStore } from '../store/business'
@@ -114,6 +114,7 @@ export const useAgenda = () => {
     },
     enabled: computed(() => !!businessId.value),
     staleTime: 0,
+    placeholderData: keepPreviousData,
   })
 
   return {
