@@ -24,7 +24,7 @@ export function useAppointmentMutations(options: {
     const bid = options.businessId.value
     const brId = businessStore.currentBranchId
     const keys = [
-      ['appointments', bid, brId] as const,
+      ['appointments', bid] as const,
       posKeys.pending(bid, brId),
       clientesKeys.all(bid, brId),
       ['cliente', bid] as const,
