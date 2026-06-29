@@ -83,7 +83,7 @@
             </div>
             <div class="rounded-lg bg-bg-secondary p-3">
               <p class="text-xs text-text-muted uppercase tracking-wider">Monto pagado</p>
-              <p class="text-xl font-bold text-success mt-0.5">${{ totalPaidFormatted }}</p>
+              <p class="text-xl font-bold text-success mt-0.5">${{ totalPaymentsOnlyFormatted }}</p>
               <p class="text-xs text-text-muted mt-0.5">{{ totalPaidVES }}</p>
             </div>
             <div class="rounded-lg bg-bg-secondary p-3">
@@ -189,8 +189,14 @@
               <div class="flex justify-between text-sm">
                 <span class="text-text-muted">Monto pagado</span>
                 <div class="text-right">
-                  <span class="font-medium text-success">${{ totalPaidFormatted }}</span>
+                  <span class="font-medium text-success">${{ totalPaymentsOnlyFormatted }}</span>
                   <p class="text-xs text-text-muted">{{ totalPaidVES }}</p>
+                </div>
+              </div>
+              <div v-if="filteredConsumptions.length > 0" class="flex justify-between text-sm">
+                <span class="text-text-muted">Consumido (debitado)</span>
+                <div class="text-right">
+                  <span class="font-medium text-warning">${{ totalConsumedFormatted }}</span>
                 </div>
               </div>
               <div class="border-t border-border pt-2 flex justify-between">
@@ -205,21 +211,43 @@
             </div>
           </div>
 
-          <!-- Payments Received -->
-          <div v-if="filteredPayments.length > 0" class="mb-6">
+          <!-- Payments Received + Consumptions -->
+          <div v-if="filteredPayments.length > 0 || filteredConsumptions.length > 0" class="mb-6">
             <p class="text-xs font-semibold uppercase tracking-wider text-text-muted mb-3">Pagos realizados en este período</p>
             <div v-for="p in filteredPaymentsWithCurrency" :key="p.id" class="flex justify-between items-center py-2 border-b border-border last:border-b-0">
               <div>
                 <p class="text-sm font-medium text-text">{{ p.displayAmount }}</p>
                 <p class="text-xs text-text-muted">{{ p.displayVES }}</p>
-                <p class="text-xs text-text-muted">{{ formatDate(p.payment_date) }} · {{ formatMethod(p.payment_method) }}</p>
+                <p class="text-xs text-text-muted">{{ formatDate(p.payment_date) }} · {{ formatMethod(p.payment_method) }}
+                  <span v-if="(p as any).type === 'consumption'" class="ml-1 rounded bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning">Consumo</span>
+                </p>
+                <p v-if="(p as any).concept" class="text-xs text-text-muted italic">"{{ (p as any).concept }}"</p>
               </div>
-              <span class="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success">Pagado</span>
+              <span
+                v-if="(p as any).type === 'consumption'"
+                class="rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-semibold text-warning"
+              >Consumo</span>
+              <span v-else class="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success">Pagado</span>
+            </div>
+
+            <div v-if="filteredConsumptions.length > 0" class="border-t border-border mt-3 pt-3">
+              <div class="flex justify-between py-2 text-sm">
+                <span class="text-text-muted">Total pagado</span>
+                <span class="font-medium text-success">${{ totalPaymentsOnly }}</span>
+              </div>
+              <div class="flex justify-between py-2 text-sm">
+                <span class="text-text-muted">Total consumido</span>
+                <span class="font-medium text-warning">${{ totalConsumed }}</span>
+              </div>
+              <div class="flex justify-between border-t border-border pt-2 text-sm">
+                <span class="font-semibold text-text">Total pagado neto</span>
+                <span class="font-bold text-text">${{ totalPaidFormatted }}</span>
+              </div>
             </div>
           </div>
 
-          <div v-else class="mb-6 text-center text-sm text-text-muted">
-            No hay pagos registrados en este período.
+          <div v-if="filteredPayments.length === 0 && filteredConsumptions.length === 0" class="mb-6 text-center text-sm text-text-muted">
+            No hay pagos ni consumos registrados en este período.
           </div>
 
           <!-- Historial de recibos pasados -->
@@ -537,6 +565,28 @@ const totalPaid = computed(() =>
   filteredPayments.value.reduce((sum, p) => sum + Number(p.amount), 0)
 )
 
+const totalPaymentsOnly = computed(() =>
+  filteredPayments.value
+    .filter(p => (p as any).type !== 'consumption')
+    .reduce((sum, p) => sum + Number(p.amount), 0)
+)
+
+const totalPaymentsOnlyFormatted = computed(() =>
+  totalPaymentsOnly.value.toFixed(2)
+)
+
+const filteredConsumptions = computed(() =>
+  filteredPayments.value.filter(p => (p as any).type === 'consumption')
+)
+
+const totalConsumed = computed(() =>
+  filteredConsumptions.value.reduce((sum, p) => sum + Number(p.amount), 0)
+)
+
+const totalConsumedFormatted = computed(() =>
+  totalConsumed.value.toFixed(2)
+)
+
 const totalPaidFormatted = computed(() => totalPaid.value.toFixed(2))
 
 const pendingDebt = computed(() =>
@@ -545,7 +595,7 @@ const pendingDebt = computed(() =>
 
 const pendingDebtFormatted = computed(() => pendingDebt.value.toFixed(2))
 
-const totalPaidVES = computed(() => formatVES(totalPaid.value))
+const totalPaidVES = computed(() => formatVES(totalPaymentsOnly.value))
 
 const pendingDebtVES = computed(() => formatVES(pendingDebt.value))
 
