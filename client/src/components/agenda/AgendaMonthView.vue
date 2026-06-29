@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { toISODate, dateToHHmm, normalizeAppointmentStatus } from '../../lib/formatters'
+import { toISODate, dateToHHmm, dateToHHmm12, normalizeAppointmentStatus } from '../../lib/formatters'
 
 const props = defineProps<{
   appointments: any[]
@@ -113,13 +113,14 @@ function getApptsForDate(iso: string) {
         id: a.id,
         clientName: a.clients?.full_name || 'Cliente',
         service: svc?.name || 'Servicio',
-        time: dateToHHmm(new Date(a.start_time)),
+        time: dateToHHmm12(new Date(a.start_time)),
         status: normalizeAppointmentStatus(a),
         employeeName: emp,
         raw: a,
+        _sortTime: dateToHHmm(new Date(a.start_time)),
       }
     })
-    .sort((a, b) => a.time.localeCompare(b.time))
+    .sort((a, b) => a._sortTime.localeCompare(b._sortTime))
 }
 
 const cells = computed(() => {

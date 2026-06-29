@@ -312,8 +312,8 @@
           <template #desktop-tbody="{ items }">
             <tr v-for="schedule in items" :key="schedule.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
               <td class="px-3 py-3 font-medium text-text">{{ schedule.name }}</td>
-              <td class="px-3 py-3 tabular-nums text-text-secondary">{{ schedule.start }}</td>
-              <td class="px-3 py-3 tabular-nums text-text-secondary">{{ schedule.end }}</td>
+              <td class="px-3 py-3 tabular-nums text-text-secondary">{{ formatTime24to12(schedule.start) }}</td>
+              <td class="px-3 py-3 tabular-nums text-text-secondary">{{ formatTime24to12(schedule.end) }}</td>
               <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ schedule.break }}</td>
               <td class="px-3 py-3 text-center"><span :class="['inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold', schedule.available ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger']"><span :class="['h-1.5 w-1.5 rounded-full', schedule.available ? 'bg-success' : 'bg-danger']"></span>{{ schedule.available ? 'Disponible' : 'No disponible' }}</span></td>
             </tr>
@@ -321,7 +321,7 @@
           <template #mobile-cards="{ items }">
             <div v-for="schedule in items" :key="schedule.id" class="rounded-lg border border-border-subtle bg-bg-secondary/30 p-3 space-y-2 text-sm">
               <div class="flex items-center justify-between"><span class="font-medium text-text">{{ schedule.name }}</span><span :class="['inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold', schedule.available ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger']"><span :class="['h-1.5 w-1.5 rounded-full', schedule.available ? 'bg-success' : 'bg-danger']"></span>{{ schedule.available ? 'Disponible' : 'No disponible' }}</span></div>
-              <div class="flex items-center justify-between text-xs"><span class="text-text-muted">{{ schedule.start }} - {{ schedule.end }}</span><span class="text-text-secondary">{{ schedule.break }}</span></div>
+              <div class="flex items-center justify-between text-xs"><span class="text-text-muted">{{ formatTime24to12(schedule.start) }} - {{ formatTime24to12(schedule.end) }}</span><span class="text-text-secondary">{{ schedule.break }}</span></div>
             </div>
           </template>
         </RecordSection>
@@ -535,7 +535,7 @@ import { useCurrency } from '../composables/useCurrency'
 import { usePeriodSelection } from '../composables/usePeriodSelection'
 import { deleteEmpleado, equipoKeys, listEquipo, saveEmpleado } from '../services/equipoService'
 import { useBusinessStore } from '../store/business'
-import { getInitials, formatMethod, formatPayType } from '../lib/formatters'
+import { getInitials, formatMethod, formatPayType, formatTime24to12 } from '../lib/formatters'
 import { resolvePeriodDates } from '../lib/periodUtils'
 import { EmpleadoFormModal } from '../components/modals'
 import { useFinancialSummary } from '../composables/useFinancialSummary'

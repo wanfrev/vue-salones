@@ -14,6 +14,8 @@ import {
   formatMovementType,
   formatPayType,
   formatPercentage,
+  formatTime24to12,
+  dateToHHmm12,
 } from './formatters'
 
 describe('getInitials', () => {
@@ -101,9 +103,9 @@ describe('formatDate', () => {
 })
 
 describe('formatTime', () => {
-  it('formats time from ISO string', () => {
+  it('formats time from ISO string in 12h format', () => {
     const result = formatTime('2025-06-15T14:30:00')
-    expect(result).toMatch(/^\d{2}:\d{2}$/)
+    expect(result).toMatch(/^\d{1,2}:\d{2}\s[ap]\.\s?m\.$/i)
   })
 })
 
@@ -178,5 +180,32 @@ describe('formatPercentage', () => {
 
   it('handles Infinity', () => {
     expect(formatPercentage(Infinity)).toBe('0.0%')
+  })
+})
+
+describe('dateToHHmm12', () => {
+  it('formats morning times with AM', () => {
+    expect(dateToHHmm12(new Date(2025, 5, 15, 9, 30))).toBe('9:30 AM')
+    expect(dateToHHmm12(new Date(2025, 5, 15, 0, 0))).toBe('12:00 AM')
+  })
+
+  it('formats afternoon times with PM', () => {
+    expect(dateToHHmm12(new Date(2025, 5, 15, 14, 30))).toBe('2:30 PM')
+    expect(dateToHHmm12(new Date(2025, 5, 15, 12, 0))).toBe('12:00 PM')
+  })
+})
+
+describe('formatTime24to12', () => {
+  it('converts 24h strings to 12h', () => {
+    expect(formatTime24to12('09:30')).toBe('9:30 AM')
+    expect(formatTime24to12('14:30')).toBe('2:30 PM')
+    expect(formatTime24to12('00:00')).toBe('12:00 AM')
+    expect(formatTime24to12('12:00')).toBe('12:00 PM')
+    expect(formatTime24to12('07:45')).toBe('7:45 AM')
+  })
+
+  it('returns original for invalid input', () => {
+    expect(formatTime24to12('invalid')).toBe('invalid')
+    expect(formatTime24to12('')).toBe('')
   })
 })

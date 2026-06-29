@@ -192,7 +192,7 @@ import { useRoute } from 'vue-router'
 import { useAgenda } from '../../composables/useAgenda'
 import { useAuthStore } from '../../store/auth'
 import { isAdminPanelRole } from '../../constants/roles'
-import { normalizeAppointmentStatus, dateToHHmm, toISODate, getInitials } from '../../lib/formatters'
+import { normalizeAppointmentStatus, dateToHHmm12, toISODate, getInitials } from '../../lib/formatters'
 import AgendaMonthView from './AgendaMonthView.vue'
 import AgendaYearView from './AgendaYearView.vue'
 import type { Cita } from '../../types/cita'
@@ -275,7 +275,12 @@ const nowLineTop = computed(() => {
   return ((m - START_HOUR * 60) / 60) * HOUR_HEIGHT
 })
 
-const hourSlots = computed(() => Array.from({ length: totalHours }, (_, h) => `${String(START_HOUR + h).padStart(2, '0')}:00`))
+const hourSlots = computed(() => Array.from({ length: totalHours }, (_, h) => {
+  const hour24 = START_HOUR + h
+  const ampm = hour24 >= 12 ? 'PM' : 'AM'
+  const h12 = hour24 % 12 || 12
+  return `${h12}:00 ${ampm}`
+}))
 
 // ---- Navigation ----
 function navigate(dir: number) {
@@ -314,7 +319,7 @@ function mapAppt(a: any, svcList: any[], empName: string) {
     id: a.id,
     clientName: a.clients?.full_name || 'Cliente',
     service: svc?.name || 'Servicio',
-    time: dateToHHmm(start),
+    time: dateToHHmm12(start),
     top: Math.max(0, (topMin / 60) * HOUR_HEIGHT),
     height: ((end.getTime() - start.getTime()) / 60000 / 60) * HOUR_HEIGHT,
     status: normalizeAppointmentStatus(a),
@@ -394,7 +399,7 @@ function emitEventClick(raw: any) {
       id: raw.id, clientId: raw.client_id, clientName: raw.clients?.full_name || 'Cliente',
       serviceId: raw.service_id, service: svc?.name || 'Servicio', employeeId: raw.employee_id,
       employee: employees.value?.find(e => e.id === raw.employee_id)?.full_name || 'Empleado', groupId: raw.group_id || undefined,
-      date: toISODate(start), time: dateToHHmm(start),
+      date: toISODate(start), time: dateToHHmm12(start),
       duration: svc?.duration_minutes || Math.round((end.getTime() - start.getTime()) / 60000),
       price: Number(svc?.price ?? 0), status: status as Cita['status'], notes: raw.internal_notes || '',
     },

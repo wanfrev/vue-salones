@@ -58,7 +58,7 @@
                 <span class="text-sm font-medium text-text">{{ formatDateLabel(cita.date) }}</span>
               </td>
               <td class="px-4 py-3">
-                <span class="text-sm font-medium tabular-nums text-text">{{ cita.time }}</span>
+                <span class="text-sm font-medium tabular-nums text-text">{{ formatTime24to12(cita.time) }}</span>
                 <span class="ml-1.5 text-xs text-text-muted">{{ cita.duration }}min</span>
               </td>
               <td class="px-4 py-3">
@@ -122,7 +122,7 @@
               </div>
             </div>
             <div class="text-right shrink-0">
-              <p class="text-sm font-bold tabular-nums text-text">{{ cita.time }}</p>
+              <p class="text-sm font-bold tabular-nums text-text">{{ formatTime24to12(cita.time) }}</p>
               <p class="text-xs text-text-muted">{{ cita.duration }}min</p>
             </div>
           </div>
@@ -164,7 +164,7 @@
 </template>
 
 <script setup lang="ts">
-import { getInitials, getStatusColor } from '../../lib/formatters'
+import { getInitials, getStatusColor, formatTime24to12 } from '../../lib/formatters'
 import type { Cita } from '../../types/cita'
 
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']

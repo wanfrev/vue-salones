@@ -88,7 +88,7 @@ export function formatDate(date: string | Date, format: keyof typeof DATE_FORMAT
 export function formatTime(date: string | Date): string {
   const d = toLocalDate(date)
   if (Number.isNaN(d.getTime())) return String(date)
-  return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleTimeString('es-ES', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 export function formatDateTime(date: string | Date): string {
@@ -117,6 +117,25 @@ export function minutesToHHmm(minutes: number): string {
 
 export function dateToHHmm(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+export function dateToHHmm12(date: Date): string {
+  const h = date.getHours()
+  const m = String(date.getMinutes()).padStart(2, '0')
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const h12 = h % 12 || 12
+  return `${h12}:${m} ${ampm}`
+}
+
+export function formatTime24to12(time24: string): string {
+  const parts = time24.split(':')
+  if (parts.length < 2) return time24
+  const h = Number(parts[0])
+  if (Number.isNaN(h)) return time24
+  const m = parts[1]
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const h12 = h % 12 || 12
+  return `${h12}:${m} ${ampm}`
 }
 
 export function formatNumber(n: number): string {
