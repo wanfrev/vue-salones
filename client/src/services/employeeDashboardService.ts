@@ -1,6 +1,5 @@
 import { formatDate, formatTime } from '../lib/formatters'
 import { supabase } from '../lib/supabase'
-import { computeServiceEarnings } from '../business/employeeEarnings'
 import type { EmployeePayment } from '../types/database'
 
 export const dashboardKeys = {
@@ -143,12 +142,12 @@ export const listEmployeeTransactions = async (
   // Step 3: Get transactions for these appointments
   type TxRow = {
     id: string; paid_at: string; total_amount: number; exchange_rate_used: number | null
-    employee_percentage: number; assistant_amount: number | null; assistant_percentage: number | null
+    employee_amount: number; employee_percentage: number; assistant_amount: number | null; assistant_percentage: number | null
     method: string | null; payments_breakdown: any; appointment_id: string
   }
   let txQuery = supabase
     .from('transactions')
-    .select('id, paid_at, total_amount, exchange_rate_used, employee_percentage, assistant_amount, assistant_percentage, method, payments_breakdown, appointment_id')
+    .select('id, paid_at, total_amount, exchange_rate_used, employee_amount, employee_percentage, assistant_amount, assistant_percentage, method, payments_breakdown, appointment_id')
     .eq('business_id', businessId)
     .in('appointment_id', apptIds)
     .order('paid_at', { ascending: false })
@@ -184,16 +183,18 @@ export const listEmployeeTransactions = async (
     const isAssistant = appt?.assistant_employee_id != null &&
       appt.assistant_employee_id === employeeId
 
+    const payType = profile?.pay_type ?? 'percentage'
     const calc = isAssistant
       ? {
           percentage: Number(row.assistant_percentage ?? 0),
           earnings: Number(row.assistant_amount ?? 0),
         }
-      : computeServiceEarnings(
-          totalAmount,
-          { pay_type: profile?.pay_type, pay_percentage: profile?.pay_percentage },
-          appt?.employee_percentage_override ?? row.employee_percentage,
-        )
+      : payType === 'salary'
+        ? { percentage: 0, earnings: 0 }
+        : {
+            percentage: Number(row.employee_percentage ?? 0),
+            earnings: Number(row.employee_amount ?? 0),
+          }
 
     return {
       id: row.id,
