@@ -1,4 +1,4 @@
-name: Generate WhatsApp Reminders
+name: Generate 24h Appointment Reminders
 on:
   schedule:
     - cron: '0 * * * *'
