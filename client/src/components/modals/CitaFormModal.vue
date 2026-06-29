@@ -200,12 +200,10 @@
         />
 
         <!-- Hora -->
-        <FormInput
+        <FormTime
           v-model="formData.time"
           label="Hora"
-          type="time"
           required
-          prefix-icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           :error="errors.time"
         />
 
@@ -275,7 +273,7 @@ import { searchClients } from '../../services/clientesService'
 import { listCitaGroupMembers } from '../../services/agendaService'
 import type { Cita, CitaFormData, CitaFormServiceItem } from '../../types/cita'
 import ModalBase from '../common/ModalBase.vue'
-import { FormInput, FormSelect, FormTextarea } from '../forms'
+import { FormInput, FormSelect, FormTextarea, FormTime } from '../forms'
 
 const MODAL_ID = 'cita-form-modal'
 

@@ -144,21 +144,17 @@
         <h4 class="text-sm font-semibold uppercase tracking-wider text-text-muted">Horario Laboral</h4>
         
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <FormInput
+          <FormTime
             v-model="formData.scheduleStart"
             label="Hora de entrada"
-            type="time"
             required
-            prefix-icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             :error="errors.scheduleStart"
           />
 
-          <FormInput
+          <FormTime
             v-model="formData.scheduleEnd"
             label="Hora de salida"
-            type="time"
             required
-            prefix-icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             :error="errors.scheduleEnd"
           />
 
@@ -195,7 +191,7 @@ import { useBusinessStore } from '../../store/business'
 import { addBusinessJobTitle } from '../../services/equipoService'
 import type { Empleado, EmpleadoFormData } from '../../types/empleado'
 import ModalBase from '../common/ModalBase.vue'
-import { FormInput, FormSelect } from '../forms'
+import { FormInput, FormSelect, FormTime } from '../forms'
 
 const MODAL_ID = 'empleado-form-modal'
 
