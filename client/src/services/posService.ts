@@ -145,7 +145,57 @@ export const listPendingAppointments = async (businessId: string, branchId?: str
   const { data, error } = await query
 
   if (error) throw error
-  return data ?? []
+  return (data ?? [])
+}
+
+export const groupPendingAppointments = (appointments: any[]) => {
+  const groups = new Map<string, any[]>()
+  const singles: any[] = []
+
+  for (const appt of appointments) {
+    if (appt.group_id) {
+      const arr = groups.get(appt.group_id)
+      if (arr) arr.push(appt)
+      else groups.set(appt.group_id, [appt])
+    } else {
+      singles.push(appt)
+    }
+  }
+
+  const result: any[] = [...singles]
+
+  for (const [, members] of groups) {
+    members.sort((a, b) =>
+      new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+    )
+
+    const primary = members[0]
+    const names = members.map(m => m.services?.name ?? 'Servicio').join(' + ')
+    const totalPrice = primary.price_override != null
+      ? Number(primary.price_override)
+      : members.reduce((sum, m) =>
+          sum + (m.price_override != null ? Number(m.price_override) : Number(m.services?.price ?? 0)), 0
+        )
+
+    result.push({
+      ...primary,
+      services: { ...primary.services, name: names },
+      groupIds: members.map(m => m.id),
+      groupPrice: totalPrice,
+      isGroup: true,
+    })
+  }
+
+  return result
+}
+
+export const markAppointmentsAsPaid = async (appointmentIds: string[]): Promise<void> => {
+  const { error } = await mutate
+    .from('appointments')
+    .update({ payment_status: 'paid' as any })
+    .in('id', appointmentIds)
+
+  if (error) throw error
 }
 
 export const listSaleableProducts = async (businessId: string, branchId?: string | null) => {

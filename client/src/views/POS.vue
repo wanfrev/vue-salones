@@ -206,7 +206,7 @@ import { useAuth } from '../composables/useAuth'
 import { useCurrency } from '../composables/useCurrency'
 import { useNotification } from '../composables/useNotification'
 import { useBusinessStore } from '../store/business'
-import { listPendingAppointments, listSaleableProducts, posKeys } from '../services/posService'
+import { listPendingAppointments, listSaleableProducts, posKeys, groupPendingAppointments, markAppointmentsAsPaid } from '../services/posService'
 import { usePOSCart } from '../composables/usePOSCart'
 import { usePOSPayment } from '../composables/usePOSPayment'
 import { FeatureGate } from '../components/common'
@@ -256,7 +256,7 @@ const refreshAppointments = () => {
   queryClient.invalidateQueries({ queryKey: ['pos-pending'] })
 }
 
-const appointments = computed(() => appointmentsData.value ?? [])
+const appointments = computed(() => groupPendingAppointments(appointmentsData.value ?? []))
 const products = computed(() => productsData.value ?? [])
 
 const rateDisplay = computed(() =>
@@ -266,6 +266,7 @@ const rateDisplay = computed(() =>
 const effectiveServicePrice = computed(() => {
   const appt = selectedAppointment.value
   if (!appt) return 0
+  if (appt.groupPrice != null) return appt.groupPrice
   return appt.price_override != null ? Number(appt.price_override) : Number(appt.services?.price ?? 0)
 })
 
@@ -300,14 +301,25 @@ const onSelectAppointment = (appt: any) => {
 
 const handleProcessPayment = async () => {
   if (!selectedAppointment.value) return
+  const appt = selectedAppointment.value
   const ok = await paymentCtx.processPayment(
-    selectedAppointment.value.id,
+    appt.id,
     grandTotal.value,
     cartCtx.cart.value,
     exchangeRate.value,
     formatDual,
   )
   if (ok) {
+    if (appt.isGroup && appt.groupIds?.length > 1) {
+      const otherIds = appt.groupIds.filter((id: string) => id !== appt.id)
+      if (otherIds.length > 0) {
+        try {
+          await markAppointmentsAsPaid(otherIds)
+        } catch (err) {
+          console.error('[POS] Error marking group members as paid:', err)
+        }
+      }
+    }
     selectedAppointment.value = null
     cartCtx.clearCart()
     paymentCtx.reset()

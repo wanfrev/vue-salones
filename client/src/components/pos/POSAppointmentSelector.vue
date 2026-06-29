@@ -30,7 +30,7 @@
             <p class="text-xs text-text-muted">{{ appt.services?.name || 'Servicio' }}</p>
           </div>
           <div class="text-right">
-            <p class="text-sm font-bold text-text">${{ appt.price_override ?? appt.services?.price ?? 0 }}</p>
+            <p class="text-sm font-bold text-text">${{ appt.groupPrice ?? appt.price_override ?? appt.services?.price ?? 0 }}</p>
             <p class="text-xs text-text-muted">{{ formatTime(appt.start_time) }}</p>
           </div>
         </div>
