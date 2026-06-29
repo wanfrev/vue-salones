@@ -22,6 +22,7 @@ export type UnifiedTransaction = {
   breakdownLabel?: string
   _currency?: 'USD' | 'VES'
   _originalAmount?: number
+  notes?: string | null
 }
 
 export type EmployeeEarningSummary = {
@@ -56,6 +57,7 @@ export type TransactionRow = {
   breakdown: PaymentBreakdownItem[] | null
   primaryCurrency: 'USD' | 'VES'
   primaryAmount: number
+  notes?: string | null
 }
 
 export type ProductSaleDetail = {
@@ -215,6 +217,7 @@ function useFinancialSummary(
           assistant_percentage,
           exchange_rate_used,
           payments_breakdown,
+          notes,
           appointments (
             client_id,
             service_id,
@@ -421,6 +424,7 @@ function useFinancialSummary(
         breakdown,
         primaryCurrency: isVES ? 'VES' : 'USD',
         primaryAmount: isVES && sumVES > 0 ? sumVES : row.total_amount,
+        notes: (row as any).notes ?? null,
       }
     })
   )
@@ -503,6 +507,7 @@ function useFinancialSummary(
         breakdownLabel,
         _currency: isVES ? 'VES' : 'USD',
         _originalAmount: isVES && sumVES > 0 ? sumVES : tx.total_amount,
+        notes: (tx as any).notes ?? null,
         sortDate: tx.paid_at ?? tx.created_at,
       })
     }
@@ -749,7 +754,7 @@ function useFinancialSummary(
   })
 
   const {
-    showEditModal, editingTransaction, editingAmount, editingMethod, editingBreakdown,
+    showEditModal, editingTransaction, editingAmount, editingMethod, editingBreakdown, editingNotes,
     isEditingMixed, editingTotalAmount, paymentMethodOptions,
     startEdit, cancelEdit, setEditingMethod,
     updateBreakdownItem, addBreakdownItem, removeBreakdownItem,
@@ -762,6 +767,7 @@ function useFinancialSummary(
         transactionId: params.transactionId,
         amount: params.amount,
         method: params.method,
+        notes: params.notes,
         paymentsBreakdown: params.paymentsBreakdown,
       })
     })
@@ -797,6 +803,7 @@ function useFinancialSummary(
     editingAmount,
     editingMethod,
     editingBreakdown,
+    editingNotes,
     isEditingMixed,
     editingTotalAmount,
     paymentMethodOptions,

@@ -11,6 +11,7 @@ export function useTransactionEdit(
   const editingAmount = ref(0)
   const editingMethod = ref<PaymentMethod>('cash')
   const editingBreakdown = ref<PaymentBreakdownItem[]>([])
+  const editingNotes = ref('')
 
   const paymentMethodOptions: { value: PaymentMethod; label: string }[] = [
     { value: 'cash', label: 'Efectivo ($)' },
@@ -35,6 +36,7 @@ export function useTransactionEdit(
     editingTransaction.value = tx
     editingAmount.value = tx.amount
     editingMethod.value = tx.rawMethod
+    editingNotes.value = tx.notes ?? ''
 
     if (tx.breakdown && tx.breakdown.length > 0) {
       editingBreakdown.value = tx.breakdown.map((item: PaymentBreakdownItem) => ({ ...item }))
@@ -53,6 +55,7 @@ export function useTransactionEdit(
     editingAmount.value = 0
     editingMethod.value = 'cash'
     editingBreakdown.value = []
+    editingNotes.value = ''
   }
 
   const setEditingMethod = (method: PaymentMethod) => {
@@ -88,7 +91,7 @@ export function useTransactionEdit(
   }
 
   const saveEdit = (
-    onSave: (params: { transactionId: string; amount: number; method: PaymentMethod; paymentsBreakdown?: PaymentBreakdownItem[] }) => void,
+    onSave: (params: { transactionId: string; amount: number; method: PaymentMethod; notes?: string; paymentsBreakdown?: PaymentBreakdownItem[] }) => void,
   ) => {
     if (!editingTransaction.value) return
     const total = editingTotalAmount.value
@@ -114,6 +117,7 @@ export function useTransactionEdit(
       transactionId: editingTransaction.value.id,
       amount: total,
       method: effectiveMethod,
+      notes: editingNotes.value || undefined,
       paymentsBreakdown: breakdown,
     })
     cancelEdit()
@@ -134,6 +138,7 @@ export function useTransactionEdit(
     editingAmount,
     editingMethod,
     editingBreakdown,
+    editingNotes,
     isEditingMixed,
     editingTotalAmount,
     paymentMethodOptions,

@@ -157,6 +157,7 @@
         <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Cliente</th>
         <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Empleado</th>
         <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Servicio</th>
+        <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted hidden md:table-cell">Notas</th>
         <th class="pb-3 text-left text-xs font-semibold uppercase text-text-muted">Método</th>
         <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Monto</th>
         <th class="pb-3 text-right text-xs font-semibold uppercase text-text-muted">Acciones</th>
@@ -167,6 +168,10 @@
           <td class="py-3 font-medium text-text">{{ row.client }}</td>
           <td class="py-3 text-text">{{ row.employee }}</td>
           <td class="py-3 text-text-secondary">{{ row.service }}</td>
+          <td class="py-3 text-text-secondary hidden md:table-cell max-w-[160px]">
+            <span v-if="row.notes" class="truncate block" :title="row.notes">{{ row.notes }}</span>
+            <span v-else class="text-text-muted/40">—</span>
+          </td>
           <td class="py-3 text-text-secondary">{{ row.method }}</td>
           <td class="py-3 text-right">
             <div class="font-medium text-success">{{ row.primaryCurrency === 'VES' ? formatVESEs(row.primaryAmount) : formatUSD(row.amount) }}</div>
@@ -198,6 +203,9 @@
             <span class="text-text-muted">Empleado</span><span class="text-text text-right">{{ row.employee }}</span>
             <span class="text-text-muted">Servicio</span><span class="text-text text-right">{{ row.service }}</span>
             <span class="text-text-muted">Método</span><span class="text-text text-right">{{ row.method }}</span>
+            <template v-if="row.notes">
+              <span class="text-text-muted">Notas</span><span class="text-text text-right truncate max-w-[180px]" :title="row.notes">{{ row.notes }}</span>
+            </template>
             <span class="text-text-muted">Monto</span>
             <span class="text-right">
               <span class="font-semibold text-success">{{ row.primaryCurrency === 'VES' ? formatVESEs(row.primaryAmount) : formatUSD(row.amount) }}</span>
@@ -448,6 +456,16 @@
             <div v-else class="rounded-lg border border-border bg-bg-secondary px-3 py-2 text-lg font-bold text-text">
               {{ formatUSD(summaryCtx.editingTotalAmount.value) }}
             </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text">Notas</label>
+            <textarea
+              v-model="summaryCtx.editingNotes.value"
+              placeholder="Notas del cobro (opcional)"
+              rows="2"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/30"
+            ></textarea>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-1">

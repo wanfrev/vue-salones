@@ -210,6 +210,7 @@
                 <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Cliente</th>
                 <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Empleado</th>
                 <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden sm:table-cell">Servicio</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden md:table-cell">Notas</th>
                 <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Método</th>
                 <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Monto</th>
                 <th class="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Acción</th>
@@ -221,6 +222,10 @@
                 <td class="px-3 py-3 font-medium text-text">{{ item.client }}</td>
                 <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ item.employee }}</td>
                 <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ item.service }}</td>
+                <td class="px-3 py-3 text-text-secondary hidden md:table-cell max-w-[160px]">
+                  <span v-if="item.notes" class="truncate block" :title="item.notes">{{ item.notes }}</span>
+                  <span v-else class="text-text-muted/40">—</span>
+                </td>
                 <td class="px-3 py-3">
                   <span class="inline-flex items-center rounded-md bg-bg-secondary px-2 py-0.5 text-[11px] font-medium text-text-secondary">{{ item.breakdownLabel || item.method }}</span>
                 </td>
@@ -646,6 +651,16 @@
             <div v-else class="rounded-lg border border-border bg-bg-secondary px-3 py-2 text-lg font-bold text-text">
               {{ formatUSD(summaryCtx.editingTotalAmount.value) }}
             </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text">Notas</label>
+            <textarea
+              v-model="summaryCtx.editingNotes.value"
+              placeholder="Notas del cobro (opcional)"
+              rows="2"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/30"
+            ></textarea>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-1">
