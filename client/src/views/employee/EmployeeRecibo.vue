@@ -309,7 +309,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useAuthStore } from '../../store/auth'
 import { useBusinessStore } from '../../store/business'
@@ -459,7 +459,7 @@ const payInfo = computed(() => {
 
 const initials = computed(() => getInitials(authStore.profile?.full_name))
 
-const { data: earningsData, isLoading: loadingEarnings } = useQuery({
+const { data: earningsData, isLoading: loadingEarnings, refetch: refetchEarnings } = useQuery({
   queryKey: dashboardKeys.earnings(businessId.value, employeeId.value, branchId.value),
   queryFn: () => listEmployeeTransactions(businessId.value!, employeeId.value!, branchId.value),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
@@ -515,7 +515,7 @@ const totalEarnedVES = computed(() =>
   formatVES(Number(totalEarned.value))
 )
 
-const { data: paymentsData } = useQuery({
+const { data: paymentsData, refetch: refetchPayments } = useQuery({
   queryKey: dashboardKeys.payments(businessId.value, employeeId.value, branchId.value),
   queryFn: () => listEmployeePayments(businessId.value!, employeeId.value!, branchId.value),
   enabled: computed(() => !!businessId.value && !!employeeId.value),
@@ -645,6 +645,13 @@ const historyMonths = computed(() => {
 const windowPrint = () => {
   window.print()
 }
+
+onMounted(async () => {
+  await Promise.all([
+    refetchEarnings(),
+    refetchPayments(),
+  ])
+})
 </script>
 
 <style scoped>
