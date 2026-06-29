@@ -325,19 +325,21 @@ export const deleteCita = async (id: string): Promise<void> => {
   const groupId = (appt as any)?.group_id
 
   if (groupId) {
-    const { error } = await mutate
+    const { error, count } = await mutate
       .from('appointments')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('group_id', groupId)
 
     if (error) throw error
+    if (count === 0) throw new Error('No se encontró la cita para eliminar')
     return
   }
 
-  const { error } = await mutate
+  const { error, count } = await mutate
     .from('appointments')
-    .delete()
+    .delete({ count: 'exact' })
     .eq('id', id)
 
   if (error) throw error
+  if (count === 0) throw new Error('No se encontró la cita para eliminar')
 }
