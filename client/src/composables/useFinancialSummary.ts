@@ -23,6 +23,7 @@ export type UnifiedTransaction = {
   _currency?: 'USD' | 'VES'
   _originalAmount?: number
   notes?: string | null
+  tipAmount?: number
 }
 
 export type EmployeeEarningSummary = {
@@ -58,6 +59,7 @@ export type TransactionRow = {
   primaryCurrency: 'USD' | 'VES'
   primaryAmount: number
   notes?: string | null
+  tipAmount?: number
 }
 
 export type ProductSaleDetail = {
@@ -218,6 +220,7 @@ function useFinancialSummary(
           exchange_rate_used,
           payments_breakdown,
           notes,
+          tip_amount,
           appointments (
             client_id,
             service_id,
@@ -425,6 +428,7 @@ function useFinancialSummary(
         primaryCurrency: isVES ? 'VES' : 'USD',
         primaryAmount: isVES && sumVES > 0 ? sumVES : row.total_amount,
         notes: (row as any).notes ?? null,
+        tipAmount: Number((row as any).tip_amount ?? 0),
       }
     })
   )
@@ -508,6 +512,7 @@ function useFinancialSummary(
         _currency: isVES ? 'VES' : 'USD',
         _originalAmount: isVES && sumVES > 0 ? sumVES : tx.total_amount,
         notes: (tx as any).notes ?? null,
+        tipAmount: Number((tx as any).tip_amount ?? 0),
         sortDate: tx.paid_at ?? tx.created_at,
       })
     }

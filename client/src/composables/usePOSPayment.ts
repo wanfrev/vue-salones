@@ -18,6 +18,7 @@ export function usePOSPayment() {
   const paymentMethod = ref<PaymentMethod>('cash')
   const otherCurrency = ref<'USD' | 'VES'>('USD')
   const paymentNotes = ref('')
+  const tipAmount = ref(0)
   const isProcessing = ref(false)
   const paymentsBreakdown = ref<PaymentBreakdownItem[]>([])
 
@@ -64,6 +65,7 @@ export function usePOSPayment() {
       notes: string
       exchangeRate: number
       paymentsBreakdown: PaymentBreakdownItem[]
+      tipAmount?: number
     }) => recordSale({ ...params, businessId: businessId.value!, branchId: branchId.value }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ exact: false, queryKey: ['pos-pending'] })
@@ -113,6 +115,7 @@ export function usePOSPayment() {
         notes: paymentNotes.value,
         exchangeRate,
         paymentsBreakdown: breakdown,
+        tipAmount: tipAmount.value,
       })
 
       success(`Cobro de ${formatDual(grandTotal)} registrado correctamente`)
@@ -131,6 +134,7 @@ export function usePOSPayment() {
     paymentMethod.value = 'cash'
     otherCurrency.value = 'USD'
     paymentNotes.value = ''
+    tipAmount.value = 0
     paymentsBreakdown.value = []
   }
 
@@ -138,6 +142,7 @@ export function usePOSPayment() {
     paymentMethod,
     otherCurrency,
     paymentNotes,
+    tipAmount,
     isProcessing,
     paymentsBreakdown,
     paymentMethods,

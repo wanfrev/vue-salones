@@ -102,11 +102,13 @@
           :is-processing="paymentCtx.isProcessing.value"
           :can-pay="canPay"
           :notes="paymentCtx.paymentNotes.value"
+          :tip-amount="paymentCtx.tipAmount.value"
           @select-method="paymentCtx.selectMethod"
           @update:other-currency="paymentCtx.otherCurrency.value = $event"
           @add-split="paymentCtx.addSplit"
           @remove-split="paymentCtx.removeSplit"
           @update:notes="paymentCtx.paymentNotes.value = $event"
+          @update:tip-amount="paymentCtx.tipAmount.value = $event"
           @process-payment="handleProcessPayment"
           @increment-qty="cartCtx.incrementQty"
           @decrement-qty="cartCtx.decrementQty"
@@ -181,11 +183,13 @@
             :is-processing="paymentCtx.isProcessing.value"
             :can-pay="canPay"
             :notes="paymentCtx.paymentNotes.value"
+            :tip-amount="paymentCtx.tipAmount.value"
             @select-method="paymentCtx.selectMethod"
             @update:other-currency="paymentCtx.otherCurrency.value = $event"
             @add-split="paymentCtx.addSplit"
             @remove-split="paymentCtx.removeSplit"
             @update:notes="paymentCtx.paymentNotes.value = $event"
+            @update:tip-amount="paymentCtx.tipAmount.value = $event"
             @process-payment="handleProcessPayment"
             @increment-qty="cartCtx.incrementQty"
             @decrement-qty="cartCtx.decrementQty"
@@ -271,7 +275,7 @@ const effectiveServicePrice = computed(() => {
 })
 
 const grandTotal = computed(() =>
-  effectiveServicePrice.value + cartCtx.productsTotal.value
+  effectiveServicePrice.value + cartCtx.productsTotal.value + paymentCtx.tipAmount.value
 )
 
 const splitRemaining = computed(() =>

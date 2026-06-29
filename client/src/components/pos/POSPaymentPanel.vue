@@ -166,6 +166,17 @@
         class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary"
       ></textarea>
 
+      <div class="space-y-1.5">
+        <label class="block text-sm font-medium text-text">Propina {{ tipAmount > 0 ? '(' + formatDual(tipAmount) + ')' : '' }}</label>
+        <input
+          :value="tipAmount || ''"
+          @input="$emit('update:tipAmount', Number(($event.target as HTMLInputElement).value) || 0)"
+          type="number" min="0" step="0.01"
+          placeholder="0.00"
+          class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary"
+        />
+      </div>
+
       <button
         @click="$emit('process-payment')"
         :disabled="isProcessing || !canPay"
@@ -211,6 +222,7 @@ defineProps<{
   isProcessing: boolean
   canPay: boolean
   notes: string
+  tipAmount: number
 }>()
 
 defineEmits<{
@@ -219,6 +231,7 @@ defineEmits<{
   'add-split': []
   'remove-split': [idx: number]
   'update:notes': [value: string]
+  'update:tipAmount': [value: number]
   'process-payment': []
   'increment-qty': [idx: number]
   'decrement-qty': [idx: number]

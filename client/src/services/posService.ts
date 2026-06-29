@@ -19,6 +19,7 @@ export const recordSale = async (params: {
   paymentsBreakdown: PaymentBreakdownItem[]
   businessId: string
   branchId?: string | null
+  tipAmount?: number
 }): Promise<string> => {
   const products = params.products ?? []
   const locationId = products.length > 0 ? await getDefaultLocation(params.businessId, params.branchId) : null
@@ -72,6 +73,7 @@ export const recordSale = async (params: {
     p_notes: params.notes ?? null,
     p_exchange_rate: params.exchangeRate,
     p_payments_breakdown: params.paymentsBreakdown,
+    p_tip_amount: params.tipAmount ?? 0,
   }
 
   const { data, error } = await supabase.rpc('record_sale', rpcPayload)
