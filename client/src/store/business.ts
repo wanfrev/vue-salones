@@ -55,7 +55,7 @@ export const useBusinessStore = defineStore('business', () => {
     return selectedBranchId.value ?? null
   })
 
-  const loadBusiness = async (nextBusinessId: string | null) => {
+  const loadBusiness = async (nextBusinessId: string | null, employeeId?: string) => {
     if (!nextBusinessId) {
       business.value = null
       branches.value = []
@@ -81,13 +81,13 @@ export const useBusinessStore = defineStore('business', () => {
       business.value = data as Business
 
       // Load branches and restore saved selection
-      await loadBranches(nextBusinessId)
+      await loadBranches(nextBusinessId, employeeId)
     } finally {
       loading.value = false
     }
   }
 
-  const loadBranches = async (businessId: string) => {
+  const loadBranches = async (businessId: string, employeeId?: string) => {
     if (!businessId || !isMultiBranch.value) {
       branches.value = []
       selectedBranchId.value = null
@@ -99,7 +99,21 @@ export const useBusinessStore = defineStore('business', () => {
       const list = await listBranches(businessId)
       branches.value = list as Branch[]
 
-      // Restore saved branch selection or default to default branch
+      if (employeeId) {
+        const { data: schedule } = await supabase
+          .from('employee_schedules')
+          .select('branch_id')
+          .eq('employee_id', employeeId)
+          .limit(1)
+          .maybeSingle()
+
+        if (schedule?.branch_id && branches.value.some(b => b.id === schedule.branch_id)) {
+          selectedBranchId.value = schedule.branch_id
+          localStorage.setItem(branchStorageKey(businessId), schedule.branch_id)
+          return
+        }
+      }
+
       const saved = localStorage.getItem(branchStorageKey(businessId))
       if (saved && branches.value.some(b => b.id === saved)) {
         selectedBranchId.value = saved

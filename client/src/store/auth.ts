@@ -85,7 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
           await loadProfile(user.value.id)
           const { useBusinessStore } = await import('./business')
           const businessStore = useBusinessStore()
-          await businessStore.loadBusiness(profile.value?.business_id ?? null)
+          await businessStore.loadBusiness(profile.value?.business_id ?? null, profile.value?.role === 'empleado' ? profile.value?.id : undefined)
         } catch {
           clearAuthState()
           await supabase.auth.signOut()
@@ -102,7 +102,7 @@ export const useAuthStore = defineStore('auth', () => {
             await loadProfile(user.value.id)
             const { useBusinessStore } = await import('./business')
             const businessStore = useBusinessStore()
-            await businessStore.loadBusiness(profile.value?.business_id ?? null)
+            await businessStore.loadBusiness(profile.value?.business_id ?? null, profile.value?.role === 'empleado' ? profile.value?.id : undefined)
           } catch {
             clearAuthState()
           }
@@ -181,7 +181,7 @@ export const useAuthStore = defineStore('auth', () => {
             await loadProfile(user.value.id)
             const { useBusinessStore } = await import('./business')
             const businessStore = useBusinessStore()
-            await businessStore.loadBusiness(profile.value?.business_id ?? null)
+            await businessStore.loadBusiness(profile.value?.business_id ?? null, profile.value?.role === 'empleado' ? profile.value?.id : undefined)
           } catch {
             await signOut()
             return false

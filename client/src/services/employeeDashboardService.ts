@@ -53,7 +53,7 @@ export const listEmployeeAppointments = async (
     `)
     .eq('business_id', businessId)
     .or(`employee_id.eq.${employeeId},assistant_employee_id.eq.${employeeId}`)
-    .in('status', ['confirmed', 'completed', 'cancelled', 'no_show'])
+    .in('status', ['confirmed', 'completed', 'cancelled', 'no_show', 'pending'])
     .order('start_time', { ascending: false })
     .limit(100)
 
