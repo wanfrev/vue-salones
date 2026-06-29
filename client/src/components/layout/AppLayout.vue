@@ -13,7 +13,7 @@
           <span class="text-sm font-semibold text-text leading-tight">{{ businessName }}</span>
           <span class="text-[10px] text-text-muted uppercase tracking-wide">{{ roleLabel }}</span>
         </div>
-        <BranchSwitcher v-if="businessStore.isMultiBranch" />
+          <BranchSwitcher v-if="businessStore.isMultiBranch && !isEmployee" />
       </div>
       <div class="flex items-center gap-2">
         <slot name="header-actions" />
@@ -45,12 +45,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useAuth } from '../../composables/useAuth'
 import { useAuthStore } from '../../store/auth'
 import { useThemeStore } from '../../store/theme'
 import { useBusinessStore } from '../../store/business'
+import { supabase } from '../../lib/supabase'
 import lumaLogoLight from '../../assets/Luma.svg'
 import lumaLogoDark from '../../assets/Luma blanco.svg'
 import Sidebar from './Sidebar.vue'
@@ -69,6 +70,8 @@ const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLigh
 const isSidebarOpen = ref(false)
 
 const businessName = computed(() => businessStore.business?.name ?? '')
+
+const isEmployee = computed(() => authStore.role === 'empleado')
 
 const roleLabel = computed(() => {
   const role = authStore.role
@@ -89,4 +92,17 @@ async function refresh() {
     isRefreshing.value = false
   }
 }
+
+onMounted(async () => {
+  if (!isEmployee.value || !businessStore.isMultiBranch || !authStore.profile?.id) return
+  const { data } = await supabase
+    .from('employee_schedules')
+    .select('branch_id')
+    .eq('employee_id', authStore.profile.id)
+    .limit(1)
+    .maybeSingle()
+  if (data?.branch_id) {
+    businessStore.setBranch(data.branch_id)
+  }
+})
 </script>
