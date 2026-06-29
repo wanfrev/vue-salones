@@ -42,16 +42,16 @@ serve(async (req) => {
     // ============================================================
     // 1. Generate reminders: appointments starting in ~24h
     // ============================================================
-    const in23h = new Date(now.getTime() + 23 * 60 * 60 * 1000)
-    const in25h = new Date(now.getTime() + 25 * 60 * 60 * 1000)
+    const in22h = new Date(now.getTime() + 22 * 60 * 60 * 1000)
+    const in26h = new Date(now.getTime() + 26 * 60 * 60 * 1000)
 
     const { data: appointments, error: apptError } = await supabaseAdmin
       .from('appointments')
       .select('*, clients(full_name, phone), services(name)')
       .is('reminder_sent_at', null)
-      .eq('status', 'pending')
-      .gte('start_time', in23h.toISOString())
-      .lte('start_time', in25h.toISOString())
+      .in('status', ['pending', 'confirmed'])
+      .gte('start_time', in22h.toISOString())
+      .lte('start_time', in26h.toISOString())
 
     if (apptError) {
       return new Response(JSON.stringify({ error: apptError.message }), {
