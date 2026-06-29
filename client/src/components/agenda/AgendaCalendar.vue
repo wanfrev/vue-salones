@@ -150,13 +150,13 @@
                     <div class="flex items-center gap-1 min-w-0 sm:gap-1.5">
                       <button class="h-2 w-2 rounded-full flex-shrink-0 transition-transform hover:scale-125" :class="statusDotClass(appt.status)" title="Cambiar estado" @click.stop="toggleStatusMenu(appt, $event)" />
                       <span class="text-[11px] font-semibold text-text-muted tabular-nums whitespace-nowrap sm:text-sm">{{ appt.time }}</span>
+                      <span class="font-bold text-text truncate text-[13px]">{{ appt.clientName }}</span>
                       <button v-if="appt.status !== 'paid' && appt.status !== 'cancelled'"
                         class="ml-auto flex h-4 w-4 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-all hover:scale-110 flex-shrink-0"
                         :class="checkoutBtnClass(appt.status)" title="Cobrar" @click.stop="emitCheckout(appt.raw.id)">
                         <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
                       </button>
                     </div>
-                    <div class="font-bold text-text leading-tight overflow-hidden" style="font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ appt.clientName }}</div>
                     <div class="flex items-center gap-1 min-w-0 mt-1 sm:gap-1.5">
                       <span class="text-[10px] text-text-secondary bg-bg-secondary rounded px-1 py-0.5 truncate sm:text-xs sm:px-1.5">{{ appt.service }}</span>
                       <span v-if="appt.employeeName" class="text-[10px] text-text-muted truncate sm:text-xs">{{ appt.employeeName }}</span>
