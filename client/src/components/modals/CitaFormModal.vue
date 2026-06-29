@@ -618,7 +618,7 @@ watch(
               assistantPercentage: Number(m.assistant_percentage ?? 0),
               employeePercentageOverride: m.employee_percentage_override ?? undefined,
               duration: m.services?.duration_minutes ?? 30,
-              price: Number(m.services?.price ?? 0),
+              price: Number(m.price_override ?? m.services?.price ?? 0),
             }))
         } catch { /* ignore */ }
       }
@@ -633,7 +633,9 @@ watch(
         assistantPercentage: cita.assistantPercentage || 0,
         employeePercentageOverride: cita.employeePercentageOverride,
         duration: cita.duration || 30,
-        price: cita.price || 0,
+        price: groupMembers.length > 0
+          ? cita.price! - groupMembers.reduce((s, m) => s + (m.price ?? 0), 0)
+          : (cita.price || 0),
         extraServices: groupMembers,
         date: cita.date || toISODate(new Date()),
         time: cita.time || '09:00',

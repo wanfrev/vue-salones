@@ -190,7 +190,12 @@ export const saveCita = async (
 
   const inserts = []
 
-  // Primary service
+  // Primary service — use catalog price so POS grouping sums correctly
+  const primaryService = servicesMap.get(data.service) as Service | undefined
+  const primaryPrice = data.extraServices?.length > 0
+    ? (primaryService?.price ?? 0)
+    : data.price
+
   inserts.push(mapServiceItemToAppointmentInsert(
     businessId,
     {
@@ -200,7 +205,7 @@ export const saveCita = async (
       assistantPercentage: data.assistantPercentage,
       employeePercentageOverride: data.employeePercentageOverride,
       duration: data.duration,
-      price: data.price,
+      price: primaryPrice,
     },
     clientId,
     data.date,
@@ -209,7 +214,7 @@ export const saveCita = async (
     data.notes,
     groupId,
     createdBy,
-    servicesMap.get(data.service) as Service,
+    primaryService,
     branchId
   ))
 
