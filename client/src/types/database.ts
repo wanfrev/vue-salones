@@ -376,6 +376,7 @@ export interface Branch {
   phone: string | null
   is_default: boolean
   active: boolean
+  ves_exchange_rate: number | null
   created_at: string
   updated_at: string
 }

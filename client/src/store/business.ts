@@ -150,6 +150,12 @@ export const useBusinessStore = defineStore('business', () => {
     }
   }
 
+  const updateBranch = (partial: Partial<Branch>) => {
+    if (currentBranch.value) {
+      Object.assign(currentBranch.value, partial)
+    }
+  }
+
   return {
     business,
     loading,
@@ -170,5 +176,6 @@ export const useBusinessStore = defineStore('business', () => {
     setBranch,
     clearBusiness,
     updateBusiness,
+    updateBranch,
   }
 })

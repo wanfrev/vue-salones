@@ -280,7 +280,7 @@ export function createMockDataStore(): MockDataStore {
   ]
 
   const branches: Branch[] = [
-    { id: BRANCH, business_id: BIZ, name: 'Sucursal Principal', address: 'Av. Principal 123', phone: '+525551234500', is_default: true, active: true, created_at: now, updated_at: now },
+    { id: BRANCH, business_id: BIZ, name: 'Sucursal Principal', address: 'Av. Principal 123', phone: '+525551234500', is_default: true, active: true, ves_exchange_rate: 36.5, created_at: now, updated_at: now },
   ]
 
   const employee_payments: EmployeePayment[] = [
