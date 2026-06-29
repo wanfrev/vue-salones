@@ -67,7 +67,7 @@ const lumaLogo = computed(() => (themeStore.isDark ? lumaLogoDark : lumaLogoLigh
 async function refresh() {
   isRefreshing.value = true
   try {
-    queryClient.clear()
+    await queryClient.invalidateQueries()
     await queryClient.refetchQueries({ type: 'active' })
   } finally {
     isRefreshing.value = false

@@ -86,7 +86,7 @@ const isRefreshing = ref(false)
 async function refresh() {
   isRefreshing.value = true
   try {
-    queryClient.clear()
+    await queryClient.invalidateQueries()
     await queryClient.refetchQueries({ type: 'active' })
   } finally {
     isRefreshing.value = false
