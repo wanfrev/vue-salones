@@ -66,7 +66,7 @@ export function useEmployeePayments(
       return createEmployeePayment(businessId.value, params.employeeId, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value, branchId.value)
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value, branchId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['employee-payments', businessId.value], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
@@ -159,7 +159,7 @@ export function useEmployeePayments(
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteEmployeePayment(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value, branchId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['employee-payments', businessId.value], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
@@ -200,7 +200,7 @@ export function useEmployeePayments(
       return createEmployeeConsumption(businessId.value, params.employeeId, params.amount, params.concept, params.date, params.currency, exchangeRate.value, branchId.value)
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value, branchId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['employee-payments', businessId.value], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
@@ -266,7 +266,7 @@ export function useEmployeePayments(
       return updateEmployeePayment(params.id, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value)
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: employeePaymentKeys.all(businessId.value, branchId.value), exact: false })
+      await queryClient.invalidateQueries({ queryKey: ['employee-payments', businessId.value], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['financial-summary'], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-transactions'], exact: false })
       await queryClient.invalidateQueries({ queryKey: ['finanzas-employee-payments'], exact: false })
