@@ -103,6 +103,13 @@ function formatBreakdownLabel(breakdown: PaymentBreakdownItem[] | null | undefin
   }).join(' / ')
 }
 
+function sumVESBreakdownInputAmounts(breakdown: PaymentBreakdownItem[] | null | undefined): number {
+  if (!breakdown || !Array.isArray(breakdown)) return 0
+  return breakdown
+    .filter(b => b.currency === 'VES')
+    .reduce((sum, b) => sum + Number(b.inputAmount ?? 0), 0)
+}
+
 
 
 function buildExpenseBuckets(rows: { date: string; amount: number }[], bucket: 'day' | 'week' | 'month') {
@@ -399,6 +406,7 @@ function useFinancialSummary(
       const breakdownLabel = formatBreakdownLabel(breakdown)
       const firstBreakdown = breakdown?.[0]
       const isVES = firstBreakdown?.currency === 'VES'
+      const sumVES = sumVESBreakdownInputAmounts(breakdown)
       return {
         id: row.id,
         date: formatDate(row.paid_at ?? row.created_at),
@@ -412,7 +420,7 @@ function useFinancialSummary(
         breakdownLabel,
         breakdown,
         primaryCurrency: isVES ? 'VES' : 'USD',
-        primaryAmount: isVES && firstBreakdown?.inputAmount ? firstBreakdown.inputAmount : row.total_amount,
+        primaryAmount: isVES && sumVES > 0 ? sumVES : row.total_amount,
       }
     })
   )
@@ -483,6 +491,7 @@ function useFinancialSummary(
       const breakdownLabel = formatBreakdownLabel(breakdown)
       const firstBreakdown = breakdown?.[0]
       const isVES = firstBreakdown?.currency === 'VES'
+      const sumVES = sumVESBreakdownInputAmounts(breakdown)
       result.push({
         id: tx.id,
         date: formatDate(tx.paid_at ?? tx.created_at),
@@ -493,7 +502,7 @@ function useFinancialSummary(
         exchangeRateUsed: tx.exchange_rate_used ?? 1,
         breakdownLabel,
         _currency: isVES ? 'VES' : 'USD',
-        _originalAmount: isVES && firstBreakdown?.inputAmount ? firstBreakdown.inputAmount : tx.total_amount,
+        _originalAmount: isVES && sumVES > 0 ? sumVES : tx.total_amount,
         sortDate: tx.paid_at ?? tx.created_at,
       })
     }
