@@ -217,7 +217,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-border-subtle">
-              <tr v-for="item in allCobrosRows" :key="item.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
+              <tr v-for="item in allCobrosRows.slice(0, canViewDetailTab ? 5 : Infinity)" :key="item.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
                 <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ item.date }}</td>
                 <td class="px-3 py-3 font-medium text-text">{{ item.client }}</td>
                 <td class="px-3 py-3 text-text-secondary hidden sm:table-cell">{{ item.employee }}</td>
@@ -276,7 +276,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-border-subtle">
-              <tr v-for="row in allVentasRows" :key="row.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
+              <tr v-for="row in allVentasRows.slice(0, canViewDetailTab ? 5 : Infinity)" :key="row.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
                 <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ row.date }}</td>
                 <td class="px-3 py-3 font-medium text-text">{{ row.product }}</td>
                 <td class="px-3 py-3 text-right tabular-nums text-text-secondary">{{ row.quantity }}</td>
@@ -453,7 +453,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-border-subtle">
-              <tr v-for="expense in allGastosRows" :key="expense.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
+              <tr v-for="expense in allGastosRows.slice(0, canViewDetailTab ? 5 : Infinity)" :key="expense.id" class="text-xs transition-theme hover:bg-bg-secondary/40">
                 <td class="px-3 py-3 whitespace-nowrap text-text-secondary">{{ expense.date }}</td>
                 <td class="px-3 py-3 font-medium text-text">{{ expense.name }}</td>
                 <td class="px-3 py-3">
@@ -991,10 +991,10 @@ const detailTabCount = computed(() => {
 })
 
 const canViewDetailTab = computed(() => {
-  if (activeDetailTab.value === 'cobros') return allCobrosRows.value.length > 8
-  if (activeDetailTab.value === 'ventas') return allVentasRows.value.length > 8
+  if (activeDetailTab.value === 'cobros') return allCobrosRows.value.length > 5
+  if (activeDetailTab.value === 'ventas') return allVentasRows.value.length > 5
   if (activeDetailTab.value === 'servicios') return false
-  return allGastosRows.value.length > 8
+  return allGastosRows.value.length > 5
 })
 
 const goToDetailTab = () => {
