@@ -38,6 +38,7 @@
           <div>
             <div class="font-medium text-text text-sm">{{ formatUSD(payment.earnings) }}</div>
               <div class="text-xs text-text-muted">{{ formatVESInline(payment.earnings) }} Bs</div>
+              <span v-if="payment.tipAmount > 0" class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">+${{ payment.tipAmount.toFixed(2) }} propina</span>
           </div>
           <div class="text-right">
             <div class="text-text text-sm">{{ formatUSD(payment.amount) }}</div>
@@ -69,6 +70,7 @@
             <td class="py-3 text-right">
               <div class="font-semibold text-success">{{ formatUSD(payment.earnings) }}</div>
             <div class="text-xs text-text-muted">{{ formatVESInline(payment.earnings) }} Bs</div>
+            <span v-if="payment.tipAmount > 0" class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary mt-1">+${{ payment.tipAmount.toFixed(2) }} propina</span>
             </td>
           </tr>
         </tbody>
@@ -394,7 +396,7 @@ import { getEmployeeBalance, type EmployeeBalance, type EmployeePaymentRecord } 
 import type { EmployeeEarningSummary } from '../../composables/useFinancialSummary'
 
 interface PaymentRow {
-  id: string; employee: string; service: string; amount: number; percentage: number; earnings: number
+  id: string; employee: string; service: string; amount: number; percentage: number; earnings: number; tipAmount: number
 }
 
 const props = defineProps<{

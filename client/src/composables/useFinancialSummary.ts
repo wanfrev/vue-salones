@@ -82,6 +82,7 @@ type PaymentRow = {
   amount: number
   percentage: number
   earnings: number
+  tipAmount: number
 }
 
 export type ServiceRevenue = {
@@ -573,8 +574,10 @@ function useFinancialSummary(
   const employeePayments = computed<PaymentRow[]>(() => {
     const rows: PaymentRow[] = []
     for (const row of rawTransactions.value) {
+      const tipAmount = Number((row as any).tip_amount ?? 0)
+      const serviceAmount = Math.max(0, Number(row.total_amount ?? 0) - tipAmount)
       const mainCalc = computeServiceEarnings(
-        Number(row.total_amount ?? 0),
+        serviceAmount,
         row.appointments?.employee_profile,
         getEffectiveEmployeePercentage(row),
       )
@@ -585,7 +588,8 @@ function useFinancialSummary(
         service: row.appointments?.services?.name ?? '—',
         amount: row.total_amount,
         percentage: mainCalc.percentage,
-        earnings: mainCalc.earnings,
+        earnings: mainCalc.earnings + tipAmount,
+        tipAmount,
       })
 
       // Assistant row if assigned
@@ -593,7 +597,7 @@ function useFinancialSummary(
       const assistantPct = Number(row.assistant_percentage ?? 0)
       if (assistantId && assistantPct > 0) {
         const assistantName = row.appointments?.assistant_profile?.full_name ?? '—'
-        const assistantEarnings = Number(row.total_amount ?? 0) * (assistantPct / 100)
+        const assistantEarnings = serviceAmount * (assistantPct / 100)
         rows.push({
           id: `${row.id}-asst`,
           employee: assistantName + ' (asistente)',
@@ -602,6 +606,7 @@ function useFinancialSummary(
           amount: row.total_amount,
           percentage: assistantPct,
           earnings: assistantEarnings,
+          tipAmount: 0,
         })
       }
     }
@@ -640,12 +645,14 @@ function useFinancialSummary(
       const mainProfile = appt.employee_profile
       if (mainId) {
         ensureEntry(mainId, mainProfile?.full_name ?? '—', mainProfile)
+        const tipAmount = Number((tx as any).tip_amount ?? 0)
+        const serviceAmount = Math.max(0, Number(tx.total_amount ?? 0) - tipAmount)
         const calc = computeServiceEarnings(
-          Number(tx.total_amount ?? 0),
+          serviceAmount,
           mainProfile,
           getEffectiveEmployeePercentage(tx),
         )
-        map.get(mainId)!.commissionTotal += calc.earnings
+        map.get(mainId)!.commissionTotal += calc.earnings + tipAmount
       }
 
       // Assistant if assigned
