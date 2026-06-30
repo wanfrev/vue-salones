@@ -232,6 +232,7 @@
                 <td class="px-3 py-3 text-right tabular-nums whitespace-nowrap">
                   <div class="font-semibold text-success">{{ item.primaryCurrency === 'VES' ? formatVESEs(item.primaryAmount) : formatUSD(item.amount) }}</div>
                   <div class="text-[10px] text-text-muted mt-0.5">{{ item.primaryCurrency === 'VES' ? formatUSD(item.amount) : formatVESInline(item.amount, item.exchangeRateUsed) + ' Bs' }}</div>
+                  <span v-if="(item.tipAmount ?? 0) > 0" class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary mt-1">+${{ (item.tipAmount ?? 0).toFixed(2) }} propina</span>
                 </td>
                 <td class="px-3 py-3 text-center">
                   <div class="flex items-center justify-center gap-1">

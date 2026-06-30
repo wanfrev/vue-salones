@@ -176,6 +176,7 @@
           <td class="py-3 text-right">
             <div class="font-medium text-success">{{ row.primaryCurrency === 'VES' ? formatVESEs(row.primaryAmount) : formatUSD(row.amount) }}</div>
             <div class="text-[10px] text-text-muted mt-0.5">{{ row.primaryCurrency === 'VES' ? formatUSD(row.amount) : formatVESInline(row.amount, row.exchangeRateUsed) + ' Bs' }}</div>
+            <span v-if="(row.tipAmount ?? 0) > 0" class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary mt-1">+${{ (row.tipAmount ?? 0).toFixed(2) }} propina</span>
           </td>
           <td class="py-3 text-right">
             <div class="flex items-center gap-1 justify-end">
@@ -211,6 +212,10 @@
               <span class="font-semibold text-success">{{ row.primaryCurrency === 'VES' ? formatVESEs(row.primaryAmount) : formatUSD(row.amount) }}</span>
               <span class="text-text-muted ml-1">{{ row.primaryCurrency === 'VES' ? formatUSD(row.amount) : formatVESInline(row.amount, row.exchangeRateUsed) + ' Bs' }}</span>
             </span>
+            <template v-if="(row.tipAmount ?? 0) > 0">
+              <span class="text-text-muted">Propina</span>
+              <span class="text-right font-semibold text-primary">${{ (row.tipAmount ?? 0).toFixed(2) }}</span>
+            </template>
           </div>
         </div>
       </template>
