@@ -365,7 +365,7 @@ const onClientNameFocus = () => {
 }
 
 const isLoading = computed(() => saveInProgress.value)
-const isEditing = computed(() => !!modalData.value?.cita)
+const isEditing = computed(() => !!(modalData.value?.cita?.id))
 
 const serviceOptions = computed(() =>
   (props.servicios ?? []).map(s => ({ value: s.id, label: `${s.name} - $${s.price} (${s.duration} min)` }))

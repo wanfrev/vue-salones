@@ -6,6 +6,7 @@
       @event-change="handleEventChange"
       @slot-select="handleSlotSelect"
       @checkout="handleCheckout"
+      @delete="handleDeleteCita"
     />
   </section>
 

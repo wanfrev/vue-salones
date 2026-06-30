@@ -35,6 +35,7 @@
               :key="appt.id"
               class="flex flex-col gap-px rounded-sm px-0.5 py-px cursor-pointer transition-colors hover:brightness-95 sm:gap-0.5 sm:rounded sm:px-1"
               :class="monthCardBg(appt.status)"
+              :title="`${appt.clientName} · ${appt.service} · ${appt.employeeName}\n${appt.time} · ${getStatusLabel(appt.status)}`"
               @click.stop="$emit('eventClick', appt.raw)"
             >
               <div class="flex items-center gap-0.5 sm:gap-1">
@@ -62,7 +63,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { toISODate, dateToHHmm, dateToHHmm12, normalizeAppointmentStatus } from '../../lib/formatters'
+import { toISODate, dateToHHmm, dateToHHmm12, getStatusLabel, normalizeAppointmentStatus } from '../../lib/formatters'
 
 const props = defineProps<{
   appointments: any[]

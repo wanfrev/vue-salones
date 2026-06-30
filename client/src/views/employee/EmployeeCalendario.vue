@@ -7,6 +7,7 @@
           @event-change="handleEventChange"
           @slot-select="handleSlotSelect"
           @checkout="handleCheckout"
+          @delete="handleDeleteCita"
         />
     </div>
   </AppLayout>

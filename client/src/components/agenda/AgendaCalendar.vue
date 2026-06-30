@@ -144,7 +144,8 @@
                   class="absolute left-0.5 right-0.5 sm:left-1 sm:right-1 rounded-lg cursor-pointer overflow-hidden transition-all duration-150 hover:scale-[1.02] hover:z-10 group"
                   :class="cardBgClass(appt.status)"
                   :style="{ top: `${appt.top}px`, height: `${Math.max(appt.height, 64)}px` }"
-                  @click.stop="emitEventClick(appt.raw)">
+                  :title="`${appt.clientName} · ${appt.service} · ${appt.employeeName}\n${appt.time} · ${getStatusLabel(appt.status)}`"
+                  @click.stop="showDetailPopup(appt, $event)">
                   <div class="absolute left-0 top-0 bottom-0 w-[3px] sm:w-[4px]" :class="statusStripeClass(appt.status)" />
                   <div class="flex flex-col h-full p-1.5 sm:p-2 text-xs leading-snug">
                     <div class="flex items-center gap-1 min-w-0 sm:gap-1.5">
@@ -183,6 +184,33 @@
         </button>
       </div>
     </Teleport>
+
+    <!-- Detail Popup -->
+    <Teleport to="body">
+      <div v-if="detailPopup" class="fixed inset-0 z-[90]" @click="detailPopup = null"></div>
+      <div v-if="detailPopup" class="fixed z-[100] rounded-xl border border-border bg-surface shadow-2xl p-4 w-72 animate-in fade-in zoom-in-95 duration-100"
+        :style="{ top: `${detailPopup.y}px`, left: `${detailPopup.x}px` }" @click.stop>
+        <div class="flex items-center gap-3 mb-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+            {{ getInitials(detailPopup.appt.clientName) }}
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-bold text-text truncate">{{ detailPopup.appt.clientName }}</p>
+            <p class="text-xs text-text-muted">{{ detailPopup.appt.time }}</p>
+          </div>
+        </div>
+        <div class="space-y-1.5 mb-3 text-sm">
+          <div class="flex justify-between"><span class="text-text-muted">Servicio</span><span class="font-medium text-text">{{ detailPopup.appt.service }}</span></div>
+          <div class="flex justify-between"><span class="text-text-muted">Empleado</span><span class="font-medium text-text">{{ detailPopup.appt.employeeName }}</span></div>
+          <div v-if="detailPopup.appt.raw.internal_notes" class="flex justify-between"><span class="text-text-muted">Notas</span><span class="font-medium text-text truncate max-w-[140px]">{{ detailPopup.appt.raw.internal_notes }}</span></div>
+          <div class="flex justify-between"><span class="text-text-muted">Estado</span><span class="font-medium" :class="statusTextClass(detailPopup.appt.status)">{{ getStatusLabel(detailPopup.appt.status) }}</span></div>
+        </div>
+        <div class="flex items-center gap-2 justify-end border-t border-border pt-3">
+          <button @click="handleDeleteClick" class="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger/10 transition-colors">Borrar cita</button>
+          <button @click="handleEditClick" class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-text-inverse hover:bg-primary-hover transition-colors">Editar cita</button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -192,7 +220,7 @@ import { useRoute } from 'vue-router'
 import { useAgenda } from '../../composables/useAgenda'
 import { useAuthStore } from '../../store/auth'
 import { isAdminPanelRole } from '../../constants/roles'
-import { normalizeAppointmentStatus, dateToHHmm, dateToHHmm12, toISODate, getInitials } from '../../lib/formatters'
+import { normalizeAppointmentStatus, getStatusLabel, dateToHHmm, dateToHHmm12, toISODate, getInitials } from '../../lib/formatters'
 import AgendaMonthView from './AgendaMonthView.vue'
 import AgendaYearView from './AgendaYearView.vue'
 import type { Cita } from '../../types/cita'
@@ -207,6 +235,7 @@ const emit = defineEmits<{
   eventChange: [payload: { id: string; start: string; end: string; employeeId?: string }]
   slotSelect: [payload: { start: Date; end: Date; employeeId?: string }]
   checkout: [appointmentId: string]
+  delete: [id: string]
 }>()
 
 const { selectedEmployeeId, setDateRange, employees, loadingEmployees, services, appointments } = useAgenda()
@@ -423,6 +452,37 @@ function changeStatus(id: string, s: string) {
 function onDocClick(e: MouseEvent) { if (statusMenu.value && !(e.target as HTMLElement)?.closest('.fixed')) statusMenu.value = null }
 onMounted(() => document.addEventListener('click', onDocClick))
 onUnmounted(() => document.removeEventListener('click', onDocClick))
+
+// ---- Detail Popup ----
+const detailPopup = ref<{ appt: DisplayAppointment; x: number; y: number } | null>(null)
+
+function showDetailPopup(appt: DisplayAppointment, e: MouseEvent) {
+  const x = Math.min(e.clientX - 140, window.innerWidth - 300)
+  const y = Math.min(e.clientY, window.innerHeight - 300)
+  detailPopup.value = { appt, x: Math.max(x, 8), y: Math.max(y, 8) }
+}
+
+function handleEditClick() {
+  if (!detailPopup.value) return
+  const raw = detailPopup.value.appt.raw
+  detailPopup.value = null
+  emitEventClick(raw)
+}
+
+function handleDeleteClick() {
+  if (!detailPopup.value) return
+  const id = detailPopup.value.appt.id
+  detailPopup.value = null
+  emit('delete', id)
+}
+
+function statusTextClass(status: string) {
+  const map: Record<string, string> = {
+    confirmed: 'text-primary', pending: 'text-warning', paid: 'text-success',
+    cancelled: 'text-danger', no_show: 'text-danger',
+  }
+  return map[status] || 'text-text'
+}
 
 // ---- Init ----
 onMounted(() => {
