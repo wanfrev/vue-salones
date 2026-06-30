@@ -99,7 +99,7 @@ export const mapServiceItemToAppointmentInsert = (
   branchId?: string | null
 ) => {
   const startTime = new Date(`${date}T${time}:00`)
-  const duration = service?.duration_minutes ?? item.duration
+  const duration = item.duration || service?.duration_minutes || 30
   const endTime = new Date(startTime.getTime() + duration * 60 * 1000)
 
   const isPaidStatus = status === 'paid'
