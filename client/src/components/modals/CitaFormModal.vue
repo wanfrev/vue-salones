@@ -196,7 +196,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <!-- Fecha -->
         <FormInput
           v-model="formData.date"

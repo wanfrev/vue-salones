@@ -143,7 +143,7 @@
       <div class="space-y-4">
         <h4 class="text-sm font-semibold uppercase tracking-wider text-text-muted">Horario Laboral</h4>
         
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <FormTime
             v-model="formData.scheduleStart"
             label="Hora de entrada"
