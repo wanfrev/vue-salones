@@ -127,6 +127,7 @@
               :label="t.employee"
               :options="employeeOptions"
               required
+              :disabled="isSingleEmployee"
               :error="getRowError(index, 'employeeId')"
               @update:model-value="updateServiceRow(index, 'employeeId', $event)"
             />
@@ -300,8 +301,9 @@ const { isOpen, modalData, close } = useModal(MODAL_ID)
 const { error: showError } = useNotification()
 const authStore = useAuthStore()
 const businessStore = useBusinessStore()
+const isEmployee = computed(() => authStore.role === 'empleado')
 const canCreateClients = computed(() =>
-  authStore.role !== 'empleado' || businessStore.hasFeature('employees_create_clients')
+  !isEmployee.value || businessStore.hasFeature('employees_create_clients')
 )
 
 const t = computed(() => businessStore.terminology)
@@ -369,14 +371,28 @@ const serviceOptions = computed(() =>
   (props.servicios ?? []).map(s => ({ value: s.id, label: `${s.name} - $${s.price} (${s.duration} min)` }))
 )
 
-const employeeOptions = computed(() =>
-  (props.empleados ?? []).map(e => ({ value: e.id, label: e.name }))
-)
+const employeeOptions = computed(() => {
+  const empList = props.empleados ?? []
+  if (isEmployee.value) {
+    const myId = authStore.profile?.id ?? ''
+    const me = empList.find(e => e.id === myId)
+    return me ? [{ value: me.id, label: me.name }] : []
+  }
+  return empList.map(e => ({ value: e.id, label: e.name }))
+})
 
-const assistantOptions = computed(() => [
-  { value: '', label: 'Sin asistente' },
-  ...(props.empleados ?? []).map(e => ({ value: e.id, label: e.name })),
-])
+const assistantOptions = computed(() => {
+  const empList = props.empleados ?? []
+  if (isEmployee.value) {
+    return [{ value: '', label: 'Sin asistente' }]
+  }
+  return [
+    { value: '', label: 'Sin asistente' },
+    ...empList.map(e => ({ value: e.id, label: e.name })),
+  ]
+})
+
+const isSingleEmployee = computed(() => employeeOptions.value.length <= 1)
 
 const statusOptions = [
   { value: 'confirmed', label: 'Confirmada' },
@@ -387,7 +403,7 @@ const statusOptions = [
 
 const emptyServiceRow = (): CitaFormServiceItem => ({
   serviceId: '',
-  employeeId: '',
+  employeeId: isEmployee.value ? (authStore.profile?.id ?? '') : '',
   assistantEmployeeId: '',
   assistantPercentage: 0,
   duration: 30,
@@ -399,12 +415,13 @@ const defaultFormData = (): CitaFormData & { extraServices: CitaFormServiceItem[
   const now = new Date()
   const minutes = now.getHours() * 60 + now.getMinutes()
   const nextSlot = Math.ceil(minutes / 30) * 30
+  const myId = isEmployee.value ? (authStore.profile?.id ?? '') : ''
   return {
     clientId: undefined,
     clientName: '',
     clientPhone: '',
     service: '',
-    employee: '',
+    employee: myId,
     assistantEmployee: '',
     assistantPercentage: 0,
     duration: 30,
