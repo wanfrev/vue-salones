@@ -71,8 +71,8 @@ export const saveEmpleado = async (
 
   if (profileError) throw profileError
 
-  if (data.email) {
-    await updateAuthUser(data.id, { email: data.email })
+  if (data.email || data.password) {
+    await updateAuthUser(data.id, { email: data.email, password: data.password || undefined })
   }
 
   const { error: deleteScheduleError } = await supabase
