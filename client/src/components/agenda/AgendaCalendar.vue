@@ -201,6 +201,10 @@
         </div>
         <div class="space-y-1.5 mb-3 text-sm">
           <div class="flex justify-between"><span class="text-text-muted">Servicio</span><span class="font-medium text-text">{{ detailPopup.appt.service }}</span></div>
+          <div v-if="detailPopup.appt.isGroup && detailPopup.appt.groupServices && detailPopup.appt.groupServices.length > 1" class="flex flex-col gap-0.5">
+            <span class="text-text-muted text-xs">Servicios incluidos</span>
+            <span v-for="(gs, i) in detailPopup.appt.groupServices" :key="i" class="text-xs text-text pl-2">{{ gs }}</span>
+          </div>
           <div class="flex justify-between"><span class="text-text-muted">Empleado</span><span class="font-medium text-text">{{ detailPopup.appt.employeeName }}</span></div>
           <div v-if="detailPopup.appt.raw.internal_notes" class="flex justify-between"><span class="text-text-muted">Notas</span><span class="font-medium text-text truncate max-w-[140px]">{{ detailPopup.appt.raw.internal_notes }}</span></div>
           <div class="flex justify-between"><span class="text-text-muted">Estado</span><span class="font-medium" :class="statusTextClass(detailPopup.appt.status)">{{ getStatusLabel(detailPopup.appt.status) }}</span></div>
@@ -338,12 +342,33 @@ watch([selectedDate, viewMode], ([d, mode]) => {
 
 // ---- Grid Columns (day & week) ----
 interface GridColumn { key: string; label: string; avatar?: string; number?: number; isToday?: boolean; widthPercent: number; appointments: DisplayAppointment[] }
-interface DisplayAppointment { id: string; clientName: string; service: string; time: string; top: number; height: number; status: string; employeeInitials: string; employeeName: string; raw: any }
+interface DisplayAppointment { id: string; clientName: string; service: string; time: string; top: number; height: number; status: string; employeeInitials: string; employeeName: string; raw: any; isGroup?: boolean; groupServices?: string[] }
+
+function deduplicateByGroup(appts: any[], _svcList: any[]): any[] {
+  const seen = new Set<string>()
+  const result: any[] = []
+  for (const a of appts) {
+    if (a.group_id) {
+      if (seen.has(a.group_id)) continue
+      seen.add(a.group_id)
+      const groupMembers = appts.filter(x => x.group_id === a.group_id)
+      result.push({ ...a, _groupMembers: groupMembers })
+    } else {
+      result.push(a)
+    }
+  }
+  return result
+}
 
 function mapAppt(a: any, svcList: any[], empName: string) {
   const start = new Date(a.start_time); const end = new Date(a.end_time)
   const svc = svcList.find(s => s.id === a.service_id)
   const topMin = (start.getHours() * 60 + start.getMinutes()) - (START_HOUR * 60)
+  const groupMembers: any[] = a._groupMembers || []
+  const isGroup = groupMembers.length > 1
+  const groupServices = isGroup
+    ? groupMembers.map((m: any) => svcList.find(s => s.id === m.service_id)?.name || 'Servicio')
+    : undefined
   return {
     id: a.id,
     clientName: a.clients?.full_name || 'Cliente',
@@ -355,13 +380,15 @@ function mapAppt(a: any, svcList: any[], empName: string) {
     employeeInitials: getInitials(empName),
     employeeName: empName,
     raw: a,
+    isGroup,
+    groupServices,
   }
 }
 
 const gridColumns = computed<GridColumn[]>(() => {
   const emps = employees.value ?? []
   const empId = selectedEmployeeId.value
-  const appts = appointments.value ?? []
+  const appts = deduplicateByGroup(appointments.value ?? [], services.value ?? [])
   const svcs = services.value ?? []
 
   if (viewMode.value === 'week') {

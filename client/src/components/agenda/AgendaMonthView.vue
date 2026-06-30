@@ -107,18 +107,37 @@ function getApptsForDate(iso: string) {
       if (props.employeeId !== 'all' && a.employee_id !== props.employeeId) return false
       return true
     })
+    .reduce((acc: any[], a: any) => {
+      if (a.group_id) {
+        const existing = acc.find(x => x.group_id === a.group_id)
+        if (existing) {
+          if (!existing._groupMembers) existing._groupMembers = [existing]
+          existing._groupMembers.push(a)
+          return acc
+        }
+      }
+      acc.push(a)
+      return acc
+    }, [])
     .map(a => {
       const svc = props.services.find((s: any) => s.id === a.service_id)
       const emp = props.employees.find((e: any) => e.id === a.employee_id)?.full_name || ''
+      const members: any[] = a._groupMembers || []
+      const isGroup = members.length > 0
+      const groupServices = isGroup
+        ? [svc?.name || 'Servicio', ...members.map((m: any) => props.services.find((s: any) => s.id === m.service_id)?.name || 'Servicio')]
+        : undefined
       return {
         id: a.id,
         clientName: a.clients?.full_name || 'Cliente',
-        service: svc?.name || 'Servicio',
+        service: isGroup ? groupServices!.join(' + ') : (svc?.name || 'Servicio'),
         time: dateToHHmm12(new Date(a.start_time)),
         status: normalizeAppointmentStatus(a),
         employeeName: emp,
         raw: a,
         _sortTime: dateToHHmm(new Date(a.start_time)),
+        isGroup,
+        groupServices,
       }
     })
     .sort((a, b) => a._sortTime.localeCompare(b._sortTime))
