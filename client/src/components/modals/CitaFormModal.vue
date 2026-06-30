@@ -693,16 +693,6 @@ const normalizePhone = (phone: string): string => {
   return '+' + digits
 }
 
-const isTimeInPast = (date: string, time: string): boolean => {
-  const now = new Date()
-  const y = now.getFullYear()
-  const mo = String(now.getMonth() + 1).padStart(2, '0')
-  const d = String(now.getDate()).padStart(2, '0')
-  if (date !== `${y}-${mo}-${d}`) return false
-  const currentMinutes = now.getHours() * 60 + now.getMinutes()
-  const [h, m] = time.split(':').map(Number)
-  return h * 60 + m < currentMinutes
-}
 
 const validateForm = (): boolean => {
   errors.value = {}
@@ -764,8 +754,6 @@ const validateForm = (): boolean => {
 
   if (!formData.value.time) {
     errors.value.time = 'Selecciona una hora'
-  } else if (!modalData.value?.cita?.id && isTimeInPast(formData.value.date, formData.value.time)) {
-    errors.value.time = 'La hora no puede ser en el pasado'
   }
 
   if (Object.keys(rowErrors).length > 0) {
