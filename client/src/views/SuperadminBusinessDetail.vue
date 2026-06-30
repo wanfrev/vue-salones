@@ -113,6 +113,38 @@
           </div>
         </div>
 
+        <!-- Sucursales -->
+        <div class="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-text">Sucursales ({{ branches.length }})</h2>
+          </div>
+          <div v-if="branches.length === 0" class="py-4 text-center text-sm text-text-muted">
+            No hay sucursales registradas.
+          </div>
+          <div v-else class="space-y-2">
+            <div
+              v-for="branch in branches"
+              :key="branch.id"
+              class="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-secondary/30 px-4 py-3"
+            >
+              <div>
+                <div class="flex items-center gap-2">
+                  <p class="text-sm font-semibold text-text">{{ branch.name }}</p>
+                  <span v-if="branch.is_default" class="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">Principal</span>
+                  <span :class="['rounded-full px-2 py-0.5 text-[10px] font-semibold', branch.active ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger']">
+                    {{ branch.active ? 'Activa' : 'Inactiva' }}
+                  </span>
+                </div>
+                <div v-if="branch.address || branch.phone" class="mt-1 flex items-center gap-3 text-xs text-text-muted">
+                  <span v-if="branch.address">{{ branch.address }}</span>
+                  <span v-if="branch.phone">{{ branch.phone }}</span>
+                  <span v-if="branch.ves_exchange_rate">Tasa: {{ branch.ves_exchange_rate }} Bs</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Admins -->
         <div class="rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <div class="mb-4 flex items-center justify-between">
@@ -282,6 +314,7 @@ import {
   updateBusiness,
   superadminKeys,
 } from '../services/superadminService'
+import { listBranches, branchesKeys } from '../services/branchesService'
 import type { AuthProfile } from '../types/auth'
 import type { Business } from '../types/database'
 import lumaLogoLight from '../assets/Luma.svg'
@@ -312,6 +345,14 @@ const { data: adminsData } = useQuery({
 })
 
 const admins = computed<AuthProfile[]>(() => adminsData.value ?? [])
+
+const { data: branchesData } = useQuery({
+  queryKey: branchesKeys.all(businessId),
+  queryFn: () => listBranches(businessId),
+  enabled: computed(() => !!businessId),
+})
+
+const branches = computed(() => branchesData.value ?? [])
 
 // ─── Edit ────────────────────────────────────────────────────
 const showEditModal = ref(false)
