@@ -52,7 +52,14 @@
           class="absolute z-50 mt-1 w-full rounded-xl border border-border bg-surface shadow-lg px-4 py-3 text-center text-sm text-text-muted"
         >
           <template v-if="clientSearchLoading">Buscando...</template>
-          <template v-else>Sin resultados</template>
+          <template v-else>
+            <template v-if="!canCreateClients">
+              No puedes crear clientes. Selecciona uno existente o contacta a un administrador.
+            </template>
+            <template v-else>
+              Sin resultados
+            </template>
+          </template>
         </div>
       </div>
 
@@ -293,6 +300,9 @@ const { isOpen, modalData, close } = useModal(MODAL_ID)
 const { error: showError } = useNotification()
 const authStore = useAuthStore()
 const businessStore = useBusinessStore()
+const canCreateClients = computed(() =>
+  authStore.role !== 'empleado' || businessStore.hasFeature('employees_create_clients')
+)
 
 const t = computed(() => businessStore.terminology)
 const businessId = computed(() => authStore.businessId)
@@ -575,11 +585,13 @@ watch(maxDuration, (max) => {
 const isFormValid = computed(() => {
   const hasPrimaryService = formData.value.service !== '' && formData.value.employee !== ''
   const extrasValid = formData.value.extraServices.every(e => e.serviceId !== '' && e.employeeId !== '')
+  const hasClientSelection = canCreateClients.value || !!formData.value.clientId
   return formData.value.clientName.trim().length >= 2 &&
     /^[\d\s\-\+\(\)]+$/.test(formData.value.clientPhone.trim()) &&
     formData.value.clientPhone.trim().length >= 7 &&
     hasPrimaryService &&
     extrasValid &&
+    hasClientSelection &&
     formData.value.date !== '' &&
     formData.value.time !== '' &&
     servicesLoaded.value &&

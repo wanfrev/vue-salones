@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import { computed } from 'vue'
 import { useNotification } from './useNotification'
 import { saveCita, updateCitaStatus, updateAppointmentTime, deleteCita } from '../services/agendaService'
 import { posKeys } from '../services/posService'
 import { clientesKeys } from '../services/clientesService'
 import { dashboardKeys } from '../services/employeeDashboardService'
 import { useBusinessStore } from '../store/business'
+import { useAuthStore } from '../store/auth'
 import { mutate } from '../lib/typedSupabase'
 import { supabase } from '../lib/supabase'
 import { translateError } from '../lib/errors'
@@ -19,6 +21,13 @@ export function useAppointmentMutations(options: {
   const queryClient = useQueryClient()
   const { success, error: showError } = useNotification()
   const businessStore = useBusinessStore()
+  const authStore = useAuthStore()
+
+  const isEmployee = computed(() => authStore.role === 'empleado')
+
+  const allowCreateClient = computed(() =>
+    !isEmployee.value || businessStore.hasFeature('employees_create_clients')
+  )
 
   const invalidate = async () => {
     const bid = options.businessId.value
@@ -46,7 +55,7 @@ export function useAppointmentMutations(options: {
 
   const saveCitaMutation = useMutation({
     mutationFn: (data: CitaFormData & { id?: string; clientPhone?: string }) =>
-      saveCita(options.businessId.value!, data, options.createdBy?.value, businessStore.currentBranchId),
+      saveCita(options.businessId.value!, data, options.createdBy?.value, businessStore.currentBranchId, allowCreateClient.value),
     onSuccess: async () => {
       await invalidate()
       await queryClient.refetchQueries({ exact: false, queryKey: ['appointments'], type: 'all' })

@@ -81,7 +81,8 @@ export const saveCita = async (
   businessId: string,
   data: CitaFormData & { id?: string; clientPhone?: string },
   createdBy?: string | null,
-  branchId?: string | null
+  branchId?: string | null,
+  allowCreateClient?: boolean
 ): Promise<Cita> => {
   const parsed = citaFormSchema.safeParse(data)
   if (!parsed.success) {
@@ -105,6 +106,8 @@ export const saveCita = async (
   let clientId: string
   if (data.clientId) {
     clientId = data.clientId
+  } else if (allowCreateClient === false) {
+    throw new Error('No tienes permiso para crear clientes. Selecciona un cliente existente.')
   } else {
     const client = await findOrCreateClientByPhone(businessId, {
       fullName: data.clientName,

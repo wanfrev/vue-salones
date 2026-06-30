@@ -408,13 +408,14 @@ const { mutateAsync: resumeBiz, isPending: isResuming } = useMutation({
   },
 })
 
-const featureToggles = [
-  { key: 'pos', label: 'Punto de Venta', description: 'Cobro de citas con productos y método de pago' },
-  { key: 'inventario', label: 'Inventario', description: 'Control de stock, entradas y salidas' },
-  { key: 'productos', label: 'Productos', description: 'Catálogo de productos vendibles' },
-  { key: 'proveedores', label: 'Proveedores', description: 'Gestión de proveedores, deudas y pagos' },
-  { key: 'multi_branch', label: 'Múltiples sucursales', description: 'Gestionar varias ubicaciones físicas' },
-]
+  const featureToggles = [
+    { key: 'pos', label: 'Punto de Venta', description: 'Cobro de citas con productos y método de pago' },
+    { key: 'inventario', label: 'Inventario', description: 'Control de stock, entradas y salidas' },
+    { key: 'productos', label: 'Productos', description: 'Catálogo de productos vendibles' },
+    { key: 'proveedores', label: 'Proveedores', description: 'Gestión de proveedores, deudas y pagos' },
+    { key: 'multi_branch', label: 'Múltiples sucursales', description: 'Gestionar varias ubicaciones físicas' },
+    { key: 'employees_create_clients', label: 'Empleados crean clientes', description: 'Permitir que empleados agreguen nuevos clientes desde la agenda' },
+  ]
 
 const isTogglingFeature = ref(false)
 const toggleFeature = async (key: string) => {

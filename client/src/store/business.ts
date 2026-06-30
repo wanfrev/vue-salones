@@ -17,13 +17,14 @@ const DEFAULT_TERMINOLOGY: Terminology = {
   vaccines: 'Vacunas',
 }
 
-const DEFAULT_FEATURES = {
-  pos: true,
-  inventario: true,
-  productos: true,
-  proveedores: true,
-  multi_branch: false,
-}
+  const DEFAULT_FEATURES = {
+    pos: true,
+    inventario: true,
+    productos: true,
+    proveedores: true,
+    multi_branch: false,
+    employees_create_clients: true,
+  }
 
 export type FeatureKey = keyof typeof DEFAULT_FEATURES
 

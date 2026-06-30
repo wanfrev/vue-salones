@@ -13,6 +13,16 @@
             {{ totalClientes }} {{ totalClientes === 1 ? label : label + 's' }}
           </h1>
         </div>
+        <button
+          v-if="canCreateClients"
+          @click="openNewClientModal"
+          class="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-text-inverse transition-theme hover:bg-primary-hover"
+        >
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Nuevo {{ t.client || 'Cliente' }}
+        </button>
       </header>
 
       <div class="relative flex-1 max-w-md">
@@ -140,24 +150,30 @@
         </div>
       </div>
     </div>
+    <ClienteFormModal
+      ref="newClientModalRef"
+      @saved="onClientSaved"
+    />
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useClientFilters } from '../../composables/useClientFilters'
 import { useAuthStore } from '../../store/auth'
 import { useBusinessStore } from '../../store/business'
 import { clientesKeys, listClientes } from '../../services/clientesService'
 import { getInitials, sanitizePhone } from '../../lib/formatters'
 import AppLayout from '../../components/layout/AppLayout.vue'
+import ClienteFormModal from '../../components/modals/ClienteFormModal.vue'
 import type { Cliente } from '../../types/cliente'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const businessStore = useBusinessStore()
+const queryClient = useQueryClient()
 
 const businessId = computed(() => authStore.businessId)
 const branchId = computed(() => businessStore.currentBranchId)
@@ -196,5 +212,19 @@ const handleWhatsApp = (cliente: Cliente) => {
   const phone = sanitizePhone(cliente.phone)
   if (!phone) return
   window.open(`https://wa.me/${phone}`, '_blank')
+}
+
+const canCreateClients = computed(() =>
+  businessStore.hasFeature('employees_create_clients')
+)
+
+const newClientModalRef = ref<InstanceType<typeof ClienteFormModal> | null>(null)
+
+const openNewClientModal = () => {
+  newClientModalRef.value?.open(undefined as any)
+}
+
+const onClientSaved = () => {
+  queryClient.invalidateQueries({ queryKey: clientesKeys.all(businessId.value, branchId.value), exact: false })
 }
 </script>
