@@ -4,13 +4,13 @@
       {{ label }}
       <span v-if="required" class="text-danger">*</span>
     </label>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1">
       <select
         :id="inputId"
         :value="hour12"
         @change="onHourChange"
         :disabled="disabled"
-        class="rounded-xl border bg-surface text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-secondary pl-3 pr-7 py-2.5 text-sm"
+        class="rounded-xl border bg-surface text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-secondary pl-2 pr-5 py-2 text-sm"
         :class="error ? 'border-danger' : 'border-border hover:border-border-strong'"
       >
         <option v-for="h in 12" :key="h" :value="h">{{ h }}</option>
@@ -20,7 +20,7 @@
         :value="minute"
         @change="onMinuteChange"
         :disabled="disabled"
-        class="rounded-xl border bg-surface text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-secondary pl-3 pr-7 py-2.5 text-sm"
+        class="rounded-xl border bg-surface text-text outline-none transition-theme focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-secondary pl-2 pr-5 py-2 text-sm"
         :class="error ? 'border-danger' : 'border-border hover:border-border-strong'"
       >
         <option v-for="m in minuteOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
@@ -29,7 +29,7 @@
         type="button"
         :disabled="disabled"
         @click="toggleAmPm"
-        class="rounded-xl border bg-surface text-sm font-semibold px-3 py-2.5 outline-none transition-theme hover:bg-bg-secondary disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-secondary min-w-[52px] text-center"
+        class="rounded-xl border bg-surface text-xs font-semibold px-2 py-2 outline-none transition-theme hover:bg-bg-secondary disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-secondary min-w-[40px] text-center"
         :class="[
           error ? 'border-danger' : 'border-border hover:border-border-strong',
           isPM ? 'text-warning' : 'text-primary'
