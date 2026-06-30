@@ -152,7 +152,7 @@
     </div>
     <ClienteFormModal
       ref="newClientModalRef"
-      @saved="onClientSaved"
+      @save="handleSaveCliente"
     />
   </AppLayout>
 </template>
@@ -164,11 +164,12 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useClientFilters } from '../../composables/useClientFilters'
 import { useAuthStore } from '../../store/auth'
 import { useBusinessStore } from '../../store/business'
-import { clientesKeys, listClientes } from '../../services/clientesService'
+import { clientesKeys, listClientes, saveCliente } from '../../services/clientesService'
 import { getInitials, sanitizePhone } from '../../lib/formatters'
 import AppLayout from '../../components/layout/AppLayout.vue'
 import ClienteFormModal from '../../components/modals/ClienteFormModal.vue'
 import type { Cliente } from '../../types/cliente'
+import type { ClienteFormData } from '../../types/cliente'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -224,7 +225,13 @@ const openNewClientModal = () => {
   newClientModalRef.value?.open(undefined as any)
 }
 
-const onClientSaved = () => {
-  queryClient.invalidateQueries({ queryKey: clientesKeys.all(businessId.value, branchId.value), exact: false })
+const handleSaveCliente = async (data: ClienteFormData & { id?: string }) => {
+  try {
+    await saveCliente(businessId.value!, data, branchId.value)
+    queryClient.invalidateQueries({ queryKey: clientesKeys.all(businessId.value, branchId.value), exact: false })
+    newClientModalRef.value?.close?.()
+  } catch (err) {
+    console.error('[EmployeeClientes] Error saving:', err)
+  }
 }
 </script>
