@@ -155,7 +155,7 @@ export const groupPendingAppointments = (appointments: any[]) => {
   const singles: any[] = []
 
   for (const appt of appointments) {
-    if (appt.group_id) {
+    if (appt.group_id && typeof appt.group_id === 'string' && appt.group_id.length > 10) {
       const arr = groups.get(appt.group_id)
       if (arr) arr.push(appt)
       else groups.set(appt.group_id, [appt])

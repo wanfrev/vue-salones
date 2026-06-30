@@ -249,6 +249,7 @@ const { data: appointmentsData } = useQuery({
     }
   },
   enabled: computed(() => !!businessId.value),
+  staleTime: 0,
 })
 const { data: productsData } = useQuery({
   queryKey: computed(() => posKeys.products(businessId.value, branchId.value)),
