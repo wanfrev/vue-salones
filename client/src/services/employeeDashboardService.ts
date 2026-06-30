@@ -32,6 +32,7 @@ export interface EmployeeEarningRecord {
   currency: 'USD' | 'VES'
   employeePercentage: number
   employeeEarnings: number
+  tipAmount: number
 }
 
 export const listEmployeeAppointments = async (
@@ -143,11 +144,12 @@ export const listEmployeeTransactions = async (
   type TxRow = {
     id: string; paid_at: string; total_amount: number; exchange_rate_used: number | null
     employee_amount: number; employee_percentage: number; assistant_amount: number | null; assistant_percentage: number | null
+    tip_amount: number | null
     method: string | null; payments_breakdown: any; appointment_id: string
   }
   let txQuery = supabase
     .from('transactions')
-    .select('id, paid_at, total_amount, exchange_rate_used, employee_amount, employee_percentage, assistant_amount, assistant_percentage, method, payments_breakdown, appointment_id')
+    .select('id, paid_at, total_amount, exchange_rate_used, employee_amount, employee_percentage, assistant_amount, assistant_percentage, tip_amount, method, payments_breakdown, appointment_id')
     .eq('business_id', businessId)
     .in('appointment_id', apptIds)
     .order('paid_at', { ascending: false })
@@ -208,6 +210,7 @@ export const listEmployeeTransactions = async (
       currency,
       employeePercentage: calc.percentage,
       employeeEarnings: calc.earnings,
+      tipAmount: Number(row.tip_amount ?? 0),
     }
   })
 }

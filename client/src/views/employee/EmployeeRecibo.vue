@@ -129,6 +129,7 @@
                     <td class="py-2 pl-2 text-right font-semibold text-success">
                       <div>${{ row.employeeEarnings.toFixed(2) }}</div>
                       <div class="text-xs text-text-muted font-normal">{{ formatVESEs(row.vesEarnings) }}</div>
+                      <span v-if="row.tipAmount > 0" class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary mt-0.5">+${{ row.tipAmount.toFixed(2) }} propina</span>
                     </td>
                   </tr>
                 </tbody>
@@ -164,6 +165,13 @@
               <span class="text-text-muted">Ganancia por comisión</span>
               <div class="text-right">
                 <span class="font-medium text-text">${{ totalVariableEarned }}</span>
+              </div>
+            </div>
+            <div v-if="totalTip > 0" class="flex justify-between py-2 text-sm">
+              <span class="text-text-muted">Propinas recibidas</span>
+              <div class="text-right">
+                <span class="font-medium text-primary">${{ totalTip.toFixed(2) }}</span>
+                <p class="text-xs text-text-muted">{{ formatVES(totalTip) }}</p>
               </div>
             </div>
             <div class="border-t border-border pt-3 flex justify-between">
@@ -497,6 +505,10 @@ const totalBilledVES = computed(() =>
 
 const totalVariableEarned = computed(() =>
   filteredEarnings.value.reduce((sum, r) => sum + r.employeeEarnings, 0).toFixed(2)
+)
+
+const totalTip = computed(() =>
+  filteredEarnings.value.reduce((sum, r) => sum + (r.tipAmount ?? 0), 0)
 )
 
 const totalEarned = computed(() => {
