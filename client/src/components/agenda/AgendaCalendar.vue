@@ -152,7 +152,7 @@
                       <span class="text-[11px] font-semibold text-text-muted tabular-nums whitespace-nowrap sm:text-sm">{{ appt.time }}</span>
                       <span class="font-bold text-text truncate text-[13px]">{{ appt.clientName }}</span>
                       <button v-if="appt.status !== 'paid' && appt.status !== 'cancelled'"
-                        class="ml-auto flex h-4 w-4 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-all hover:scale-110 flex-shrink-0"
+                        class="ml-auto flex h-4 w-4 items-center justify-center rounded transition-all hover:scale-110 flex-shrink-0"
                         :class="checkoutBtnClass(appt.status)" title="Cobrar" @click.stop="emitCheckout(appt.raw.id)">
                         <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
                       </button>

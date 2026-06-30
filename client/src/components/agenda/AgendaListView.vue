@@ -76,7 +76,7 @@
                 </span>
               </td>
               <td class="px-4 py-3 text-right">
-                <div class="flex items-center justify-end gap-1 opacity-0 transition-theme group-hover:opacity-100">
+                <div class="flex items-center justify-end gap-1">
                   <button
                     @click="$emit('edit', cita)"
                     class="rounded-lg p-1.5 text-text-muted transition-theme hover:bg-bg-secondary hover:text-primary"
