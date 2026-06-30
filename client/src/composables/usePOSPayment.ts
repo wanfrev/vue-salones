@@ -109,7 +109,7 @@ export function usePOSPayment() {
 
       await recordMutation.mutateAsync({
         appointmentId,
-        amount: grandTotal,
+        amount: grandTotal - tipAmount.value,
         method: paymentMethod.value,
         products,
         notes: paymentNotes.value,
