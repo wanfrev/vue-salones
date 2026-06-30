@@ -565,6 +565,7 @@ const toggleEmployeeOverride = (index: number) => {
 
 // When primary service changes, auto-fill price/duration and reset override
 watch(() => formData.value.service, (serviceId) => {
+  if (isEditing.value) return
   priceOverride.value = null
   if (!serviceId) return
   const svc = props.servicios?.find(s => s.id === serviceId)
