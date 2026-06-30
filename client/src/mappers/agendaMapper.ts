@@ -58,7 +58,7 @@ export const mapCitaFormToAppointmentInsert = (
   branchId?: string | null
 ) => {
   const startTime = new Date(`${data.date}T${data.time}:00`)
-  const endTime = new Date(startTime.getTime() + service.duration_minutes * 60 * 1000)
+  const endTime = new Date(startTime.getTime() + (data.duration || service.duration_minutes) * 60 * 1000)
 
   const isPaidStatus = data.status === 'paid'
   const appointmentStatus = isPaidStatus ? 'completed' : data.status

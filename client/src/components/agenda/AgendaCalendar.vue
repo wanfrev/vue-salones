@@ -192,7 +192,7 @@ import { useRoute } from 'vue-router'
 import { useAgenda } from '../../composables/useAgenda'
 import { useAuthStore } from '../../store/auth'
 import { isAdminPanelRole } from '../../constants/roles'
-import { normalizeAppointmentStatus, dateToHHmm12, toISODate, getInitials } from '../../lib/formatters'
+import { normalizeAppointmentStatus, dateToHHmm, dateToHHmm12, toISODate, getInitials } from '../../lib/formatters'
 import AgendaMonthView from './AgendaMonthView.vue'
 import AgendaYearView from './AgendaYearView.vue'
 import type { Cita } from '../../types/cita'
@@ -399,7 +399,7 @@ function emitEventClick(raw: any) {
       id: raw.id, clientId: raw.client_id, clientName: raw.clients?.full_name || 'Cliente',
       serviceId: raw.service_id, service: svc?.name || 'Servicio', employeeId: raw.employee_id,
       employee: employees.value?.find(e => e.id === raw.employee_id)?.full_name || 'Empleado', groupId: raw.group_id || undefined,
-      date: toISODate(start), time: dateToHHmm12(start),
+      date: toISODate(start), time: dateToHHmm(start),
       duration: svc?.duration_minutes || Math.round((end.getTime() - start.getTime()) / 60000),
       price: Number(svc?.price ?? 0), status: status as Cita['status'], notes: raw.internal_notes || '',
     },
