@@ -485,7 +485,7 @@ const filteredEarnings = computed(() => {
 
 const earningsWithVES = computed(() =>
   filteredEarnings.value.map(row => {
-    const rate = exchangeRate.value
+    const rate = employeeRate.value ?? exchangeRate.value
     const isVES = row.currency === 'VES'
     const vesTotal = isVES ? row.totalAmount * row.exchangeRateUsed : row.totalAmount * rate
     const vesEarnings = isVES ? row.employeeEarnings * row.exchangeRateUsed : row.employeeEarnings * rate
@@ -534,7 +534,16 @@ const { data: paymentsData, refetch: refetchPayments } = useQuery({
   staleTime: 0,
 })
 const payments = computed(() => paymentsData.value ?? [])
-const { formatUSD, formatVES, formatVESEs, exchangeRate } = useCurrency()
+const { formatUSD, formatVESEs, exchangeRate } = useCurrency()
+
+// Employee-specific rate (if set). Otherwise null and we fall back to global rate.
+const employeeRate = computed(() => businessStore.employeeExchangeRate)
+
+// Local formatVES that uses the employee rate when available
+const formatVES = (usdValue: number): string => {
+  const r = employeeRate.value ?? exchangeRate.value
+  return `${new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(usdValue * r)} Bs`
+}
 
 const filteredPayments = computed(() => {
   if (selectedPeriod.value === 'all') return payments.value

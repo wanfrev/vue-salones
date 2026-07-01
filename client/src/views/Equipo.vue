@@ -10,15 +10,28 @@
         </div>
         <h1 class="text-2xl font-bold tracking-tight text-text lg:text-3xl">Gestión de {{ (businessStore.terminology.employee || 'Empleado').toLowerCase() }}s</h1>
       </div>
-      <button
-        @click="handleNewEmpleado"
-        class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
-      >
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-        </svg>
-        <span>Nuevo {{ businessStore.terminology.employee || 'Empleado' }}</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          @click="showEmployeeRateModal = true"
+          class="flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text shadow-sm transition-theme hover:bg-bg-secondary"
+          :title="businessStore.employeeExchangeRate ? `Tasa empleados: 1 USD = ${businessStore.employeeExchangeRate} Bs` : 'Configurar tasa de pago a empleados'"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="hidden sm:inline">Tasa empleados</span>
+          <span v-if="businessStore.employeeExchangeRate" class="ml-1 rounded-md bg-warning/10 px-1.5 py-0.5 text-[10px] font-bold text-warning tabular-nums">{{ businessStore.employeeExchangeRate }}</span>
+        </button>
+        <button
+          @click="handleNewEmpleado"
+          class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-text-inverse shadow-lg shadow-primary/20 transition-theme hover:bg-primary-hover"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+          <span>Nuevo {{ businessStore.terminology.employee || 'Empleado' }}</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -523,6 +536,51 @@
     @save="handleSaveEmpleado"
     @delete="handleDeleteEmpleado"
   />
+
+  <!-- Employee Exchange Rate Modal -->
+  <Teleport to="body">
+    <div v-if="showEmployeeRateModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" @click.self="showEmployeeRateModal = false">
+      <div class="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-text">Tasa para empleados</h2>
+          <p class="text-sm text-text-muted">Esta tasa se usará SOLO para el recibo y comisiones de empleados. Si no la configuras, se usa la tasa global del negocio.</p>
+        </div>
+        <form class="space-y-4" @submit.prevent="handleSaveEmployeeRate">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text">Tasa (Bs por 1 USD)</label>
+            <input
+              v-model.number="employeeRateInput"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Dejar vacío para usar la tasa global"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-theme placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/30"
+            />
+            <p class="mt-1 text-xs text-text-muted">Actual: {{ businessStore.business?.ves_exchange_rate ?? '—' }} Bs (tasa global). {{ businessStore.employeeExchangeRate ? `Tasa empleados actual: ${businessStore.employeeExchangeRate} Bs.` : 'No hay tasa de empleados configurada.' }}</p>
+          </div>
+          <div v-if="employeeRateError" class="rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">{{ employeeRateError }}</div>
+          <div class="flex items-center justify-end gap-2">
+            <button
+              v-if="businessStore.employeeExchangeRate"
+              type="button"
+              @click="handleClearEmployeeRate"
+              class="rounded-lg border border-border px-3 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
+            >Restablecer (usar global)</button>
+            <button
+              type="button"
+              @click="showEmployeeRateModal = false"
+              class="rounded-lg border border-border px-3 py-2 text-sm font-semibold text-text-secondary transition-theme hover:bg-bg-secondary"
+            >Cancelar</button>
+            <button
+              type="submit"
+              :disabled="isSavingEmployeeRate"
+              class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text-inverse shadow-sm transition-theme hover:bg-primary-hover disabled:opacity-60"
+            >{{ isSavingEmployeeRate ? 'Guardando...' : 'Guardar' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -532,6 +590,7 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useNotification } from '../composables/useNotification'
 import { useCurrency } from '../composables/useCurrency'
+import { mutate } from '../lib/typedSupabase'
 import { usePeriodSelection } from '../composables/usePeriodSelection'
 import { deleteEmpleado, equipoKeys, listEquipo, saveEmpleado } from '../services/equipoService'
 import { useBusinessStore } from '../store/business'
@@ -593,6 +652,66 @@ const {
     (id) => ['dashboard-history', id],
   ],
 })
+
+// ---- Employee exchange rate (per-business, separate from global) ----
+const showEmployeeRateModal = ref(false)
+const employeeRateInput = ref<number | null>(null)
+const isSavingEmployeeRate = ref(false)
+const employeeRateError = ref('')
+
+watch(showEmployeeRateModal, (open) => {
+  if (open) {
+    employeeRateInput.value = businessStore.employeeExchangeRate ?? null
+    employeeRateError.value = ''
+  }
+})
+
+const handleSaveEmployeeRate = async () => {
+  const bid = businessStore.business?.id
+  if (!bid) return
+  if (employeeRateInput.value != null && (employeeRateInput.value <= 0 || !Number.isFinite(employeeRateInput.value))) {
+    employeeRateError.value = 'Ingresa una tasa válida mayor a 0'
+    return
+  }
+  isSavingEmployeeRate.value = true
+  try {
+    const value = employeeRateInput.value == null ? null : employeeRateInput.value
+    const { error } = await mutate
+      .from('businesses')
+      .update({ employee_ves_rate: value })
+      .eq('id', bid)
+    if (error) throw error
+    businessStore.updateBusiness({ employee_ves_rate: value } as any)
+    showEmployeeRateModal.value = false
+    info(value == null ? 'Tasa de empleados desactivada (se usará la global)' : `Tasa de empleados actualizada a ${value} Bs`)
+  } catch (err) {
+    employeeRateError.value = err instanceof Error ? err.message : 'Error al guardar'
+  } finally {
+    isSavingEmployeeRate.value = false
+  }
+}
+
+const handleClearEmployeeRate = async () => {
+  const bid = businessStore.business?.id
+  if (!bid) return
+  if (!window.confirm('¿Restablecer la tasa de empleados? Se volverá a usar la tasa global.')) return
+  isSavingEmployeeRate.value = true
+  try {
+    const { error } = await mutate
+      .from('businesses')
+      .update({ employee_ves_rate: null })
+      .eq('id', bid)
+    if (error) throw error
+    businessStore.updateBusiness({ employee_ves_rate: null } as any)
+    employeeRateInput.value = null
+    showEmployeeRateModal.value = false
+    info('Tasa de empleados desactivada')
+  } catch (err) {
+    employeeRateError.value = err instanceof Error ? err.message : 'Error al guardar'
+  } finally {
+    isSavingEmployeeRate.value = false
+  }
+}
 
 const DEFAULT_VISIBLE_EMPLOYEES = 4
 const showAll = ref(false)

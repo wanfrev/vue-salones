@@ -35,6 +35,7 @@ export interface Business {
   timezone: string
   currency: string
   ves_exchange_rate: number
+  employee_ves_rate: number | null
   niche_type: string
   theme_config: ThemeConfig
   terminology: Terminology

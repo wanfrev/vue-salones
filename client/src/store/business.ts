@@ -46,6 +46,10 @@ export const useBusinessStore = defineStore('business', () => {
   const features = computed(() => ({ ...DEFAULT_FEATURES, ...(business.value as any)?.features }))
   const hasFeature = (key: FeatureKey): boolean => features.value[key]
   const isMultiBranch = computed(() => features.value.multi_branch)
+  const employeeExchangeRate = computed(() => {
+    const r = (business.value as any)?.employee_ves_rate
+    return r != null && r > 0 ? Number(r) : null
+  })
 
   const currentBranch = computed(() =>
     selectedBranchId.value ? branches.value.find(b => b.id === selectedBranchId.value) ?? null : null
@@ -68,7 +72,7 @@ export const useBusinessStore = defineStore('business', () => {
     try {
       const { data, error } = await supabase
         .from('businesses')
-        .select('id, name, slug, phone, address, timezone, currency, ves_exchange_rate, niche_type, theme_config, terminology, job_titles, service_categories, features, multi_branch_enabled, active')
+        .select('id, name, slug, phone, address, timezone, currency, ves_exchange_rate, employee_ves_rate, niche_type, theme_config, terminology, job_titles, service_categories, features, multi_branch_enabled, active')
         .eq('id', nextBusinessId)
         .single()
 
@@ -170,6 +174,7 @@ export const useBusinessStore = defineStore('business', () => {
     jobTitles,
     serviceCategories,
     isMultiBranch,
+    employeeExchangeRate,
     features,
     hasFeature,
     loadBusiness,
