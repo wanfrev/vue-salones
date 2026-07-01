@@ -485,7 +485,7 @@ const filteredEarnings = computed(() => {
 
 const earningsWithVES = computed(() =>
   filteredEarnings.value.map(row => {
-    const rate = employeeRate.value ?? exchangeRate.value
+    const rate = row.exchangeRateUsed || (employeeRate.value ?? exchangeRate.value)
     const isVES = row.currency === 'VES'
     const vesTotal = isVES ? row.totalAmount * row.exchangeRateUsed : row.totalAmount * rate
     const vesEarnings = isVES ? row.employeeEarnings * row.exchangeRateUsed : row.employeeEarnings * rate
@@ -570,7 +570,10 @@ const paymentsWithCurrency = computed(() => {
       }
     }
     const usdAmount = Number(p.amount)
-    const displayVES = currency === 'VES' ? formatVESEs(originalAmount) : formatVES(usdAmount)
+    // Use historical exchange rate if available, otherwise use current employee rate or global rate
+    const historicalRate = p.exchange_rate_used
+    const rateToUse = historicalRate || (employeeRate.value ?? exchangeRate.value)
+    const displayVES = currency === 'VES' ? formatVESEs(originalAmount) : `${new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(usdAmount * rateToUse)} Bs`
     const displayAmount = currency === 'VES' ? formatVESEs(originalAmount) : formatUSD(usdAmount)
     return {
       ...p,
