@@ -36,8 +36,16 @@ export function useAdminAgenda(businessId: () => string | null) {
 
   const citas = computed<Cita[]>(() => {
     const all = citasData.value ?? []
-    if (!filterDate.value) return all
-    return all.filter(c => c.date === filterDate.value)
+    const filtered = filterDate.value ? all.filter(c => c.date === filterDate.value) : all
+    // Deduplicate grouped appointments — only show one per group
+    const seen = new Set<string>()
+    return filtered.filter(c => {
+      if (c.groupId) {
+        if (seen.has(c.groupId)) return false
+        seen.add(c.groupId)
+      }
+      return true
+    })
   })
 
   const goToToday = () => {

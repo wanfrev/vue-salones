@@ -109,12 +109,13 @@ function getApptsForDate(iso: string) {
     })
     .reduce((acc: any[], a: any) => {
       if (a.group_id) {
-        const existing = acc.find(x => x.group_id === a.group_id)
+        const existing = acc.find(x => x._primaryId === a.group_id)
         if (existing) {
-          if (!existing._groupMembers) existing._groupMembers = [existing]
           existing._groupMembers.push(a)
           return acc
         }
+        a._primaryId = a.group_id
+        a._groupMembers = []
       }
       acc.push(a)
       return acc
@@ -124,20 +125,20 @@ function getApptsForDate(iso: string) {
       const emp = props.employees.find((e: any) => e.id === a.employee_id)?.full_name || ''
       const members: any[] = a._groupMembers || []
       const isGroup = members.length > 0
-      const groupServices = isGroup
+      const groupNames = isGroup
         ? [svc?.name || 'Servicio', ...members.map((m: any) => props.services.find((s: any) => s.id === m.service_id)?.name || 'Servicio')]
         : undefined
       return {
         id: a.id,
         clientName: a.clients?.full_name || 'Cliente',
-        service: isGroup ? groupServices!.join(' + ') : (svc?.name || 'Servicio'),
+        service: isGroup ? groupNames!.join(' + ') : (svc?.name || 'Servicio'),
         time: dateToHHmm12(new Date(a.start_time)),
         status: normalizeAppointmentStatus(a),
         employeeName: emp,
         raw: a,
         _sortTime: dateToHHmm(new Date(a.start_time)),
         isGroup,
-        groupServices,
+        groupServices: groupNames,
       }
     })
     .sort((a, b) => a._sortTime.localeCompare(b._sortTime))
