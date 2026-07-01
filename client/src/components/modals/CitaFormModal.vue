@@ -580,7 +580,7 @@ watch(() => formData.value.duration, (duration) => {
   for (const extra of formData.value.extraServices) {
     extra.duration = duration
   }
-})
+}, { flush: 'sync' })
 
 // Total price = sum of all service rows
 const totalPrice = computed(() => {

@@ -39,7 +39,9 @@ export const mapAppointmentToCita = (appointment: AppointmentWithRelations): Cit
     groupId: appointment.group_id ?? undefined,
     date: toDateInput(appointment.start_time),
     time: toTimeInput(appointment.start_time),
-    duration: Math.round((new Date(appointment.end_time).getTime() - new Date(appointment.start_time).getTime()) / 60000) || (service?.duration_minutes ?? 30),
+    duration: appointment.duration_override != null
+      ? Number(appointment.duration_override)
+      : Math.round((new Date(appointment.end_time).getTime() - new Date(appointment.start_time).getTime()) / 60000) || (service?.duration_minutes ?? 30),
     price: appointment.price_override != null ? Number(appointment.price_override) : Number(service?.price ?? 0),
     status: normalizedStatus,
     paymentStatus: appointment.payment_status,
@@ -57,13 +59,16 @@ export const mapCitaFormToAppointmentInsert = (
   createdBy?: string | null,
   branchId?: string | null
 ) => {
+  const effectiveDuration = data.duration || service.duration_minutes
   const startTime = new Date(`${data.date}T${data.time}:00`)
-  const endTime = new Date(startTime.getTime() + (data.duration || service.duration_minutes) * 60 * 1000)
+  const endTime = new Date(startTime.getTime() + effectiveDuration * 60 * 1000)
 
   const isPaidStatus = data.status === 'paid'
   const appointmentStatus = isPaidStatus ? 'completed' : data.status
   const catalogPrice = Number(service.price ?? 0)
   const hasOverride = data.price != null && data.price !== catalogPrice
+  const catalogDuration = Number(service.duration_minutes ?? 0)
+  const hasDurationOverride = data.duration != null && data.duration !== catalogDuration
 
   return {
     business_id: businessId,
@@ -79,6 +84,7 @@ export const mapCitaFormToAppointmentInsert = (
     status: appointmentStatus,
     payment_status: isPaidStatus ? 'paid' as const : 'unpaid' as const,
     price_override: hasOverride ? data.price : null,
+    duration_override: hasDurationOverride ? data.duration : null,
     internal_notes: data.notes.trim() || null,
     source: 'internal' as const,
     created_by: createdBy ?? null,
@@ -99,13 +105,15 @@ export const mapServiceItemToAppointmentInsert = (
   branchId?: string | null
 ) => {
   const startTime = new Date(`${date}T${time}:00`)
-  const duration = item.duration || service?.duration_minutes || 30
-  const endTime = new Date(startTime.getTime() + duration * 60 * 1000)
+  const effectiveDuration = item.duration || service?.duration_minutes || 30
+  const endTime = new Date(startTime.getTime() + effectiveDuration * 60 * 1000)
 
   const isPaidStatus = status === 'paid'
   const appointmentStatus = isPaidStatus ? 'completed' : status
   const catalogPrice = Number(service?.price ?? 0)
   const hasOverride = item.price != null && item.price !== catalogPrice
+  const catalogDuration = Number(service?.duration_minutes ?? 0)
+  const hasDurationOverride = item.duration != null && item.duration !== catalogDuration
 
   return {
     business_id: businessId,
@@ -122,6 +130,7 @@ export const mapServiceItemToAppointmentInsert = (
     status: appointmentStatus,
     payment_status: isPaidStatus ? 'paid' as const : 'unpaid' as const,
     price_override: hasOverride ? item.price : null,
+    duration_override: hasDurationOverride ? item.duration : null,
     internal_notes: notes.trim() || null,
     source: 'internal' as const,
     created_by: createdBy ?? null,

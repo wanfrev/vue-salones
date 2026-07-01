@@ -106,6 +106,28 @@ describe('mapCitaFormToAppointmentInsert', () => {
     expect(result.price_override).toBeNull()
   })
 
+  it('sets duration_override when duration differs from catalog', () => {
+    const result = mapCitaFormToAppointmentInsert(
+      'biz-1',
+      { ...validFormData, duration: 60 },
+      mockService,
+      'client-1',
+    )
+
+    expect(result.duration_override).toBe(60)
+  })
+
+  it('does not set duration_override when duration matches catalog', () => {
+    const result = mapCitaFormToAppointmentInsert(
+      'biz-1',
+      { ...validFormData, duration: 45 },
+      mockService,
+      'client-1',
+    )
+
+    expect(result.duration_override).toBeNull()
+  })
+
   it('sets assistant fields when provided', () => {
     const result = mapCitaFormToAppointmentInsert(
       'biz-1',
@@ -190,6 +212,7 @@ describe('mapAppointmentToCita', () => {
     status: 'confirmed' as const,
     payment_status: 'unpaid' as const,
     price_override: null,
+    duration_override: null,
     internal_notes: null,
     source: 'internal' as const,
     group_id: null,
@@ -219,6 +242,12 @@ describe('mapAppointmentToCita', () => {
     const appt = { ...mockAppointment, price_override: 40 }
     const result = mapAppointmentToCita(appt as any)
     expect(result.price).toBe(40)
+  })
+
+  it('uses duration_override when set (ignoring end_time span)', () => {
+    const appt = { ...mockAppointment, duration_override: 90, end_time: '2026-06-24T14:45:00.000Z' }
+    const result = mapAppointmentToCita(appt as any)
+    expect(result.duration).toBe(90)
   })
 
   it('normalizes paid status', () => {

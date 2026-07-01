@@ -202,6 +202,7 @@ export function createMockDataStore(): MockDataStore {
       status: status as Appointment['status'],
       payment_status: 'unpaid',
       price_override: null,
+      duration_override: null,
       service_notes: null, internal_notes: null,
       reminder_sent_at: null,
       source: 'internal',
