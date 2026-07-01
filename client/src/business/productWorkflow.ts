@@ -35,10 +35,23 @@ export async function ensureDefaultLocation(businessId: string, branchId?: strin
       .select('id')
       .single()
     if (insertErr) {
-      console.error('[ensureDefaultLocation] error creating location:', insertErr)
-      throw new Error(insertErr.message || 'Error al crear ubicación de inventario')
+      const isDuplicate = insertErr.code === '23505' && insertErr.message.includes('inventory_locations_business_id_name_key')
+      if (isDuplicate && branchId) {
+        const { data: existingLoc } = await supabase
+          .from('inventory_locations')
+          .select('id')
+          .eq('business_id', businessId)
+          .eq('name', 'Principal')
+          .maybeSingle()
+        loc = existingLoc
+      }
+      if (!loc) {
+        console.error('[ensureDefaultLocation] error creating location:', insertErr)
+        throw new Error(insertErr.message || 'Error al crear ubicación de inventario')
+      }
+    } else {
+      loc = newLoc
     }
-    loc = newLoc
   }
 
   if (!loc?.id) {
