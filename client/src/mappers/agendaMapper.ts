@@ -39,7 +39,7 @@ export const mapAppointmentToCita = (appointment: AppointmentWithRelations): Cit
     groupId: appointment.group_id ?? undefined,
     date: toDateInput(appointment.start_time),
     time: toTimeInput(appointment.start_time),
-    duration: service?.duration_minutes ?? Math.round((new Date(appointment.end_time).getTime() - new Date(appointment.start_time).getTime()) / 60000),
+    duration: Math.round((new Date(appointment.end_time).getTime() - new Date(appointment.start_time).getTime()) / 60000) || (service?.duration_minutes ?? 30),
     price: appointment.price_override != null ? Number(appointment.price_override) : Number(service?.price ?? 0),
     status: normalizedStatus,
     paymentStatus: appointment.payment_status,

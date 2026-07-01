@@ -655,7 +655,7 @@ watch(
         employeePercentageOverride: cita.employeePercentageOverride,
         duration: cita.duration || 30,
         price: groupMembers.length > 0
-          ? cita.price! - groupMembers.reduce((s, m) => s + (m.price ?? 0), 0)
+          ? (() => { const s = groupMembers.reduce((a, m) => a + (m.price ?? 0), 0); return (cita.price ?? 0) > s ? (cita.price ?? 0) - s : (cita.price || 0) })()
           : (cita.price || 0),
         extraServices: groupMembers,
         date: cita.date || toISODate(new Date()),
