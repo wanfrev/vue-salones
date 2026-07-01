@@ -29,12 +29,20 @@ export async function ensureDefaultLocation(businessId: string, branchId?: strin
   }
 
   if (!loc) {
-    const { data: newLoc } = await mutate
+    const { data: newLoc, error: insertErr } = await mutate
       .from('inventory_locations')
       .insert({ business_id: businessId, branch_id: branchId ?? null, name: 'Principal', is_default: true })
       .select('id')
       .single()
+    if (insertErr) {
+      console.error('[ensureDefaultLocation] error creating location:', insertErr)
+      throw new Error(insertErr.message || 'Error al crear ubicación de inventario')
+    }
     loc = newLoc
+  }
+
+  if (!loc?.id) {
+    throw new Error('No se pudo crear ni encontrar una ubicación de inventario para esta sucursal')
   }
 
   return loc
