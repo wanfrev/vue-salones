@@ -575,6 +575,13 @@ watch(() => formData.value.service, (serviceId) => {
   }
 })
 
+// When user edits total duration, propagate to all extra services
+watch(() => formData.value.duration, (duration) => {
+  for (const extra of formData.value.extraServices) {
+    extra.duration = duration
+  }
+})
+
 // Total price = sum of all service rows
 const totalPrice = computed(() => {
   let total = formData.value.price
@@ -768,9 +775,10 @@ const handleSubmit = () => {
   saveInProgress.value = true
 
   const finalPrice = priceOverride.value !== null ? priceOverride.value : totalPrice.value
-  const citaData: CitaFormData & { id?: string } = {
+  const citaData: CitaFormData & { id?: string; priceOverridden?: boolean } = {
     ...formData.value,
     price: finalPrice,
+    priceOverridden: priceOverride.value !== null,
   }
 
   if (modalData.value?.cita?.id) {

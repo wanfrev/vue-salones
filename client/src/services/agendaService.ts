@@ -193,9 +193,10 @@ export const saveCita = async (
 
   const inserts = []
 
-  // Primary service — use catalog price so POS grouping sums correctly
+  // Primary service — use catalog price unless user explicitly overrode total
   const primaryService = servicesMap.get(data.service) as Service | undefined
-  const primaryPrice = data.extraServices?.length > 0
+  const userOverrodePrice = (data as any).priceOverridden === true
+  const primaryPrice = (data.extraServices?.length > 0 && !userOverrodePrice)
     ? (primaryService?.price ?? 0)
     : data.price
 
