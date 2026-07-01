@@ -317,30 +317,67 @@ export const updateAppointmentTime = async (
 }
 
 export const deleteCita = async (id: string): Promise<void> => {
-  const { data: appt } = await supabase
+  const { data: appt, error: findError } = await supabase
     .from('appointments')
     .select('group_id')
     .eq('id', id)
     .maybeSingle()
 
+  if (findError) {
+    throw new Error(findError.message || 'No se pudo buscar la cita')
+  }
+
   const groupId = (appt as any)?.group_id
 
   if (groupId) {
-    const { error, count } = await mutate
+    const { data: groupMembers } = await supabase
       .from('appointments')
-      .delete({ count: 'exact' })
+      .select('id')
       .eq('group_id', groupId)
 
-    if (error) throw error
-    if (count === 0) throw new Error('No se encontró la cita para eliminar')
+    const allIds = (groupMembers ?? []).map((m: any) => m.id)
+
+    const { data: transactions } = await supabase
+      .from('transactions')
+      .select('id')
+      .in('appointment_id', allIds)
+
+    for (const tx of (transactions ?? []) as Array<{ id: string }>) {
+      const { error: txError } = await supabase.rpc('delete_transaction', { p_transaction_id: tx.id })
+      if (txError) {
+        throw new Error(txError.message || 'Error al eliminar pagos asociados')
+      }
+    }
+
+    const { error } = await mutate
+      .from('appointments')
+      .delete()
+      .eq('group_id', groupId)
+
+    if (error) {
+      throw new Error(error.message || error.details || 'Error al eliminar la cita grupal')
+    }
     return
   }
 
-  const { error, count } = await mutate
+  const { data: transactions } = await supabase
+    .from('transactions')
+    .select('id')
+    .eq('appointment_id', id)
+
+  for (const tx of (transactions ?? []) as Array<{ id: string }>) {
+    const { error: txError } = await supabase.rpc('delete_transaction', { p_transaction_id: tx.id })
+    if (txError) {
+      throw new Error(txError.message || 'Error al eliminar pagos asociados')
+    }
+  }
+
+  const { error } = await mutate
     .from('appointments')
-    .delete({ count: 'exact' })
+    .delete()
     .eq('id', id)
 
-  if (error) throw error
-  if (count === 0) throw new Error('No se encontró la cita para eliminar')
+  if (error) {
+    throw new Error(error.message || error.details || 'Error al eliminar la cita')
+  }
 }
