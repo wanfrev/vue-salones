@@ -317,30 +317,36 @@ export const updateAppointmentTime = async (
 }
 
 export const deleteCita = async (id: string): Promise<void> => {
-  const { data: appt } = await supabase
+  const { data: appt, error: findError } = await supabase
     .from('appointments')
     .select('group_id')
     .eq('id', id)
     .maybeSingle()
 
+  if (findError) {
+    throw new Error(findError.message || 'No se pudo buscar la cita')
+  }
+
   const groupId = (appt as any)?.group_id
 
   if (groupId) {
-    const { error, count } = await mutate
+    const { error } = await mutate
       .from('appointments')
-      .delete({ count: 'exact' })
+      .delete()
       .eq('group_id', groupId)
 
-    if (error) throw error
-    if (count === 0) throw new Error('No se encontró la cita para eliminar')
+    if (error) {
+      throw new Error(error.message || error.details || 'Error al eliminar la cita grupal')
+    }
     return
   }
 
-  const { error, count } = await mutate
+  const { error } = await mutate
     .from('appointments')
-    .delete({ count: 'exact' })
+    .delete()
     .eq('id', id)
 
-  if (error) throw error
-  if (count === 0) throw new Error('No se encontró la cita para eliminar')
+  if (error) {
+    throw new Error(error.message || error.details || 'Error al eliminar la cita')
+  }
 }
