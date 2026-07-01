@@ -35,6 +35,7 @@ export function useEmployeePayments(
   const { exchangeRate } = useCurrency()
   const businessStore = useBusinessStore()
   const branchId = computed(() => businessStore.currentBranchId)
+  const employeePaymentsRate = computed(() => businessStore.employeeExchangeRate ?? exchangeRate.value)
 
   const { data: paymentsData, isLoading } = useQuery({
     queryKey: computed(() => [
@@ -63,7 +64,17 @@ export function useEmployeePayments(
       currency: 'USD' | 'VES'
     }) => {
       if (!businessId.value) throw new Error('No hay negocio activo')
-      return createEmployeePayment(businessId.value, params.employeeId, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value, branchId.value)
+      return createEmployeePayment(
+        businessId.value,
+        params.employeeId,
+        params.amount,
+        params.method,
+        params.notes,
+        params.date,
+        params.currency,
+        employeePaymentsRate.value,
+        branchId.value,
+      )
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['employee-payments', businessId.value], exact: false })
@@ -201,7 +212,16 @@ export function useEmployeePayments(
       currency: 'USD' | 'VES'
     }) => {
       if (!businessId.value) throw new Error('No hay negocio activo')
-      return createEmployeeConsumption(businessId.value, params.employeeId, params.amount, params.concept, params.date, params.currency, exchangeRate.value, branchId.value)
+      return createEmployeeConsumption(
+        businessId.value,
+        params.employeeId,
+        params.amount,
+        params.concept,
+        params.date,
+        params.currency,
+        employeePaymentsRate.value,
+        branchId.value,
+      )
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['employee-payments', businessId.value], exact: false })
@@ -269,7 +289,15 @@ export function useEmployeePayments(
       date: string
       currency: 'USD' | 'VES'
     }) => {
-      return updateEmployeePayment(params.id, params.amount, params.method, params.notes, params.date, params.currency, exchangeRate.value)
+      return updateEmployeePayment(
+        params.id,
+        params.amount,
+        params.method,
+        params.notes,
+        params.date,
+        params.currency,
+        employeePaymentsRate.value,
+      )
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['employee-payments', businessId.value], exact: false })

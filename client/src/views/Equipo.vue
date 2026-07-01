@@ -295,7 +295,7 @@
               <td class="px-3 py-3 text-right text-text hidden sm:table-cell">{{ formatUSD(row.commissionTotal) }}</td>
               <td class="px-3 py-3 text-right text-text hidden sm:table-cell">{{ formatUSD(row.baseSalary) }}</td>
               <td class="px-3 py-3 text-right font-semibold text-text">{{ formatUSD(row.totalEarned) }}</td>
-              <td class="px-3 py-3 text-right hidden sm:table-cell"><div class="font-medium text-danger">{{ formatUSD(row.totalPaid) }}</div><div class="text-[10px] text-text-muted">{{ formatVESInline(row.totalPaid) }} Bs</div></td>
+              <td class="px-3 py-3 text-right hidden sm:table-cell"><div class="font-medium text-danger">{{ formatUSD(row.totalPaid) }}</div><div class="text-[10px] text-text-muted">{{ formatEmployeeVESInline(row.totalPaid) }} Bs</div></td>
               <td class="px-3 py-3 text-right"><span class="font-bold" :class="row.pendingBalance > 0 ? 'text-primary' : 'text-text-muted'">{{ formatUSD(row.pendingBalance) }}</span></td>
             </tr>
           </template>
@@ -303,8 +303,8 @@
             <div v-for="row in items" :key="row.employeeId" class="rounded-lg border border-border-subtle bg-bg-secondary/30 p-3 space-y-2 text-sm">
               <div class="flex items-center justify-between"><span class="font-medium text-text">{{ row.employeeName }}</span><span class="text-xs text-text-muted" v-if="row.payType === 'salary'">Sueldo base</span><span class="text-xs text-text-muted" v-else-if="row.payType === 'mixed'">Sueldo + {{ row.payPercentage }}%</span><span class="text-xs text-text-muted" v-else-if="row.payType === 'percentage'">{{ row.payPercentage }}% Empleado</span></div>
               <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                <span class="text-text-muted">Total Ganado</span><span class="text-right"><span class="text-text">{{ formatUSD(row.totalEarned) }}</span><span class="text-text-muted ml-1">{{ formatVESInline(row.totalEarned) }} Bs</span></span>
-                <span class="text-text-muted">Pagado</span><span class="text-right"><span class="text-danger">{{ formatUSD(row.totalPaid) }}</span><span class="text-text-muted ml-1">{{ formatVESInline(row.totalPaid) }} Bs</span></span>
+                <span class="text-text-muted">Total Ganado</span><span class="text-right"><span class="text-text">{{ formatUSD(row.totalEarned) }}</span><span class="text-text-muted ml-1">{{ formatEmployeeVESInline(row.totalEarned) }} Bs</span></span>
+                <span class="text-text-muted">Pagado</span><span class="text-right"><span class="text-danger">{{ formatUSD(row.totalPaid) }}</span><span class="text-text-muted ml-1">{{ formatEmployeeVESInline(row.totalPaid) }} Bs</span></span>
                 <span class="text-text-muted">Pendiente</span><span class="text-right font-bold" :class="row.pendingBalance > 0 ? 'text-primary' : 'text-text-muted'">{{ formatUSD(row.pendingBalance) }}</span>
               </div>
             </div>
@@ -543,7 +543,7 @@
       <div class="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
         <div class="mb-4">
           <h2 class="text-lg font-semibold text-text">Tasa para empleados</h2>
-          <p class="text-sm text-text-muted">Esta tasa se usará SOLO para el recibo y comisiones de empleados. Si no la configuras, se usa la tasa global del negocio.</p>
+          <p class="text-sm text-text-muted">Esta tasa se usará SOLO para pagos de nómina, consumos/deuda y recibos de empleados. Si no la configuras, se usa la tasa global del negocio.</p>
         </div>
         <form class="space-y-4" @submit.prevent="handleSaveEmployeeRate">
           <div>
@@ -778,6 +778,10 @@ const activeTab = ref<'pagos' | 'nomina' | 'deuda' | 'horarios'>('pagos')
 
 // ---- Currency ----
 const { formatUSD, formatVESInline, formatVESEs } = useCurrency()
+const formatEmployeeVESInline = (usdAmount: number, rate?: number): string => {
+  const employeeRate = businessStore.employeeExchangeRate
+  return formatVESInline(usdAmount, rate ?? employeeRate ?? undefined)
+}
 
 // ---- Payment Modal ----
 const selectedBalance = ref<EmployeeBalance | null>(null)
