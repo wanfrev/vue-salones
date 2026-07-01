@@ -775,10 +775,9 @@ const handleSubmit = () => {
   saveInProgress.value = true
 
   const finalPrice = priceOverride.value !== null ? priceOverride.value : totalPrice.value
-  const citaData: CitaFormData & { id?: string; priceOverridden?: boolean } = {
+  const citaData: CitaFormData & { id?: string } = {
     ...formData.value,
     price: finalPrice,
-    priceOverridden: priceOverride.value !== null,
   }
 
   if (modalData.value?.cita?.id) {

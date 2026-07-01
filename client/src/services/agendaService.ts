@@ -193,12 +193,9 @@ export const saveCita = async (
 
   const inserts = []
 
-  // Primary service — use catalog price unless user explicitly overrode total
+  // Primary service — always use form's price; the mapper decides override vs catalog
   const primaryService = servicesMap.get(data.service) as Service | undefined
-  const userOverrodePrice = (data as any).priceOverridden === true
-  const primaryPrice = (data.extraServices?.length > 0 && !userOverrodePrice)
-    ? (primaryService?.price ?? 0)
-    : data.price
+  const primaryPrice = data.price
 
   inserts.push(mapServiceItemToAppointmentInsert(
     businessId,
