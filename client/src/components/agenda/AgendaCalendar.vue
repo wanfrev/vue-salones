@@ -449,6 +449,12 @@ function emitEventClick(raw: any) {
   const start = new Date(raw.start_time); const end = new Date(raw.end_time)
   const svc = services.value?.find(s => s.id === raw.service_id)
   const status = normalizeAppointmentStatus(raw)
+  const effectiveDuration = raw.duration_override != null
+    ? Number(raw.duration_override)
+    : Math.round((end.getTime() - start.getTime()) / 60000) || Number(svc?.duration_minutes ?? 30)
+  const effectivePrice = raw.price_override != null
+    ? Number(raw.price_override)
+    : Number(svc?.price ?? 0)
   emit('eventClick', {
     id: raw.id, title: raw.clients?.full_name || 'Cliente', start, end, status,
     citaData: {
@@ -456,8 +462,8 @@ function emitEventClick(raw: any) {
       serviceId: raw.service_id, service: svc?.name || 'Servicio', employeeId: raw.employee_id,
       employee: employees.value?.find(e => e.id === raw.employee_id)?.full_name || 'Empleado', groupId: raw.group_id || undefined,
       date: toISODate(start), time: dateToHHmm(start),
-      duration: svc?.duration_minutes || Math.round((end.getTime() - start.getTime()) / 60000),
-      price: Number(svc?.price ?? 0), status: status as Cita['status'], notes: raw.internal_notes || '',
+      duration: effectiveDuration,
+      price: effectivePrice, status: status as Cita['status'], notes: raw.internal_notes || '',
     },
   })
 }

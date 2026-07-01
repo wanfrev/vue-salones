@@ -625,6 +625,8 @@ watch(
     if (cita) {
       let phone = ''
       let groupMembers: CitaFormServiceItem[] = []
+      let primaryDuration = cita.duration || 30
+      let primaryPrice = cita.price || 0
 
       if (cita.clientId && businessId.value) {
         try {
@@ -637,6 +639,17 @@ watch(
       if (cita.groupId) {
         try {
           const members = await listCitaGroupMembers(cita.groupId)
+          const selectedMember = members.find(m => m.id === cita.id)
+          if (selectedMember) {
+            const selectedDuration = selectedMember.duration_override != null
+              ? Number(selectedMember.duration_override)
+              : Math.round((new Date(selectedMember.end_time).getTime() - new Date(selectedMember.start_time).getTime()) / 60000) || (selectedMember.services?.duration_minutes ?? 30)
+            const selectedPrice = selectedMember.price_override != null
+              ? Number(selectedMember.price_override)
+              : Number(selectedMember.services?.price ?? 0)
+            primaryDuration = selectedDuration
+            primaryPrice = selectedPrice
+          }
           groupMembers = members
             .filter(m => m.id !== cita.id)
             .map(m => ({
@@ -660,10 +673,8 @@ watch(
         assistantEmployee: cita.assistantId || '',
         assistantPercentage: cita.assistantPercentage || 0,
         employeePercentageOverride: cita.employeePercentageOverride,
-        duration: cita.duration || 30,
-        price: groupMembers.length > 0
-          ? (() => { const s = groupMembers.reduce((a, m) => a + (m.price ?? 0), 0); return (cita.price ?? 0) > s ? (cita.price ?? 0) - s : (cita.price || 0) })()
-          : (cita.price || 0),
+        duration: primaryDuration,
+        price: primaryPrice,
         extraServices: groupMembers,
         date: cita.date || toISODate(new Date()),
         time: cita.time || '09:00',
