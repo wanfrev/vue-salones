@@ -330,6 +330,25 @@ export const deleteCita = async (id: string): Promise<void> => {
   const groupId = (appt as any)?.group_id
 
   if (groupId) {
+    const { data: groupMembers } = await supabase
+      .from('appointments')
+      .select('id')
+      .eq('group_id', groupId)
+
+    const allIds = (groupMembers ?? []).map((m: any) => m.id)
+
+    const { data: transactions } = await supabase
+      .from('transactions')
+      .select('id')
+      .in('appointment_id', allIds)
+
+    for (const tx of (transactions ?? []) as Array<{ id: string }>) {
+      const { error: txError } = await supabase.rpc('delete_transaction', { p_transaction_id: tx.id })
+      if (txError) {
+        throw new Error(txError.message || 'Error al eliminar pagos asociados')
+      }
+    }
+
     const { error } = await mutate
       .from('appointments')
       .delete()
@@ -339,6 +358,18 @@ export const deleteCita = async (id: string): Promise<void> => {
       throw new Error(error.message || error.details || 'Error al eliminar la cita grupal')
     }
     return
+  }
+
+  const { data: transactions } = await supabase
+    .from('transactions')
+    .select('id')
+    .eq('appointment_id', id)
+
+  for (const tx of (transactions ?? []) as Array<{ id: string }>) {
+    const { error: txError } = await supabase.rpc('delete_transaction', { p_transaction_id: tx.id })
+    if (txError) {
+      throw new Error(txError.message || 'Error al eliminar pagos asociados')
+    }
   }
 
   const { error } = await mutate
