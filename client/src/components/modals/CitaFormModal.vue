@@ -563,8 +563,7 @@ const toggleEmployeeOverride = (index: number) => {
   }
 }
 
-// When primary service changes, auto-fill price and reset override
-// Duration is NOT auto-filled — user controls it manually
+// When primary service changes, auto-fill price, duration and reset override
 watch(() => formData.value.service, (serviceId) => {
   if (isEditing.value) return
   priceOverride.value = null
@@ -572,6 +571,7 @@ watch(() => formData.value.service, (serviceId) => {
   const svc = props.servicios?.find(s => s.id === serviceId)
   if (svc) {
     formData.value.price = svc.price
+    formData.value.duration = svc.duration
   }
 })
 
@@ -638,7 +638,7 @@ watch(
               assistantEmployeeId: m.assistant_employee_id ?? '',
               assistantPercentage: Number(m.assistant_percentage ?? 0),
               employeePercentageOverride: m.employee_percentage_override ?? undefined,
-              duration: m.services?.duration_minutes ?? 30,
+              duration: Math.round((new Date(m.end_time).getTime() - new Date(m.start_time).getTime()) / 60000) || (m.services?.duration_minutes ?? 30),
               price: Number(m.price_override ?? m.services?.price ?? 0),
             }))
         } catch { /* ignore */ }
